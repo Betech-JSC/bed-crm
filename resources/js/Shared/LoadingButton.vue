@@ -1,12 +1,21 @@
 <template>
-  <button :disabled="loading" class="flex items-center">
-    <div v-if="loading" class="btn-spinner mr-2" />
+  <Button
+    :disabled="loading"
+    :loading="loading"
+    v-bind="$attrs"
+  >
     <slot />
-  </button>
+  </Button>
 </template>
 
 <script>
+import Button from 'primevue/button'
+
 export default {
+  components: {
+    Button,
+  },
+  inheritAttrs: false,
   props: {
     loading: Boolean,
   },

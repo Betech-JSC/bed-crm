@@ -22,6 +22,11 @@ class Contact extends Model
         return $this->belongsTo(Organization::class);
     }
 
+    public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Activity::class, 'subject')->orderBy('date', 'desc');
+    }
+
     public function getNameAttribute()
     {
         return $this->first_name.' '.$this->last_name;

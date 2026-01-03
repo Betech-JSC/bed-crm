@@ -17,6 +17,18 @@ class DatabaseSeeder extends Seeder
     {
         $account = Account::create(['name' => 'Acme Corporation']);
 
+        // Create default admin user
+        User::factory()->create([
+            'account_id' => $account->id,
+            'first_name' => 'Admin',
+            'last_name' => 'User',
+            'email' => 'admin@betech.com',
+            'password' => 'password',
+            'owner' => true,
+            'role' => User::ROLE_ADMIN,
+        ]);
+
+        // Create demo user (existing)
         User::factory()->create([
             'account_id' => $account->id,
             'first_name' => 'John',
@@ -24,9 +36,26 @@ class DatabaseSeeder extends Seeder
             'email' => 'johndoe@example.com',
             'password' => 'secret',
             'owner' => true,
+            'role' => User::ROLE_SALE,
         ]);
 
-        User::factory(5)->create(['account_id' => $account->id]);
+        // Create users with different roles
+        User::factory()->create([
+            'account_id' => $account->id,
+            'role' => User::ROLE_SALE,
+        ]);
+
+        User::factory()->create([
+            'account_id' => $account->id,
+            'role' => User::ROLE_MARKETING,
+        ]);
+
+        User::factory()->create([
+            'account_id' => $account->id,
+            'role' => User::ROLE_CSKH,
+        ]);
+
+        User::factory(2)->create(['account_id' => $account->id]);
 
         $organizations = Organization::factory(100)
             ->create(['account_id' => $account->id]);
@@ -36,5 +65,16 @@ class DatabaseSeeder extends Seeder
             ->each(function ($contact) use ($organizations) {
                 $contact->update(['organization_id' => $organizations->random()->id]);
             });
+
+        // Seed additional data for testing CRM features
+        $this->call([
+            ICPSeeder::class,
+            SLASettingSeeder::class,
+            LeadSeeder::class,
+            DealSeeder::class,
+            ActivitySeeder::class,
+            SalesPlaybookSeeder::class,
+            ProposalSeeder::class,
+        ]);
     }
 }

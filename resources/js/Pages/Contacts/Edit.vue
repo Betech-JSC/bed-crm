@@ -2,8 +2,8 @@
   <div>
     <Head :title="`${form.first_name} ${form.last_name}`" />
     <h1 class="mb-8 text-3xl font-bold">
-      <Link class="text-indigo-400 hover:text-indigo-600" href="/contacts">Contacts</Link>
-      <span class="text-indigo-400 font-medium">/</span>
+      <Link class="text-primary-400 hover:text-primary-600" href="/contacts">Contacts</Link>
+      <span class="text-primary-400 font-medium">/</span>
       {{ form.first_name }} {{ form.last_name }}
     </h1>
     <trashed-message v-if="contact.deleted_at" class="mb-6" @restore="restore"> This contact has been deleted. </trashed-message>
@@ -34,6 +34,19 @@
         </div>
       </form>
     </div>
+
+    <!-- Activity Timeline -->
+    <div class="mt-6 max-w-3xl">
+      <div class="bg-white rounded-md shadow overflow-hidden">
+        <div class="p-6">
+          <ActivityTimeline
+            :activities="activities"
+            subject-type="App\Models\Contact"
+            :subject-id="contact.id"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -44,6 +57,7 @@ import TextInput from '@/Shared/TextInput.vue'
 import SelectInput from '@/Shared/SelectInput.vue'
 import LoadingButton from '@/Shared/LoadingButton.vue'
 import TrashedMessage from '@/Shared/TrashedMessage.vue'
+import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
 
 export default {
   components: {
@@ -53,10 +67,12 @@ export default {
     SelectInput,
     TextInput,
     TrashedMessage,
+    ActivityTimeline,
   },
   layout: Layout,
   props: {
     contact: Object,
+    activities: Array,
     organizations: Array,
   },
   remember: 'form',

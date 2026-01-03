@@ -1,85 +1,133 @@
 <template>
   <div>
     <Head title="Contacts" />
-    <h1 class="mb-8 text-3xl font-bold">Contacts</h1>
-    <div class="flex items-center justify-between mb-6">
-      <search-filter v-model="form.search" class="mr-4 w-full max-w-md" @reset="reset">
-        <label class="block text-gray-700">Trashed:</label>
-        <select v-model="form.trashed" class="form-select mt-1 w-full">
-          <option :value="null" />
-          <option value="with">With Trashed</option>
-          <option value="only">Only Trashed</option>
-        </select>
-      </search-filter>
-      <Link class="btn-indigo" href="/contacts/create">
-        <span>Create</span>
-        <span class="hidden md:inline">&nbsp;Contact</span>
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-3xl font-bold">Contacts</h1>
+      <Link href="/contacts/create">
+        <Button label="Create Contact" icon="pi pi-plus" />
       </Link>
     </div>
-    <div class="bg-white rounded-md shadow overflow-x-auto">
-      <table class="w-full whitespace-nowrap">
-        <tr class="text-left font-bold">
-          <th class="pb-4 pt-6 px-6">Name</th>
-          <th class="pb-4 pt-6 px-6">Organization</th>
-          <th class="pb-4 pt-6 px-6">City</th>
-          <th class="pb-4 pt-6 px-6" colspan="2">Phone</th>
-        </tr>
-        <tr v-for="contact in contacts.data" :key="contact.id" class="hover:bg-gray-100 focus-within:bg-gray-100">
-          <td class="border-t">
-            <Link class="flex items-center px-6 py-4 focus:text-indigo-500" :href="`/contacts/${contact.id}/edit`">
-              {{ contact.name }}
-              <icon v-if="contact.deleted_at" name="trash" class="shrink-0 ml-2 w-3 h-3 fill-gray-400" />
-            </Link>
-          </td>
-          <td class="border-t">
-            <Link class="flex items-center px-6 py-4" :href="`/contacts/${contact.id}/edit`" tabindex="-1">
-              <div v-if="contact.organization">
-                {{ contact.organization.name }}
-              </div>
-            </Link>
-          </td>
-          <td class="border-t">
-            <Link class="flex items-center px-6 py-4" :href="`/contacts/${contact.id}/edit`" tabindex="-1">
-              {{ contact.city }}
-            </Link>
-          </td>
-          <td class="border-t">
-            <Link class="flex items-center px-6 py-4" :href="`/contacts/${contact.id}/edit`" tabindex="-1">
-              {{ contact.phone }}
-            </Link>
-          </td>
-          <td class="w-px border-t">
-            <Link class="flex items-center px-4" :href="`/contacts/${contact.id}/edit`" tabindex="-1">
-              <icon name="cheveron-right" class="block w-6 h-6 fill-gray-400" />
-            </Link>
-          </td>
-        </tr>
-        <tr v-if="contacts.data.length === 0">
-          <td class="px-6 py-4 border-t" colspan="4">No contacts found.</td>
-        </tr>
-      </table>
-    </div>
-    <pagination class="mt-6" :links="contacts.links" />
+
+    <!-- Filters Card -->
+    <Card class="mb-4">
+      <template #content>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col">
+            <label class="mb-2 text-sm font-medium">Search</label>
+            <InputText v-model="form.search" placeholder="Search contacts..." @input="handleSearch" />
+          </div>
+          <div class="flex flex-col">
+            <label class="mb-2 text-sm font-medium">Trashed</label>
+            <Select
+              v-model="form.trashed"
+              :options="trashedOptions"
+              optionLabel="label"
+              optionValue="value"
+              @change="handleFilter"
+            />
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <Button label="Reset Filters" icon="pi pi-refresh" severity="secondary" text @click="reset" />
+          <div class="text-sm text-gray-600">
+            Showing {{ contacts.data.length }} of {{ contacts.total || 0 }} contacts
+          </div>
+        </div>
+      </template>
+    </Card>
+
+    <!-- Contacts Table -->
+    <Card>
+      <template #content>
+        <DataTable
+          :value="contacts.data"
+          :paginator="false"
+          :rows="10"
+          stripedRows
+          responsiveLayout="scroll"
+          class="p-datatable-sm"
+        >
+          <template #empty>
+            <div class="py-8 text-center text-gray-500">No contacts found.</div>
+          </template>
+
+          <Column field="name" header="Name" sortable>
+            <template #body="{ data }">
+              <Link :href="`/contacts/${data.id}/edit`" class="font-medium text-primary-600 hover:text-primary-800">
+                {{ data.name }}
+                <i v-if="data.deleted_at" class="pi pi-trash ml-2 text-xs text-gray-400" />
+              </Link>
+            </template>
+          </Column>
+
+          <Column header="Organization">
+            <template #body="{ data }">
+              <span v-if="data.organization">{{ data.organization.name }}</span>
+              <span v-else class="text-gray-400">-</span>
+            </template>
+          </Column>
+
+          <Column field="city" header="City">
+            <template #body="{ data }">
+              {{ data.city || '-' }}
+            </template>
+          </Column>
+
+          <Column field="phone" header="Phone">
+            <template #body="{ data }">
+              {{ data.phone || '-' }}
+            </template>
+          </Column>
+
+          <Column>
+            <template #body="{ data }">
+              <Link :href="`/contacts/${data.id}/edit`">
+                <Button icon="pi pi-arrow-right" text rounded />
+              </Link>
+            </template>
+          </Column>
+        </DataTable>
+
+        <div class="mt-4">
+          <Paginator
+            v-if="contacts.total > 0"
+            :first="(contacts.current_page - 1) * contacts.per_page"
+            :rows="contacts.per_page"
+            :totalRecords="contacts.total"
+            @page="onPageChange"
+            template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+          />
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
 <script>
-import { Head, Link } from '@inertiajs/vue3'
-import Icon from '@/Shared/Icon.vue'
-import pickBy from 'lodash/pickBy'
+import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
+import Card from 'primevue/card'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import Paginator from 'primevue/paginator'
+import pickBy from 'lodash/pickBy'
 import throttle from 'lodash/throttle'
 import mapValues from 'lodash/mapValues'
-import Pagination from '@/Shared/Pagination.vue'
-import SearchFilter from '@/Shared/SearchFilter.vue'
 
 export default {
   components: {
     Head,
-    Icon,
     Link,
-    Pagination,
-    SearchFilter,
+    Card,
+    DataTable,
+    Column,
+    Button,
+    InputText,
+    Select,
+    Paginator,
   },
   layout: Layout,
   props: {
@@ -92,19 +140,32 @@ export default {
         search: this.filters.search,
         trashed: this.filters.trashed,
       },
+      trashedOptions: [
+        { label: 'Active Only', value: null },
+        { label: 'With Trashed', value: 'with' },
+        { label: 'Only Trashed', value: 'only' },
+      ],
     }
   },
-  watch: {
-    form: {
-      deep: true,
-      handler: throttle(function () {
-        this.$inertia.get('/contacts', pickBy(this.form), { preserveState: true })
-      }, 150),
-    },
-  },
   methods: {
+    handleSearch: throttle(function () {
+      this.$inertia.get('/contacts', pickBy(this.form), { preserveState: true })
+    }, 300),
+    handleFilter() {
+      this.$inertia.get('/contacts', pickBy(this.form), { preserveState: true })
+    },
     reset() {
       this.form = mapValues(this.form, () => null)
+      this.$inertia.get('/contacts', {}, { preserveState: true })
+    },
+    onPageChange(event) {
+      const page = event.page + 1
+      const currentUrl = new URL(window.location.href)
+      currentUrl.searchParams.set('page', page)
+      router.visit(currentUrl.pathname + currentUrl.search, {
+        preserveState: true,
+        preserveScroll: true,
+      })
     },
   },
 }

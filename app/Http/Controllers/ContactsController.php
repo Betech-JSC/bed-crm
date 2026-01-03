@@ -85,6 +85,21 @@ class ContactsController extends Controller
                 'postal_code' => $contact->postal_code,
                 'deleted_at' => $contact->deleted_at,
             ],
+            'activities' => $contact->activities()
+                ->with('user:id,first_name,last_name')
+                ->orderBy('date', 'desc')
+                ->get()
+                ->map(fn ($activity) => [
+                    'id' => $activity->id,
+                    'type' => $activity->type,
+                    'title' => $activity->title,
+                    'description' => $activity->description,
+                    'date' => $activity->date->toISOString(),
+                    'user' => $activity->user ? [
+                        'id' => $activity->user->id,
+                        'name' => $activity->user->name,
+                    ] : null,
+                ]),
             'organizations' => Auth::user()->account->organizations()
                 ->orderBy('name')
                 ->get()

@@ -1,23 +1,63 @@
 <template>
-  <div v-if="links.length > 3">
-    <div class="flex flex-wrap -mb-1">
-      <template v-for="(link, key) in links">
-        <div v-if="link.url === null" :key="key" class="mb-1 mr-1 px-4 py-3 text-gray-400 text-sm leading-4 border rounded" v-html="link.label" />
-        <Link v-else :key="`link-${key}`" class="mb-1 mr-1 px-4 py-3 focus:text-indigo-500 text-sm leading-4 hover:bg-white border focus:border-indigo-500 rounded" :class="{ 'bg-white': link.active }" :href="link.url" v-html="link.label" />
-      </template>
-    </div>
-  </div>
+  <Paginator
+    v-if="totalRecords > 0"
+    :first="first"
+    :rows="perPage"
+    :totalRecords="totalRecords"
+    @page="onPageChange"
+    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+  />
 </template>
 
 <script>
-import { Link } from '@inertiajs/vue3'
+import Paginator from 'primevue/paginator'
+import { Link, router } from '@inertiajs/vue3'
 
 export default {
   components: {
+    Paginator,
     Link,
   },
   props: {
     links: Array,
+    perPage: {
+      type: Number,
+      default: 15,
+    },
+  },
+  computed: {
+    totalRecords() {
+      // Extract total from links if available, or calculate from links length
+      const lastLink = this.links[this.links.length - 2] // Usually second to last
+      if (lastLink && lastLink.url) {
+        const match = lastLink.url.match(/page=(\d+)/)
+        if (match) {
+          return parseInt(match[1]) * this.perPage
+        }
+      }
+      return this.links.length > 3 ? (this.links.length - 2) * this.perPage : 0
+    },
+    first() {
+      const activeLink = this.links.find(link => link.active)
+      if (activeLink && activeLink.url) {
+        const match = activeLink.url.match(/page=(\d+)/)
+        if (match) {
+          return (parseInt(match[1]) - 1) * this.perPage
+        }
+      }
+      return 0
+    },
+  },
+  methods: {
+    onPageChange(event) {
+      const page = (event.page + 1) // PrimeVue uses 0-based, Laravel uses 1-based
+      const currentUrl = new URL(window.location.href)
+      currentUrl.searchParams.set('page', page)
+      router.visit(currentUrl.pathname + currentUrl.search, {
+        preserveState: true,
+        preserveScroll: true,
+      })
+    },
   },
 }
 </script>

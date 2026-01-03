@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                         'account' => [
                             'id' => $request->user()->account->id,
                             'name' => $request->user()->account->name,
+                            'logo' => $request->user()->account->logo ? \Illuminate\Support\Facades\Storage::url($request->user()->account->logo) : null,
                         ],
                     ] : null,
                 ];
@@ -53,6 +55,14 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'success' => $request->session()->get('success'),
                     'error' => $request->session()->get('error'),
+                ];
+            },
+            'locale' => function () {
+                return App::getLocale();
+            },
+            'translations' => function () {
+                return [
+                    'common' => trans('common'),
                 ];
             },
         ]);

@@ -1,15 +1,39 @@
 <template>
   <div :class="$attrs.class">
-    <label v-if="label" class="form-label" :for="id">{{ label }}:</label>
-    <input :id="id" ref="input" v-bind="{ ...$attrs, class: null }" class="form-input" :class="{ error: error }" :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />
-    <div v-if="error" class="form-error">{{ error }}</div>
+    <span v-if="label" class="p-float-label">
+      <InputText
+        :id="id"
+        ref="input"
+        v-bind="{ ...$attrs, class: null }"
+        :type="type"
+        :value="modelValue"
+        :class="{ 'p-invalid': error }"
+        @input="$emit('update:modelValue', $event.target.value)"
+      />
+      <label :for="id">{{ label }}</label>
+    </span>
+    <InputText
+      v-else
+      :id="id"
+      ref="input"
+      v-bind="{ ...$attrs, class: null }"
+      :type="type"
+      :value="modelValue"
+      :class="{ 'p-invalid': error }"
+      @input="$emit('update:modelValue', $event.target.value)"
+    />
+    <small v-if="error" class="p-error">{{ error }}</small>
   </div>
 </template>
 
 <script>
+import InputText from 'primevue/inputtext'
 import { v4 as uuid } from 'uuid'
 
 export default {
+  components: {
+    InputText,
+  },
   inheritAttrs: false,
   props: {
     id: {
@@ -29,13 +53,13 @@ export default {
   emits: ['update:modelValue'],
   methods: {
     focus() {
-      this.$refs.input.focus()
+      this.$refs.input.$el.focus()
     },
     select() {
-      this.$refs.input.select()
+      this.$refs.input.$el.select()
     },
     setSelectionRange(start, end) {
-      this.$refs.input.setSelectionRange(start, end)
+      this.$refs.input.$el.setSelectionRange(start, end)
     },
   },
 }

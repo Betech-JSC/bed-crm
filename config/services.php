@@ -9,4 +9,52 @@ return [
         'scheme' => 'https',
     ],
 
+    'clearbit' => [
+        'api_key' => env('CLEARBIT_API_KEY'),
+    ],
+
+    'zoominfo' => [
+        'api_key' => env('ZOOMINFO_API_KEY'),
+    ],
+
+    'hunter' => [
+        'api_key' => env('HUNTER_API_KEY'),
+    ],
+
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    'ai' => [
+        'default' => env('AI_DEFAULT_SERVICE', 'openai'),
+    ],
+
+    'linkedin' => [
+        'client_id' => env('LINKEDIN_CLIENT_ID'),
+        'client_secret' => env('LINKEDIN_CLIENT_SECRET'),
+        'redirect_uri' => env('LINKEDIN_REDIRECT_URI'),
+    ],
+
+    'twitter' => [
+        'client_id' => env('TWITTER_CLIENT_ID'),
+        'client_secret' => env('TWITTER_CLIENT_SECRET'),
+        'redirect_uri' => env('TWITTER_REDIRECT_URI'),
+    ],
+
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect_uri' => env('FACEBOOK_REDIRECT_URI'),
+    ],
+
+    'instagram' => [
+        'client_id' => env('INSTAGRAM_CLIENT_ID'),
+        'client_secret' => env('INSTAGRAM_CLIENT_SECRET'),
+        'redirect_uri' => env('INSTAGRAM_REDIRECT_URI'),
+    ],
+
 ];
