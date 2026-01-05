@@ -77,3 +77,5 @@ All chart components accept:
 
 Charts are fully responsive and maintain aspect ratio.
 
+
+
