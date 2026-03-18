@@ -1,21 +1,61 @@
 <?php
 
 return [
-    // Common
-    'welcome' => 'Welcome',
+    // ===== Navigation & Layout =====
     'dashboard' => 'Dashboard',
+    'welcome' => 'Welcome',
+    'welcome_back' => 'Welcome back!',
+    'overview_subtitle' => 'Here is your CRM overview.',
+
+    // Sidebar sections
+    'sales' => 'Sales',
+    'marketing' => 'Marketing',
+    'automation' => 'Automation',
+    'analytics' => 'Analytics',
+    'system' => 'System',
+
+    // Sidebar menu items
     'leads' => 'Leads',
     'deals' => 'Deals',
     'contacts' => 'Contacts',
     'organizations' => 'Organizations',
+    'proposals' => 'Proposals',
+    'sales_playbooks' => 'Sales Playbooks',
+    'sales_management' => 'Sales Management',
+    'email_marketing' => 'Email Marketing',
+    'content_social' => 'Content & Social',
+    'templates' => 'Templates',
+    'lists' => 'Lists',
+    'campaigns' => 'Campaigns',
+    'automations' => 'Automations',
+    'content_templates' => 'Content Templates',
+    'content_items' => 'Content Items',
+    'social_accounts' => 'Social Accounts',
+    'social_posts' => 'Social Posts',
+    'workflows' => 'Workflows',
+    'chat_widgets' => 'Chat Widgets',
+    'conversations' => 'Conversations',
+    'reports' => 'Reports',
+    'icp_profiles' => 'ICP Profiles',
+    'files' => 'Files',
+    'account_settings' => 'Account',
+    'smtp_settings' => 'SMTP Settings',
+    'sla_settings' => 'SLA Settings',
     'users' => 'Users',
+    'roles' => 'Roles',
+    'permissions_menu' => 'Permissions',
+
+    // User dropdown
+    'profile' => 'My Profile',
+    'manage_users' => 'Manage Users',
     'settings' => 'Settings',
     'logout' => 'Logout',
     'login' => 'Login',
     'register' => 'Register',
-    
-    // Actions
+
+    // ===== Common Actions =====
     'create' => 'Create',
+    'create_new' => 'Create New',
     'edit' => 'Edit',
     'delete' => 'Delete',
     'save' => 'Save',
@@ -24,56 +64,42 @@ return [
     'search' => 'Search',
     'filter' => 'Filter',
     'reset' => 'Reset',
+    'reset_filters' => 'Reset Filters',
     'export' => 'Export',
     'import' => 'Import',
     'view' => 'View',
+    'view_all' => 'View All',
     'back' => 'Back',
     'next' => 'Next',
     'previous' => 'Previous',
     'submit' => 'Submit',
-    
-    // Status
+    'restore' => 'Restore',
+    'actions' => 'Actions',
+    'quick_actions' => 'Quick Actions',
+    'close' => 'Close',
+    'confirm' => 'Confirm',
+    'are_you_sure' => 'Are you sure?',
+    'download' => 'Download',
+    'upload' => 'Upload',
+    'send' => 'Send',
+    'retry' => 'Retry',
+    'refresh' => 'Refresh',
+    'activate' => 'Activate',
+    'deactivate' => 'Deactivate',
+    'pause' => 'Pause',
+
+    // ===== Common Status =====
     'status' => 'Status',
     'active' => 'Active',
     'inactive' => 'Inactive',
     'pending' => 'Pending',
     'completed' => 'Completed',
     'cancelled' => 'Cancelled',
-    
-    // Lead status
-    'new' => 'New',
-    'contacted' => 'Contacted',
-    'qualified' => 'Qualified',
-    'lost' => 'Lost',
-    'won' => 'Won',
-    
-    // Deal stages
-    'prospecting' => 'Prospecting',
-    'qualification' => 'Qualification',
-    'proposal' => 'Proposal',
-    'negotiation' => 'Negotiation',
-    'closing' => 'Closing',
-    
-    // Deal status
-    'open' => 'Open',
-    'won' => 'Won',
-    'lost' => 'Lost',
-    
-    // Priority
-    'priority' => 'Priority',
-    'hot' => 'Hot',
-    'warm' => 'Warm',
-    'cold' => 'Cold',
-    
-    // Messages
-    'success' => 'Success',
-    'error' => 'Error',
-    'warning' => 'Warning',
-    'info' => 'Info',
-    'confirm' => 'Confirm',
-    'are_you_sure' => 'Are you sure?',
-    
-    // Fields
+    'draft' => 'Draft',
+    'published' => 'Published',
+    'archived' => 'Archived',
+
+    // ===== Common Fields =====
     'name' => 'Name',
     'email' => 'Email',
     'phone' => 'Phone',
@@ -85,29 +111,312 @@ return [
     'assigned_to' => 'Assigned To',
     'created_at' => 'Created At',
     'updated_at' => 'Updated At',
-    
-    // Lead fields
-    'score' => 'Score',
-    'priority_label' => 'Priority Label',
-    
-    // Deal fields
-    'title' => 'Title',
-    'stage' => 'Stage',
-    'value' => 'Value',
+    'description' => 'Description',
+    'address' => 'Address',
+    'city' => 'City',
+    'country' => 'Country',
+    'website' => 'Website',
+    'date' => 'Date',
+    'type' => 'Type',
+    'amount' => 'Amount',
+    'version' => 'Version',
+    'content' => 'Content',
+    'subject' => 'Subject',
+
+    // ===== Lead Module =====
+    'lead' => 'Lead',
+    'lead_name' => 'Lead Name',
+    'lead_score' => 'Lead Score',
+    'lead_source' => 'Lead Source',
+    'lead_status' => 'Lead Status',
+    'lead_new' => 'New',
+    'lead_contacted' => 'Contacted',
+    'lead_qualified' => 'Qualified',
+    'lead_lost' => 'Lost',
+    'lead_won' => 'Won',
+    'source_website' => 'Website',
+    'source_referral' => 'Referral',
+    'source_social' => 'Social Media',
+    'source_email' => 'Email',
+    'source_phone' => 'Phone',
+    'source_other' => 'Other',
+    'create_lead' => 'Create Lead',
+    'edit_lead' => 'Edit Lead',
+    'lead_info' => 'Lead Information',
+    'contact_info' => 'Contact Information',
+    'scoring_details' => 'Scoring Details',
+    'enrichment_data' => 'Enrichment Data',
+    'convert_to_deal' => 'Convert to Deal',
+    'add_note' => 'Add Note',
+    'score_lead' => 'Score Lead',
+    'enrich_lead' => 'Enrich Data',
+    'duplicate_warning' => 'A lead with this phone or email already exists.',
+    'no_leads' => 'No leads found.',
+    'search_leads' => 'Search leads...',
+    'all_statuses' => 'All Statuses',
+    'all_sources' => 'All Sources',
+    'all_users' => 'All Users',
+
+    // Lead Priority
+    'priority' => 'Priority',
+    'priority_hot' => 'Hot',
+    'priority_warm' => 'Warm',
+    'priority_cold' => 'Cold',
+
+    // Lead Quality
+    'high_quality' => 'High Quality (80+)',
+    'medium_quality' => 'Medium (60-79)',
+    'low_quality' => 'Low (40-59)',
+    'avg_score' => 'Avg Score',
+    'icp_match_rate' => 'ICP Match Rate',
+
+    // ===== Deal Module =====
+    'deal' => 'Deal',
+    'deal_title' => 'Deal Title',
+    'deal_stage' => 'Stage',
+    'deal_value' => 'Value',
+    'deal_status' => 'Deal Status',
+    'pipeline' => 'Pipeline',
+    'pipeline_value' => 'Pipeline Value',
+    'pipeline_trend' => 'Pipeline Trend',
+    'stage_prospecting' => 'Prospecting',
+    'stage_qualification' => 'Qualification',
+    'stage_proposal' => 'Proposal',
+    'stage_negotiation' => 'Negotiation',
+    'stage_closing' => 'Closing',
+    'deal_open' => 'Open',
+    'deal_won' => 'Won',
+    'deal_lost' => 'Lost',
     'expected_close_date' => 'Expected Close Date',
     'lost_reason' => 'Lost Reason',
-    
-    // Pagination
+    'mark_won' => 'Mark as Won',
+    'mark_lost' => 'Mark as Lost',
+    'create_deal' => 'Create Deal',
+    'edit_deal' => 'Edit Deal',
+    'open_deals' => 'Open Deals',
+    'won_deals' => 'Won Deals',
+    'total_leads' => 'Total Leads',
+    'tasks_overdue' => 'Tasks Overdue',
+    'needs_attention' => 'Needs attention',
+    'up_to_date' => 'Up to date',
+    'view_pipeline' => 'View pipeline',
+    'view_deals' => 'View deals',
+    'no_deals' => 'No deals found.',
+
+    // ===== Contact Module =====
+    'contact' => 'Contact',
+    'first_name' => 'First Name',
+    'last_name' => 'Last Name',
+    'organization' => 'Organization',
+    'create_contact' => 'Create Contact',
+    'edit_contact' => 'Edit Contact',
+    'no_contacts' => 'No contacts found.',
+    'search_contacts' => 'Search contacts...',
+
+    // ===== Organization Module =====
+    'create_organization' => 'Create Organization',
+    'edit_organization' => 'Edit Organization',
+    'no_organizations' => 'No organizations found.',
+    'search_organizations' => 'Search organizations...',
+
+    // ===== Activity Module =====
+    'activity' => 'Activity',
+    'activities' => 'Activities',
+    'recent_activity' => 'Recent Activity',
+    'no_activities' => 'No activities yet.',
+    'log_activity' => 'Log Activity',
+    'activity_call' => 'Call',
+    'activity_email' => 'Email',
+    'activity_meeting' => 'Meeting',
+    'activity_note' => 'Note',
+
+    // ===== Proposal Module =====
+    'create_proposal' => 'Create Proposal',
+    'edit_proposal' => 'Edit Proposal',
+    'proposal_sent' => 'Sent',
+    'proposal_viewed' => 'Viewed',
+    'proposal_accepted' => 'Accepted',
+    'proposal_rejected' => 'Rejected',
+    'create_version' => 'Create Version',
+    'send_proposal' => 'Send Proposal',
+    'accept_proposal' => 'Accept',
+    'reject_proposal' => 'Reject',
+    'track_views' => 'Track Views',
+
+    // ===== Chart Labels =====
+    'leads_created_over_time' => 'Leads Created Over Time',
+    'leads_by_status' => 'Leads by Status',
+    'deals_by_stage' => 'Deals by Stage',
+    'last_7_days' => '7 days',
+    'last_30_days' => '30 days',
+
+    // ===== Table & Pagination =====
     'showing' => 'Showing',
     'of' => 'of',
     'results' => 'results',
     'no_results' => 'No results',
-    
-    // Language
+    'trashed' => 'Trashed',
+    'active_only' => 'Active Only',
+    'with_trashed' => 'With Trashed',
+    'only_trashed' => 'Only Trashed',
+
+    // ===== Messages =====
+    'success' => 'Success',
+    'error' => 'Error',
+    'warning' => 'Warning',
+    'info' => 'Info',
+    'created_success' => 'Created successfully.',
+    'updated_success' => 'Updated successfully.',
+    'deleted_success' => 'Deleted successfully.',
+    'restored_success' => 'Restored successfully.',
+
+    // ===== SLA =====
+    'sla_status' => 'SLA Status',
+    'response_time' => 'Response Time',
+    'first_response' => 'First Response',
+
+    // ===== ICP =====
+    'icp' => 'Ideal Customer Profile',
+    'create_icp' => 'Create ICP',
+    'edit_icp' => 'Edit ICP',
+    'icp_criteria' => 'Criteria',
+    'icp_threshold' => 'Score Threshold',
+
+    // ===== User Module =====
+    'create_user' => 'Create User',
+    'edit_user' => 'Edit User',
+    'user_role' => 'Role',
+    'password' => 'Password',
+    'password_confirmation' => 'Confirm Password',
+    'owner' => 'Owner',
+    'photo' => 'Photo',
+
+    // ===== File Module =====
+    'create_file' => 'Upload File',
+    'file_name' => 'File Name',
+    'file_size' => 'File Size',
+    'file_type' => 'File Type',
+    'preview' => 'Preview',
+
+    // ===== Language =====
     'language' => 'Language',
     'vietnamese' => 'Vietnamese',
     'english' => 'English',
+
+    // ===== Playbook =====
+    'playbook' => 'Sales Playbook',
+    'talking_points' => 'Talking Points',
+    'objections_handling' => 'Objections Handling',
+    'next_steps' => 'Next Steps',
+    'recommended_docs' => 'Recommended Documents',
+    'playbook_suggestions' => 'Playbook Suggestions',
+
+    // ===== Email =====
+    'email_template' => 'Email Template',
+    'email_subject' => 'Email Subject',
+    'email_body' => 'Email Body',
+    'recipient' => 'Recipient',
+    'open_rate' => 'Open Rate',
+    'click_rate' => 'Click Rate',
+    'unsubscribe' => 'Unsubscribe',
+
+    // ===== Workflow =====
+    'create_workflow' => 'Create Workflow',
+    'trigger' => 'Trigger',
+    'conditions' => 'Conditions',
+    'workflow_actions' => 'Actions',
+
+    // ===== Reports =====
+    'revenue' => 'Revenue',
+    'conversion_rate' => 'Conversion Rate',
+    'avg_deal_size' => 'Avg Deal Size',
+    'total_pipeline' => 'Total Pipeline',
+
+    // ===== Settings =====
+    'account_name' => 'Account Name',
+    'logo' => 'Logo',
+    'smtp_host' => 'SMTP Host',
+    'smtp_port' => 'SMTP Port',
+    'smtp_username' => 'SMTP Username',
+    'smtp_password' => 'SMTP Password',
+    'test_connection' => 'Test Connection',
+
+    // ===== Login Page =====
+    'welcome_login' => 'Welcome back!',
+    'login_subtitle' => 'Sign in to continue your work',
+    'remember_me' => 'Remember me',
+    'forgot_password' => 'Forgot password?',
+    'crm_tagline' => 'Smart & efficient business management',
+    'crm_description' => 'A comprehensive CRM platform for managing customers, orders and running your business professionally.',
+    'feature_crm' => 'Customer Management',
+    'feature_crm_desc' => 'Track and nurture customers effectively',
+    'feature_analytics' => 'Data Analytics',
+    'feature_analytics_desc' => 'Visual reports for better decisions',
+    'feature_automation' => 'Automation',
+    'feature_automation_desc' => 'Optimize processes, save time',
+    'ssl_notice' => 'Connection secured with SSL',
+
+    // ===== Executive Dashboard =====
+    'updated_at' => 'Updated at',
+    'ceo_dashboard' => 'CEO Dashboard',
+    'monthly' => 'Monthly',
+    'quarterly' => 'Quarterly',
+    'yearly' => 'Yearly',
+    'churn_rate' => 'Churn Rate',
+    'cac' => 'Customer Acquisition Cost',
+    'ltv' => 'Lifetime Value',
+    'ltv_cac_ratio' => 'LTV:CAC Ratio',
+    'top_deals' => 'Top Deals',
+    'pipeline_funnel' => 'Pipeline Funnel',
+    'revenue_summary' => 'Revenue Summary',
+    'revenue_trend' => 'Revenue Trend',
+    'this_month' => 'This Month',
+    'this_quarter' => 'This Quarter',
+    'this_year' => 'This Year',
+    'vs_last_month' => 'vs last month',
+    'good' => 'Good',
+    'average' => 'Average',
+    'poor' => 'Poor',
+
+    // ===== Customer Success =====
+    'customer_success' => 'Customer Success',
+    'customers' => 'Customers',
+    'customer_info' => 'Customer Info',
+    'create_customer' => 'Create Customer',
+    'total_customers_label' => 'Total Customers',
+    'avg_health' => 'Avg. Health',
+    'renewing_soon' => 'Renewing Soon',
+    'churn_risk_detected' => 'Churn Risk Detected',
+    'search_customers' => 'Search customers...',
+    'no_customers' => 'No customers yet',
+    'all_statuses' => 'All statuses',
+    'all_users' => 'All users',
+    'reset_filters' => 'Reset filters',
+    'lifecycle' => 'Lifecycle',
+    'health' => 'Health',
+    'renewal' => 'Renewal',
+    'start_date' => 'Start Date',
+    'contract_start' => 'Contract Start',
+    'contract_end' => 'Contract End',
+    'contract_term' => 'Contract Term',
+    'showing' => 'Showing',
+    'of' => 'of',
+    'save' => 'Save',
+
+    // ===== Project Management =====
+    'projects' => 'Projects',
+    'create_project' => 'Create Project',
+    'active_projects' => 'Active Projects',
+    'delayed' => 'Delayed',
+    'total_profit' => 'Total Profit',
+    'avg_margin' => 'Avg. Margin',
+    'utilization' => 'Utilization',
+    'search_projects' => 'Search projects...',
+    'no_projects' => 'No projects yet',
+    'project_settings' => 'Project Settings',
+    'profit' => 'Profit',
+    'budget' => 'Budget',
+    'manager' => 'Manager',
+    'due_date' => 'Due Date',
+    'customer' => 'Customer',
 ];
-
-
-

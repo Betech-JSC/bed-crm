@@ -1,12 +1,12 @@
 <template>
   <div>
-    <Head title="Create Lead" />
+    <Head :title="t('common.create_lead')" />
     <div class="mb-6">
       <Breadcrumb :model="breadcrumbItems" />
     </div>
 
     <Card>
-      <template #title>Create New Lead</template>
+      <template #title>{{ t('common.create_lead') }}</template>
       <template #content>
         <form @submit.prevent="store" class="space-y-6">
           <Message v-if="form.errors.duplicate" severity="error" :closable="false" class="mb-4">
@@ -18,31 +18,31 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Name <span class="text-red-500">*</span></label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.name') }} <span class="text-red-500">*</span></label>
               <InputText v-model="form.name" :class="{ 'p-invalid': form.errors.name }" />
               <small v-if="form.errors.name" class="p-error">{{ form.errors.name }}</small>
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Company</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.company') }}</label>
               <InputText v-model="form.company" :class="{ 'p-invalid': form.errors.company }" />
               <small v-if="form.errors.company" class="p-error">{{ form.errors.company }}</small>
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Phone</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.phone') }}</label>
               <InputText v-model="form.phone" :class="{ 'p-invalid': form.errors.phone }" />
               <small v-if="form.errors.phone" class="p-error">{{ form.errors.phone }}</small>
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Email</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.email') }}</label>
               <InputText v-model="form.email" type="email" :class="{ 'p-invalid': form.errors.email }" />
               <small v-if="form.errors.email" class="p-error">{{ form.errors.email }}</small>
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Source</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.source') }}</label>
               <Select
                 v-model="form.source"
                 :options="sourceOptions"
@@ -55,7 +55,7 @@
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Status <span class="text-red-500">*</span></label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.status') }} <span class="text-red-500">*</span></label>
               <Select
                 v-model="form.status"
                 :options="statusOptions"
@@ -67,7 +67,7 @@
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Assign To</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.assigned_to') }}</label>
               <Select
                 v-model="form.assigned_to"
                 :options="assignedOptions"
@@ -80,23 +80,23 @@
             </div>
 
             <div class="flex flex-col">
-              <label class="mb-2 text-sm font-medium">Tags</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.tags') }}</label>
               <InputText v-model="tagsInput" placeholder="e.g. hot, vip, follow-up" />
               <small class="text-gray-500 text-xs mt-1">Separate tags with commas</small>
             </div>
           </div>
 
           <div class="flex flex-col">
-            <label class="mb-2 text-sm font-medium">Notes</label>
+              <label class="mb-2 text-sm font-medium">{{ t('common.notes') }}</label>
             <Textarea v-model="form.notes" rows="4" :class="{ 'p-invalid': form.errors.notes }" />
             <small v-if="form.errors.notes" class="p-error">{{ form.errors.notes }}</small>
           </div>
 
           <div class="flex items-center justify-end gap-2 pt-4 border-t">
             <Link href="/leads">
-              <Button label="Cancel" severity="secondary" outlined />
+              <Button :label="t('common.cancel')" severity="secondary" outlined />
             </Link>
-            <Button label="Create Lead" icon="pi pi-check" :loading="form.processing" type="submit" />
+            <Button :label="t('common.create_lead')" icon="pi pi-check" :loading="form.processing" type="submit" />
           </div>
         </form>
       </template>
@@ -114,20 +114,17 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
-    Head,
-    Link,
-    Card,
-    InputText,
-    Textarea,
-    Select,
-    Button,
-    Message,
-    Breadcrumb,
+    Head, Link, Card, InputText, Textarea, Select, Button, Message, Breadcrumb,
   },
   layout: Layout,
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   props: {
     statuses: Object,
     sources: Object,

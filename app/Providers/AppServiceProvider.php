@@ -2,12 +2,31 @@
 
 namespace App\Providers;
 
+use App\Events\ActivityLogged;
+use App\Events\DealLost;
+use App\Events\DealStageChanged;
+use App\Events\DealWon;
+use App\Events\LeadCreated;
+use App\Events\LeadUpdated;
+use App\Listeners\HandleDealLost;
+use App\Listeners\HandleDealWon;
+use App\Listeners\LogDealStageTransition;
+use App\Listeners\RecordLeadFirstResponse;
+use App\Listeners\StartLeadSLATracking;
+use App\Listeners\TriggerLeadWorkflow;
+use App\Models\Deal;
+use App\Models\Project;
+use App\Models\ProjectExpense;
 use App\Models\User;
+use App\Observers\DealObserver;
+use App\Observers\ProjectExpenseObserver;
+use App\Observers\ProjectObserver;
 use App\Policies\UserPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -37,13 +56,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Don't set locale here - let SetLocale middleware handle it
-        // App::setLocale('vi');
-        
         // Register policies
         Gate::policy(User::class, UserPolicy::class);
 
+        // Register observers for cross-module data sync
+        Deal::observe(DealObserver::class);
+        Project::observe(ProjectObserver::class);
+        ProjectExpense::observe(ProjectExpenseObserver::class);
+
         $this->bootRoute();
+        $this->bootEvents();
     }
 
     public function bootRoute(): void
@@ -51,5 +73,23 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+    }
+
+    /**
+     * Register event listeners.
+     */
+    private function bootEvents(): void
+    {
+        // Lead events
+        Event::listen(LeadCreated::class, StartLeadSLATracking::class);
+        Event::listen(LeadCreated::class, TriggerLeadWorkflow::class);
+
+        // Activity events
+        Event::listen(ActivityLogged::class, RecordLeadFirstResponse::class);
+
+        // Deal events
+        Event::listen(DealStageChanged::class, LogDealStageTransition::class);
+        Event::listen(DealWon::class, HandleDealWon::class);
+        Event::listen(DealLost::class, HandleDealLost::class);
     }
 }

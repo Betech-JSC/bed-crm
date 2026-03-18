@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'account_id' => $account->id,
             'first_name' => 'Admin',
-            'last_name' => 'User',
-            'email' => 'admin@betech.com',
-            'password' => 'password',
+            'last_name' => 'BED',
+            'email' => 'admin@gmail.com',
+            'password' => 'admin@gmail.com',
             'owner' => true,
             'role' => User::ROLE_ADMIN,
         ]);

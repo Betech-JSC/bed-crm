@@ -1,21 +1,61 @@
 <?php
 
 return [
-    // Common
-    'welcome' => 'Chào mừng',
+    // ===== Navigation & Layout =====
     'dashboard' => 'Bảng điều khiển',
+    'welcome' => 'Chào mừng',
+    'welcome_back' => 'Chào mừng trở lại!',
+    'overview_subtitle' => 'Đây là tổng quan CRM của bạn.',
+
+    // Sidebar sections
+    'sales' => 'Bán hàng',
+    'marketing' => 'Marketing',
+    'automation' => 'Tự động hóa',
+    'analytics' => 'Phân tích',
+    'system' => 'Hệ thống',
+
+    // Sidebar menu items
     'leads' => 'Khách hàng tiềm năng',
     'deals' => 'Cơ hội bán hàng',
-    'contacts' => 'Liên hệ',
+    'contacts' => 'Danh bạ',
     'organizations' => 'Tổ chức',
+    'proposals' => 'Đề xuất báo giá',
+    'sales_playbooks' => 'Kịch bản bán hàng',
+    'sales_management' => 'Quản lý bán hàng',
+    'email_marketing' => 'Email Marketing',
+    'content_social' => 'Nội dung & Mạng xã hội',
+    'templates' => 'Mẫu',
+    'lists' => 'Danh sách',
+    'campaigns' => 'Chiến dịch',
+    'automations' => 'Tự động hóa',
+    'content_templates' => 'Mẫu nội dung',
+    'content_items' => 'Nội dung',
+    'social_accounts' => 'Tài khoản MXH',
+    'social_posts' => 'Bài đăng MXH',
+    'workflows' => 'Quy trình',
+    'chat_widgets' => 'Chat Widgets',
+    'conversations' => 'Hội thoại',
+    'reports' => 'Báo cáo',
+    'icp_profiles' => 'Hồ sơ ICP',
+    'files' => 'Tệp tin',
+    'account_settings' => 'Tài khoản',
+    'smtp_settings' => 'Cấu hình SMTP',
+    'sla_settings' => 'Cấu hình SLA',
     'users' => 'Người dùng',
+    'roles' => 'Vai trò',
+    'permissions_menu' => 'Quyền hạn',
+
+    // User dropdown
+    'profile' => 'Hồ sơ cá nhân',
+    'manage_users' => 'Quản lý người dùng',
     'settings' => 'Cài đặt',
     'logout' => 'Đăng xuất',
     'login' => 'Đăng nhập',
     'register' => 'Đăng ký',
-    
-    // Actions
+
+    // ===== Common Actions =====
     'create' => 'Tạo mới',
+    'create_new' => 'Tạo mới',
     'edit' => 'Chỉnh sửa',
     'delete' => 'Xóa',
     'save' => 'Lưu',
@@ -24,90 +64,359 @@ return [
     'search' => 'Tìm kiếm',
     'filter' => 'Lọc',
     'reset' => 'Đặt lại',
+    'reset_filters' => 'Đặt lại bộ lọc',
     'export' => 'Xuất',
     'import' => 'Nhập',
     'view' => 'Xem',
+    'view_all' => 'Xem tất cả',
     'back' => 'Quay lại',
     'next' => 'Tiếp theo',
     'previous' => 'Trước',
     'submit' => 'Gửi',
-    
-    // Status
+    'restore' => 'Khôi phục',
+    'actions' => 'Thao tác',
+    'quick_actions' => 'Thao tác nhanh',
+    'close' => 'Đóng',
+    'confirm' => 'Xác nhận',
+    'are_you_sure' => 'Bạn có chắc chắn?',
+    'download' => 'Tải về',
+    'upload' => 'Tải lên',
+    'send' => 'Gửi',
+    'retry' => 'Thử lại',
+    'refresh' => 'Làm mới',
+    'activate' => 'Kích hoạt',
+    'deactivate' => 'Vô hiệu hóa',
+    'pause' => 'Tạm dừng',
+
+    // ===== Common Status =====
     'status' => 'Trạng thái',
     'active' => 'Hoạt động',
     'inactive' => 'Không hoạt động',
     'pending' => 'Đang chờ',
     'completed' => 'Hoàn thành',
     'cancelled' => 'Đã hủy',
-    
-    // Lead status
-    'new' => 'Mới',
-    'contacted' => 'Đã liên hệ',
-    'qualified' => 'Đã đủ điều kiện',
-    'lost' => 'Thất bại',
-    'won' => 'Thành công',
-    
-    // Deal stages
-    'prospecting' => 'Tìm kiếm',
-    'qualification' => 'Đánh giá',
-    'proposal' => 'Đề xuất',
-    'negotiation' => 'Đàm phán',
-    'closing' => 'Kết thúc',
-    
-    // Deal status
-    'open' => 'Mở',
-    'won' => 'Thắng',
-    'lost' => 'Thua',
-    
-    // Priority
-    'priority' => 'Ưu tiên',
-    'hot' => 'Nóng',
-    'warm' => 'Ấm',
-    'cold' => 'Lạnh',
-    
-    // Messages
-    'success' => 'Thành công',
-    'error' => 'Lỗi',
-    'warning' => 'Cảnh báo',
-    'info' => 'Thông tin',
-    'confirm' => 'Xác nhận',
-    'are_you_sure' => 'Bạn có chắc chắn?',
-    
-    // Fields
+    'draft' => 'Bản nháp',
+    'published' => 'Đã xuất bản',
+    'archived' => 'Đã lưu trữ',
+
+    // ===== Common Fields =====
     'name' => 'Tên',
     'email' => 'Email',
     'phone' => 'Điện thoại',
     'company' => 'Công ty',
-    'industry' => 'Ngành',
+    'industry' => 'Ngành nghề',
     'source' => 'Nguồn',
     'notes' => 'Ghi chú',
-    'tags' => 'Thẻ',
-    'assigned_to' => 'Giao cho',
+    'tags' => 'Nhãn',
+    'assigned_to' => 'Phụ trách',
     'created_at' => 'Ngày tạo',
     'updated_at' => 'Ngày cập nhật',
-    
-    // Lead fields
-    'score' => 'Điểm số',
-    'priority_label' => 'Nhãn ưu tiên',
-    
-    // Deal fields
-    'title' => 'Tiêu đề',
-    'stage' => 'Giai đoạn',
-    'value' => 'Giá trị',
-    'expected_close_date' => 'Ngày dự kiến đóng',
+    'description' => 'Mô tả',
+    'address' => 'Địa chỉ',
+    'city' => 'Thành phố',
+    'country' => 'Quốc gia',
+    'website' => 'Website',
+    'date' => 'Ngày',
+    'type' => 'Loại',
+    'amount' => 'Số tiền',
+    'version' => 'Phiên bản',
+    'content' => 'Nội dung',
+    'subject' => 'Tiêu đề',
+
+    // ===== Lead Module =====
+    'lead' => 'Khách hàng tiềm năng',
+    'lead_name' => 'Tên khách hàng',
+    'lead_score' => 'Điểm đánh giá',
+    'lead_source' => 'Nguồn khách hàng',
+    'lead_status' => 'Trạng thái khách hàng',
+    'lead_new' => 'Mới',
+    'lead_contacted' => 'Đã liên hệ',
+    'lead_qualified' => 'Đủ điều kiện',
+    'lead_lost' => 'Đã mất',
+    'lead_won' => 'Thành công',
+    'source_website' => 'Website',
+    'source_referral' => 'Giới thiệu',
+    'source_social' => 'Mạng xã hội',
+    'source_email' => 'Email',
+    'source_phone' => 'Điện thoại',
+    'source_other' => 'Khác',
+    'create_lead' => 'Tạo khách hàng mới',
+    'edit_lead' => 'Chỉnh sửa khách hàng',
+    'lead_info' => 'Thông tin khách hàng',
+    'contact_info' => 'Thông tin liên hệ',
+    'scoring_details' => 'Chi tiết đánh giá',
+    'enrichment_data' => 'Dữ liệu bổ sung',
+    'convert_to_deal' => 'Chuyển thành cơ hội',
+    'add_note' => 'Thêm ghi chú',
+    'score_lead' => 'Đánh giá',
+    'enrich_lead' => 'Bổ sung dữ liệu',
+    'duplicate_warning' => 'Khách hàng có số điện thoại hoặc email này đã tồn tại.',
+    'no_leads' => 'Chưa có khách hàng tiềm năng nào.',
+    'search_leads' => 'Tìm kiếm khách hàng...',
+    'all_statuses' => 'Tất cả trạng thái',
+    'all_sources' => 'Tất cả nguồn',
+    'all_users' => 'Tất cả người phụ trách',
+
+    // Lead Priority
+    'priority' => 'Mức độ ưu tiên',
+    'priority_hot' => 'Nóng',
+    'priority_warm' => 'Ấm',
+    'priority_cold' => 'Lạnh',
+
+    // Lead Quality
+    'high_quality' => 'Chất lượng cao (80+)',
+    'medium_quality' => 'Trung bình (60-79)',
+    'low_quality' => 'Thấp (40-59)',
+    'avg_score' => 'Điểm TB',
+    'icp_match_rate' => 'Tỷ lệ ICP',
+
+    // ===== Deal Module =====
+    'deal' => 'Cơ hội bán hàng',
+    'deal_title' => 'Tên cơ hội',
+    'deal_stage' => 'Giai đoạn',
+    'deal_value' => 'Giá trị',
+    'deal_status' => 'Trạng thái cơ hội',
+    'pipeline' => 'Pipeline',
+    'pipeline_value' => 'Giá trị Pipeline',
+    'pipeline_trend' => 'Xu hướng Pipeline',
+    'stage_prospecting' => 'Tìm kiếm',
+    'stage_qualification' => 'Đánh giá',
+    'stage_proposal' => 'Đề xuất',
+    'stage_negotiation' => 'Đàm phán',
+    'stage_closing' => 'Chốt đóng',
+    'deal_open' => 'Đang mở',
+    'deal_won' => 'Thắng',
+    'deal_lost' => 'Thua',
+    'expected_close_date' => 'Ngày dự kiến chốt',
     'lost_reason' => 'Lý do thất bại',
-    
-    // Pagination
+    'mark_won' => 'Đánh dấu thắng',
+    'mark_lost' => 'Đánh dấu thua',
+    'create_deal' => 'Tạo cơ hội mới',
+    'edit_deal' => 'Chỉnh sửa cơ hội',
+    'open_deals' => 'Cơ hội đang mở',
+    'won_deals' => 'Cơ hội thắng',
+    'total_leads' => 'Tổng khách hàng',
+    'tasks_overdue' => 'Công việc quá hạn',
+    'needs_attention' => 'Cần xử lý',
+    'up_to_date' => 'Đã cập nhật',
+    'view_pipeline' => 'Xem pipeline',
+    'view_deals' => 'Xem cơ hội',
+    'no_deals' => 'Chưa có cơ hội bán hàng nào.',
+
+    // ===== Contact Module =====
+    'contact' => 'Liên hệ',
+    'first_name' => 'Tên',
+    'last_name' => 'Họ',
+    'organization' => 'Tổ chức',
+    'create_contact' => 'Tạo liên hệ mới',
+    'edit_contact' => 'Chỉnh sửa liên hệ',
+    'no_contacts' => 'Chưa có liên hệ nào.',
+    'search_contacts' => 'Tìm kiếm liên hệ...',
+
+    // ===== Organization Module =====
+    'create_organization' => 'Tạo tổ chức mới',
+    'edit_organization' => 'Chỉnh sửa tổ chức',
+    'no_organizations' => 'Chưa có tổ chức nào.',
+    'search_organizations' => 'Tìm kiếm tổ chức...',
+
+    // ===== Activity Module =====
+    'activity' => 'Hoạt động',
+    'activities' => 'Hoạt động',
+    'recent_activity' => 'Hoạt động gần đây',
+    'no_activities' => 'Chưa có hoạt động nào.',
+    'log_activity' => 'Ghi nhận hoạt động',
+    'activity_call' => 'Cuộc gọi',
+    'activity_email' => 'Email',
+    'activity_meeting' => 'Cuộc họp',
+    'activity_note' => 'Ghi chú',
+
+    // ===== Proposal Module =====
+    'create_proposal' => 'Tạo đề xuất',
+    'edit_proposal' => 'Chỉnh sửa đề xuất',
+    'proposal_sent' => 'Đã gửi',
+    'proposal_viewed' => 'Đã xem',
+    'proposal_accepted' => 'Đã chấp nhận',
+    'proposal_rejected' => 'Đã từ chối',
+    'create_version' => 'Tạo phiên bản mới',
+    'send_proposal' => 'Gửi đề xuất',
+    'accept_proposal' => 'Chấp nhận',
+    'reject_proposal' => 'Từ chối',
+    'track_views' => 'Theo dõi lượt xem',
+
+    // ===== Chart Labels =====
+    'leads_created_over_time' => 'Khách hàng mới theo thời gian',
+    'leads_by_status' => 'Khách hàng theo trạng thái',
+    'deals_by_stage' => 'Cơ hội theo giai đoạn',
+    'last_7_days' => '7 ngày',
+    'last_30_days' => '30 ngày',
+
+    // ===== Table & Pagination =====
     'showing' => 'Hiển thị',
     'of' => 'của',
     'results' => 'kết quả',
     'no_results' => 'Không có kết quả',
-    
-    // Language
+    'trashed' => 'Đã xóa',
+    'active_only' => 'Đang hoạt động',
+    'with_trashed' => 'Bao gồm đã xóa',
+    'only_trashed' => 'Chỉ đã xóa',
+
+    // ===== Messages =====
+    'success' => 'Thành công',
+    'error' => 'Lỗi',
+    'warning' => 'Cảnh báo',
+    'info' => 'Thông tin',
+    'created_success' => 'Tạo mới thành công.',
+    'updated_success' => 'Cập nhật thành công.',
+    'deleted_success' => 'Xóa thành công.',
+    'restored_success' => 'Khôi phục thành công.',
+
+    // ===== SLA =====
+    'sla_status' => 'Trạng thái SLA',
+    'response_time' => 'Thời gian phản hồi',
+    'first_response' => 'Phản hồi đầu tiên',
+
+    // ===== ICP =====
+    'icp' => 'Hồ sơ khách hàng lý tưởng',
+    'create_icp' => 'Tạo hồ sơ ICP',
+    'edit_icp' => 'Chỉnh sửa hồ sơ ICP',
+    'icp_criteria' => 'Tiêu chí',
+    'icp_threshold' => 'Ngưỡng điểm',
+
+    // ===== User Module =====
+    'create_user' => 'Tạo người dùng',
+    'edit_user' => 'Chỉnh sửa người dùng',
+    'user_role' => 'Vai trò',
+    'password' => 'Mật khẩu',
+    'password_confirmation' => 'Xác nhận mật khẩu',
+    'owner' => 'Chủ sở hữu',
+    'photo' => 'Ảnh đại diện',
+
+    // ===== File Module =====
+    'create_file' => 'Tải lên tệp',
+    'file_name' => 'Tên tệp',
+    'file_size' => 'Kích thước',
+    'file_type' => 'Loại tệp',
+    'preview' => 'Xem trước',
+
+    // ===== Language =====
     'language' => 'Ngôn ngữ',
     'vietnamese' => 'Tiếng Việt',
     'english' => 'Tiếng Anh',
+
+    // ===== Playbook =====
+    'playbook' => 'Kịch bản bán hàng',
+    'talking_points' => 'Điểm nói chuyện',
+    'objections_handling' => 'Xử lý phản đối',
+    'next_steps' => 'Bước tiếp theo',
+    'recommended_docs' => 'Tài liệu đề xuất',
+    'playbook_suggestions' => 'Gợi ý kịch bản',
+
+    // ===== Email =====
+    'email_template' => 'Mẫu email',
+    'email_subject' => 'Tiêu đề email',
+    'email_body' => 'Nội dung email',
+    'recipient' => 'Người nhận',
+    'open_rate' => 'Tỷ lệ mở',
+    'click_rate' => 'Tỷ lệ nhấp',
+    'unsubscribe' => 'Hủy đăng ký',
+
+    // ===== Workflow =====
+    'create_workflow' => 'Tạo quy trình',
+    'trigger' => 'Kích hoạt',
+    'conditions' => 'Điều kiện',
+    'workflow_actions' => 'Hành động',
+
+    // ===== Reports =====
+    'revenue' => 'Doanh thu',
+    'conversion_rate' => 'Tỷ lệ chuyển đổi',
+    'avg_deal_size' => 'Giá trị TB mỗi deal',
+    'total_pipeline' => 'Tổng Pipeline',
+
+    // ===== Settings =====
+    'account_name' => 'Tên tài khoản',
+    'logo' => 'Logo',
+    'smtp_host' => 'SMTP Host',
+    'smtp_port' => 'SMTP Port',
+    'smtp_username' => 'Tên đăng nhập SMTP',
+    'smtp_password' => 'Mật khẩu SMTP',
+    'test_connection' => 'Kiểm tra kết nối',
+
+    // ===== Login Page =====
+    'welcome_login' => 'Chào mừng trở lại!',
+    'login_subtitle' => 'Đăng nhập để tiếp tục công việc của bạn',
+    'remember_me' => 'Ghi nhớ đăng nhập',
+    'forgot_password' => 'Quên mật khẩu?',
+    'crm_tagline' => 'Quản lý doanh nghiệp thông minh & hiệu quả',
+    'crm_description' => 'Nền tảng CRM toàn diện giúp bạn quản lý khách hàng, đơn hàng và vận hành doanh nghiệp một cách chuyên nghiệp.',
+    'feature_crm' => 'Quản lý khách hàng',
+    'feature_crm_desc' => 'Theo dõi và chăm sóc khách hàng hiệu quả',
+    'feature_analytics' => 'Phân tích dữ liệu',
+    'feature_analytics_desc' => 'Báo cáo trực quan, hỗ trợ ra quyết định',
+    'feature_automation' => 'Tự động hóa',
+    'feature_automation_desc' => 'Tối ưu quy trình, tiết kiệm thời gian',
+    'ssl_notice' => 'Kết nối được bảo mật bằng SSL',
+
+    // ===== Executive Dashboard =====
+    'updated_at' => 'Cập nhật lúc',
+    'ceo_dashboard' => 'CEO Dashboard',
+    'monthly' => 'Tháng',
+    'quarterly' => 'Quý',
+    'yearly' => 'Năm',
+    'churn_rate' => 'Tỷ lệ rời bỏ',
+    'cac' => 'Chi phí thu hút KH',
+    'ltv' => 'Giá trị vòng đời',
+    'ltv_cac_ratio' => 'Tỷ lệ LTV:CAC',
+    'top_deals' => 'Top cơ hội lớn nhất',
+    'pipeline_funnel' => 'Phễu Pipeline',
+    'revenue_summary' => 'Tổng kết doanh thu',
+    'revenue_trend' => 'Xu hướng doanh thu',
+    'this_month' => 'Tháng này',
+    'this_quarter' => 'Quý này',
+    'this_year' => 'Năm nay',
+    'vs_last_month' => 'so với tháng trước',
+    'good' => 'Tốt',
+    'average' => 'Trung bình',
+    'poor' => 'Kém',
+
+    // ===== Customer Success =====
+    'customer_success' => 'Chăm sóc khách hàng',
+    'customers' => 'Khách hàng',
+    'customer_info' => 'Thông tin khách hàng',
+    'create_customer' => 'Tạo khách hàng',
+    'total_customers_label' => 'Tổng khách hàng',
+    'avg_health' => 'Sức khỏe TB',
+    'renewing_soon' => 'Sắp gia hạn',
+    'churn_risk_detected' => 'Phát hiện rủi ro rời bỏ',
+    'search_customers' => 'Tìm khách hàng...',
+    'no_customers' => 'Chưa có khách hàng',
+    'all_statuses' => 'Tất cả trạng thái',
+    'all_users' => 'Tất cả người dùng',
+    'reset_filters' => 'Xóa bộ lọc',
+    'lifecycle' => 'Vòng đời',
+    'health' => 'Sức khỏe',
+    'renewal' => 'Gia hạn',
+    'start_date' => 'Ngày bắt đầu',
+    'contract_start' => 'Hợp đồng bắt đầu',
+    'contract_end' => 'Hợp đồng kết thúc',
+    'contract_term' => 'Kỳ hạn',
+    'showing' => 'Hiển thị',
+    'of' => 'trong',
+    'save' => 'Lưu',
+
+    // ===== Project Management =====
+    'projects' => 'Dự án',
+    'create_project' => 'Tạo dự án',
+    'active_projects' => 'Đang hoạt động',
+    'delayed' => 'Trễ hạn',
+    'total_profit' => 'Tổng lợi nhuận',
+    'avg_margin' => 'Biên lợi nhuận TB',
+    'utilization' => 'Sử dụng nguồn lực',
+    'search_projects' => 'Tìm dự án...',
+    'no_projects' => 'Chưa có dự án',
+    'project_settings' => 'Cài đặt dự án',
+    'profit' => 'Lợi nhuận',
+    'budget' => 'Ngân sách',
+    'manager' => 'Quản lý',
+    'due_date' => 'Hạn hoàn thành',
+    'customer' => 'Khách hàng',
 ];
-
-
-

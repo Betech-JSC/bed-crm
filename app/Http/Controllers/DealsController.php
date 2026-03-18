@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DealLost;
+use App\Events\DealStageChanged;
+use App\Events\DealWon;
+use App\Http\Requests\Deal\MarkLostRequest;
+use App\Http\Requests\Deal\StoreDealRequest;
+use App\Http\Requests\Deal\UpdateDealRequest;
+use App\Http\Requests\Deal\UpdateStageRequest;
 use App\Models\Deal;
 use App\Models\Lead;
 use App\Models\User;
@@ -9,8 +16,6 @@ use App\Services\SalesPlaybookService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -54,14 +59,7 @@ class DealsController extends Controller
         return Inertia::render('Deals/Index', [
             'dealsByStage' => $dealsByStage,
             'stages' => Deal::getStages(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
         ]);
     }
 
@@ -78,41 +76,13 @@ class DealsController extends Controller
                     'company' => $lead->company,
                 ]),
             'stages' => Deal::getStages(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
         ]);
     }
 
-    public function store(): RedirectResponse
+    public function store(StoreDealRequest $request): RedirectResponse
     {
-        $validated = Request::validate([
-            'lead_id' => [
-                'nullable',
-                Rule::exists('leads', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id);
-                }),
-            ],
-            'title' => ['required', 'max:200'],
-            'stage' => ['required', 'max:50'],
-            'value' => ['nullable', 'numeric', 'min:0'],
-            'expected_close_date' => ['nullable', 'date'],
-            'assigned_to' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id)
-                        ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE]);
-                }),
-            ],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        $deal = Auth::user()->account->deals()->create(array_merge($validated, [
+        Auth::user()->account->deals()->create(array_merge($request->validated(), [
             'status' => Deal::STATUS_OPEN,
         ]));
 
@@ -121,7 +91,6 @@ class DealsController extends Controller
 
     public function convertFromLead(Lead $lead): RedirectResponse
     {
-        // Check if lead already has a deal
         if ($lead->deal) {
             return Redirect::back()->withErrors(['error' => 'This lead already has a deal.']);
         }
@@ -176,14 +145,7 @@ class DealsController extends Controller
                 ]),
             'stages' => Deal::getStages(),
             'statuses' => Deal::getStatuses(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
             'proposals' => $deal->proposals()
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -211,39 +173,23 @@ class DealsController extends Controller
         ]);
     }
 
-    public function update(Deal $deal): RedirectResponse
+    public function update(UpdateDealRequest $request, Deal $deal): RedirectResponse
     {
-        $validated = Request::validate([
-            'title' => ['required', 'max:200'],
-            'stage' => ['required', 'max:50'],
-            'value' => ['nullable', 'numeric', 'min:0'],
-            'expected_close_date' => ['nullable', 'date'],
-            'status' => ['required', 'in:open,won,lost'],
-            'lost_reason' => ['nullable', 'required_if:status,lost', 'string'],
-            'assigned_to' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id)
-                        ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE]);
-                }),
-            ],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        $deal->update($validated);
+        $deal->update($request->validated());
 
         return Redirect::back()->with('success', 'Deal updated.');
     }
 
-    public function updateStage(Deal $deal): \Illuminate\Http\JsonResponse
+    public function updateStage(UpdateStageRequest $request, Deal $deal): RedirectResponse
     {
-        $validated = Request::validate([
-            'stage' => ['required', 'max:50'],
-        ]);
+        $oldStage = $deal->stage;
+        $newStage = $request->validated('stage');
 
-        $deal->update(['stage' => $validated['stage']]);
+        $deal->update(['stage' => $newStage]);
 
-        return response()->json(['success' => true]);
+        DealStageChanged::dispatch($deal, $oldStage, $newStage);
+
+        return Redirect::back()->with('success', 'Deal stage updated.');
     }
 
     public function markWon(Deal $deal): RedirectResponse
@@ -253,19 +199,21 @@ class DealsController extends Controller
             'lost_reason' => null,
         ]);
 
+        DealWon::dispatch($deal);
+
         return Redirect::back()->with('success', 'Deal marked as won.');
     }
 
-    public function markLost(Deal $deal): RedirectResponse
+    public function markLost(MarkLostRequest $request, Deal $deal): RedirectResponse
     {
-        $validated = Request::validate([
-            'lost_reason' => ['required', 'string', 'max:500'],
-        ]);
+        $lostReason = $request->validated('lost_reason');
 
         $deal->update([
             'status' => Deal::STATUS_LOST,
-            'lost_reason' => $validated['lost_reason'],
+            'lost_reason' => $lostReason,
         ]);
+
+        DealLost::dispatch($deal, $lostReason);
 
         return Redirect::back()->with('success', 'Deal marked as lost.');
     }
@@ -282,5 +230,20 @@ class DealsController extends Controller
         $deal->restore();
 
         return Redirect::back()->with('success', 'Deal restored.');
+    }
+
+    /**
+     * Get sales users for the current account.
+     */
+    private function getSalesUsers(): \Illuminate\Support\Collection
+    {
+        return Auth::user()->account->users()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
+            ->orderByName()
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ]);
     }
 }

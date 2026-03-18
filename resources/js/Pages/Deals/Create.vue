@@ -46,8 +46,8 @@
               <InputNumber
                 v-model="form.value"
                 mode="currency"
-                currency="USD"
-                locale="en-US"
+                currency="VND"
+                locale="vi-VN"
                 :class="{ 'p-invalid': form.errors.value }"
               />
               <small v-if="form.errors.value" class="p-error">{{ form.errors.value }}</small>

@@ -8,9 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Account extends Model
 {
     protected $fillable = [
-        'name',
-        'logo',
+        'name', 'logo',
+        'timezone', 'currency', 'locale', 'date_format', 'time_format',
+        'fiscal_year_start', 'phone', 'email', 'website', 'address',
+        'tax_id', 'industry', 'company_size',
     ];
+
+    protected $casts = [
+        'company_size' => 'integer',
+    ];
+
+    // ── Config helpers ──
+    public function systemConfigs(): HasMany { return $this->hasMany(SystemConfig::class); }
+
+    public function getConfig(string $group, string $key, $default = null)
+    {
+        return SystemConfig::getValue($this->id, $group, $key, $default);
+    }
 
     public function smtpSetting()
     {
@@ -112,6 +126,11 @@ class Account extends Model
         return $this->hasMany(EmailList::class);
     }
 
+    public function emailSegments(): HasMany
+    {
+        return $this->hasMany(EmailSegment::class);
+    }
+
     public function emailCampaigns(): HasMany
     {
         return $this->hasMany(EmailCampaign::class);
@@ -135,5 +154,30 @@ class Account extends Model
     public function chatConversations(): HasMany
     {
         return $this->hasMany(ChatConversation::class);
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function employeeProfiles(): HasMany
+    {
+        return $this->hasMany(EmployeeProfile::class);
+    }
+
+    public function kpiDefinitions(): HasMany
+    {
+        return $this->hasMany(KpiDefinition::class);
+    }
+
+    public function financialTransactions(): HasMany
+    {
+        return $this->hasMany(FinancialTransaction::class);
     }
 }

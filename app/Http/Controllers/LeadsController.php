@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LeadCreated;
+use App\Http\Requests\Lead\AddNoteRequest;
+use App\Http\Requests\Lead\StoreLeadRequest;
+use App\Http\Requests\Lead\UpdateLeadRequest;
 use App\Models\Lead;
 use App\Models\User;
-use App\Models\Workflow;
-use App\Services\WorkflowService;
-use App\Services\SLATrackingService;
 use App\Services\SalesPlaybookService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,14 +52,7 @@ class LeadsController extends Controller
                 ]),
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
         ]);
     }
 
@@ -68,36 +61,13 @@ class LeadsController extends Controller
         return Inertia::render('Leads/Create', [
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
         ]);
     }
 
-    public function store(): RedirectResponse
+    public function store(StoreLeadRequest $request): RedirectResponse
     {
-        $validated = Request::validate([
-            'name' => ['required', 'max:100'],
-            'phone' => ['nullable', 'max:50'],
-            'email' => ['nullable', 'max:100', 'email'],
-            'company' => ['nullable', 'max:100'],
-            'source' => ['nullable', 'max:50'],
-            'status' => ['required', 'max:50'],
-            'assigned_to' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id)
-                        ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE]);
-                }),
-            ],
-            'notes' => ['nullable', 'string'],
-            'tags' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validated();
 
         // Check for duplicates
         $duplicate = Lead::findDuplicate(
@@ -115,11 +85,8 @@ class LeadsController extends Controller
 
         $lead = Auth::user()->account->leads()->create($validated);
 
-        // Start SLA tracking
-        app(SLATrackingService::class)->startTracking($lead->fresh());
-
-        // Trigger workflow
-        app(WorkflowService::class)->trigger(Workflow::TRIGGER_LEAD_CREATED, $lead);
+        // Dispatch event — listeners handle SLA tracking, workflow triggers, etc.
+        LeadCreated::dispatch($lead->fresh());
 
         return Redirect::route('leads')->with('success', 'Lead created.');
     }
@@ -127,7 +94,7 @@ class LeadsController extends Controller
     public function edit(Lead $lead): Response
     {
         $lead->load('icp:id,name');
-        
+
         return Inertia::render('Leads/Edit', [
             'lead' => [
                 'id' => $lead->id,
@@ -151,13 +118,11 @@ class LeadsController extends Controller
                     'id' => $lead->icp->id,
                     'name' => $lead->icp->name,
                 ] : null,
-                // Engagement data
                 'email_opens' => $lead->email_opens ?? 0,
                 'email_clicks' => $lead->email_clicks ?? 0,
                 'website_visits' => $lead->website_visits ?? 0,
                 'page_views' => $lead->page_views ?? 0,
                 'time_on_site_seconds' => $lead->time_on_site_seconds ?? 0,
-                // SLA tracking
                 'sla_status' => $lead->sla_status ?? 'pending',
                 'sla_started_at' => $lead->sla_started_at?->toISOString(),
                 'first_response_at' => $lead->first_response_at?->toISOString(),
@@ -200,36 +165,13 @@ class LeadsController extends Controller
             ]),
             'statuses' => Lead::getStatuses(),
             'sources' => Lead::getSources(),
-            'salesUsers' => Auth::user()->account->users()
-                ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
-                ->orderByName()
-                ->get()
-                ->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                ]),
+            'salesUsers' => $this->getSalesUsers(),
         ]);
     }
 
-    public function update(Lead $lead): RedirectResponse
+    public function update(UpdateLeadRequest $request, Lead $lead): RedirectResponse
     {
-        $validated = Request::validate([
-            'name' => ['required', 'max:100'],
-            'phone' => ['nullable', 'max:50'],
-            'email' => ['nullable', 'max:100', 'email'],
-            'company' => ['nullable', 'max:100'],
-            'source' => ['nullable', 'max:50'],
-            'status' => ['required', 'max:50'],
-            'assigned_to' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id)
-                        ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE]);
-                }),
-            ],
-            'notes' => ['nullable', 'string'],
-            'tags' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validated();
 
         // Check for duplicates (excluding current lead)
         $duplicate = Lead::findDuplicate(
@@ -265,11 +207,9 @@ class LeadsController extends Controller
         return Redirect::back()->with('success', 'Lead restored.');
     }
 
-    public function addNote(Lead $lead): RedirectResponse
+    public function addNote(AddNoteRequest $request, Lead $lead): RedirectResponse
     {
-        $validated = Request::validate([
-            'note' => ['required', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $currentNotes = $lead->notes ?? '';
         $timestamp = now()->format('Y-m-d H:i:s');
@@ -280,5 +220,20 @@ class LeadsController extends Controller
         ]);
 
         return Redirect::back()->with('success', 'Note added.');
+    }
+
+    /**
+     * Get sales users for the current account.
+     */
+    private function getSalesUsers(): \Illuminate\Support\Collection
+    {
+        return Auth::user()->account->users()
+            ->whereIn('role', [User::ROLE_ADMIN, User::ROLE_SALE])
+            ->orderByName()
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ]);
     }
 }

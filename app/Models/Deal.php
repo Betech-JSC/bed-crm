@@ -28,23 +28,51 @@ class Deal extends Model
     public const STATUS_WON = 'won';
     public const STATUS_LOST = 'lost';
 
+    // Forecast category constants
+    public const FORECAST_PIPELINE = 'pipeline';
+    public const FORECAST_BEST_CASE = 'best_case';
+    public const FORECAST_COMMIT = 'commit';
+    public const FORECAST_OMIT = 'omit';
+
     protected $fillable = [
-        'account_id',
-        'lead_id',
-        'title',
-        'stage',
-        'value',
-        'expected_close_date',
-        'status',
-        'lost_reason',
-        'assigned_to',
-        'notes',
+        'account_id', 'lead_id', 'title', 'stage', 'value',
+        'expected_close_date', 'status', 'lost_reason', 'assigned_to', 'notes',
+        // Sales Intelligence fields
+        'win_probability', 'weighted_value', 'forecast_category',
+        'days_in_stage', 'stage_changed_at', 'stage_history', 'days_to_close',
+        'gross_margin', 'cost', 'currency', 'close_quarter',
+        'competitors', 'pain_points', 'next_steps',
+        'health_score', 'at_risk', 'ai_summary',
+        'last_activity_at', 'activity_count',
     ];
 
     protected $casts = [
         'value' => 'decimal:2',
+        'weighted_value' => 'decimal:2',
         'expected_close_date' => 'date',
+        'stage_changed_at' => 'datetime',
+        'stage_history' => 'array',
+        'competitors' => 'array',
+        'pain_points' => 'array',
+        'next_steps' => 'array',
+        'at_risk' => 'boolean',
+        'last_activity_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $deal) {
+            // Auto-record stage change history
+            if ($deal->isDirty('stage') && $deal->getOriginal('stage') !== $deal->stage) {
+                app(\App\Services\SalesIntelligenceService::class)->recordStageChange($deal, $deal->stage);
+            }
+            // Auto-recalculate weighted value
+            if ($deal->isDirty(['value', 'win_probability'])) {
+                $deal->weighted_value = round(($deal->value ?? 0) * ($deal->win_probability ?? 10) / 100, 2);
+            }
+        });
+    }
+
 
     public function resolveRouteBinding($value, $field = null)
     {
@@ -69,6 +97,30 @@ class Deal extends Model
     public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Activity::class, 'subject')->orderBy('date', 'desc');
+    }
+
+    public function aiInsight(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(DealAiInsight::class);
+    }
+
+    public function getHealthLabelAttribute(): string
+    {
+        return match (true) {
+            $this->health_score >= 70 => 'healthy',
+            $this->health_score >= 40 => 'at_risk',
+            default => 'critical',
+        };
+    }
+
+    public static function getForecastCategories(): array
+    {
+        return [
+            self::FORECAST_COMMIT => ['vi' => 'Cam kết', 'en' => 'Commit'],
+            self::FORECAST_BEST_CASE => ['vi' => 'Tốt nhất', 'en' => 'Best Case'],
+            self::FORECAST_PIPELINE => ['vi' => 'Pipeline', 'en' => 'Pipeline'],
+            self::FORECAST_OMIT => ['vi' => 'Bỏ qua', 'en' => 'Omit'],
+        ];
     }
 
     /**

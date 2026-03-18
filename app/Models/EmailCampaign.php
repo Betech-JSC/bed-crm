@@ -18,28 +18,24 @@ class EmailCampaign extends Model
     public const STATUS_PAUSED = 'paused';
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const TYPE_REGULAR = 'regular';
+    public const TYPE_AB_TEST = 'ab_test';
+    public const TYPE_RSS = 'rss';
+    public const TYPE_AUTOMATED = 'automated';
+
     protected $fillable = [
-        'account_id',
-        'name',
-        'description',
-        'email_template_id',
-        'subject',
-        'body_html',
-        'body_text',
-        'email_list_id',
-        'status',
-        'scheduled_at',
-        'sent_at',
-        'total_recipients',
-        'sent_count',
-        'delivered_count',
-        'opened_count',
-        'clicked_count',
-        'bounced_count',
-        'unsubscribed_count',
-        'open_rate',
-        'click_rate',
-        'created_by',
+        'account_id', 'name', 'description', 'email_template_id',
+        'subject', 'preview_text', 'body_html', 'body_text',
+        'from_name', 'from_email', 'reply_to',
+        'email_list_id', 'email_segment_id',
+        'status', 'campaign_type', 'ab_test_config', 'winning_variant_id',
+        'send_config', 'scheduled_at', 'sent_at',
+        'total_recipients', 'sent_count', 'delivered_count',
+        'opened_count', 'clicked_count', 'bounced_count',
+        'unsubscribed_count', 'spam_reports',
+        'open_rate', 'click_rate',
+        'revenue_generated', 'conversions_count', 'revenue_per_email',
+        'tags', 'created_by',
     ];
 
     protected $casts = [
@@ -52,8 +48,15 @@ class EmailCampaign extends Model
         'clicked_count' => 'integer',
         'bounced_count' => 'integer',
         'unsubscribed_count' => 'integer',
+        'spam_reports' => 'integer',
+        'conversions_count' => 'integer',
         'open_rate' => 'decimal:2',
         'click_rate' => 'decimal:2',
+        'revenue_generated' => 'decimal:2',
+        'revenue_per_email' => 'decimal:2',
+        'ab_test_config' => 'array',
+        'send_config' => 'array',
+        'tags' => 'array',
     ];
 
     public function account(): BelongsTo
@@ -71,10 +74,33 @@ class EmailCampaign extends Model
         return $this->belongsTo(EmailList::class);
     }
 
+    public function segment(): BelongsTo
+    {
+        return $this->belongsTo(EmailSegment::class, 'email_segment_id');
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(EmailCampaignVariant::class);
+    }
+
     public function sends(): HasMany
     {
         return $this->hasMany(EmailSend::class, 'sendable_id')
             ->where('sendable_type', 'campaign');
+    }
+
+    public function attributions(): HasMany
+    {
+        return $this->hasMany(EmailRevenueAttribution::class);
+    }
+
+    /**
+     * Check if this is an A/B test campaign
+     */
+    public function isAbTest(): bool
+    {
+        return $this->campaign_type === self::TYPE_AB_TEST;
     }
 
     /**
@@ -94,6 +120,25 @@ class EmailCampaign extends Model
             $this->click_rate = ($this->clicked_count / $this->delivered_count) * 100;
         }
 
+        if ($this->sent_count > 0 && $this->revenue_generated > 0) {
+            $this->revenue_per_email = $this->revenue_generated / $this->sent_count;
+        }
+
         $this->save();
+
+        // Update variant stats if A/B test
+        if ($this->isAbTest()) {
+            $this->variants->each(fn ($v) => $v->updateStatistics());
+        }
+    }
+
+    /**
+     * Declare A/B test winner
+     */
+    public function declareWinner(string $variantId): void
+    {
+        $this->variants()->update(['is_winner' => false]);
+        $this->variants()->where('variant_id', $variantId)->update(['is_winner' => true]);
+        $this->update(['winning_variant_id' => $variantId]);
     }
 }

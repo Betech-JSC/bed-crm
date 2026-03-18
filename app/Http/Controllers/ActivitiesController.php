@@ -2,28 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ActivityLogged;
+use App\Http\Requests\Activity\StoreActivityRequest;
+use App\Http\Requests\Activity\UpdateActivityRequest;
 use App\Models\Activity;
-use App\Models\Lead;
-use App\Services\SLATrackingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class ActivitiesController extends Controller
 {
-    public function store(): RedirectResponse
+    public function store(StoreActivityRequest $request): RedirectResponse
     {
-        $validated = Request::validate([
-            'subject_type' => ['required', 'string', 'in:App\\Models\\Lead,App\\Models\\Deal,App\\Models\\Contact'],
-            'subject_id' => ['required', 'integer'],
-            'type' => ['required', 'string', 'in:call,email,meeting,note'],
-            'title' => ['nullable', 'string', 'max:200'],
-            'description' => ['nullable', 'string'],
-            'date' => ['required', 'date'],
-        ]);
+        $validated = $request->validated();
 
         // Verify subject belongs to user's account
         $subjectClass = $validated['subject_type'];
@@ -40,27 +31,15 @@ class ActivitiesController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        // Check if this is first response for a lead (record SLA)
-        if ($validated['subject_type'] === 'App\\Models\\Lead') {
-            $lead = Lead::find($validated['subject_id']);
-            if ($lead && !$lead->first_response_at) {
-                app(SLATrackingService::class)->recordFirstResponse($lead);
-            }
-        }
+        // Dispatch event — listeners handle SLA first response recording, etc.
+        ActivityLogged::dispatch($activity);
 
         return Redirect::back()->with('success', 'Activity logged successfully.');
     }
 
-    public function update(Activity $activity): RedirectResponse
+    public function update(UpdateActivityRequest $request, Activity $activity): RedirectResponse
     {
-        $validated = Request::validate([
-            'type' => ['required', 'string', 'in:call,email,meeting,note'],
-            'title' => ['nullable', 'string', 'max:200'],
-            'description' => ['nullable', 'string'],
-            'date' => ['required', 'date'],
-        ]);
-
-        $activity->update($validated);
+        $activity->update($request->validated());
 
         return Redirect::back()->with('success', 'Activity updated.');
     }
