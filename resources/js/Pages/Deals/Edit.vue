@@ -227,6 +227,7 @@ import Breadcrumb from 'primevue/breadcrumb'
 import Dialog from 'primevue/dialog'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
 import PlaybookSuggestions from '@/Shared/PlaybookSuggestions.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -256,6 +257,10 @@ export default {
     playbookSuggestions: Array,
   },
   remember: 'form',
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       showLostDialog: false,

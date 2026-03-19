@@ -151,6 +151,7 @@ import MultiSelect from 'primevue/multiselect'
 import Divider from 'primevue/divider'
 import Breadcrumb from 'primevue/breadcrumb'
 import { useForm } from '@inertiajs/vue3'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -169,6 +170,10 @@ export default {
   props: {
     contentItem: Object,
     socialAccounts: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

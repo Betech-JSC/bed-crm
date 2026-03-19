@@ -4,7 +4,7 @@
 
     <div class="page-header">
       <div>
-        <h1 class="page-title">Transactions</h1>
+        <h1 class="page-title">{{ t('common.transactions') }}</h1>
         <p class="page-subtitle">{{ transactions.total || 0 }} records</p>
       </div>
       <div class="header-actions">
@@ -32,12 +32,12 @@
         <thead>
           <tr>
             <th style="width:38px"></th>
-            <th>Description</th>
+            <th>{{ t('common.description') }}</th>
             <th>Category</th>
-            <th>Date</th>
-            <th>Reference</th>
-            <th class="text-right">Amount</th>
-            <th style="width:80px">Actions</th>
+            <th>{{ t('common.date') }}</th>
+            <th>{{ t('common.reference') }}</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th style="width:80px">{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -122,7 +122,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Notes</label>
+          <label>{{ t('common.notes') }}</label>
           <Textarea v-model="txnForm.notes" rows="2" class="w-full" />
         </div>
       </div>
@@ -145,6 +145,7 @@ import Paginator from 'primevue/paginator'
 import Dialog from 'primevue/dialog'
 import throttle from 'lodash/throttle'
 import pickBy from 'lodash/pickBy'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Link, Button, InputText, Textarea, Select, Paginator, Dialog },
@@ -154,6 +155,10 @@ export default {
     filters: Object,
     incomeCategories: Object,
     expenseCategories: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

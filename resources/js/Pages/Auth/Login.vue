@@ -149,11 +149,16 @@
 <script>
 import { Head } from '@inertiajs/vue3'
 import Logo from '@/Shared/Logo.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
     Head,
     Logo,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

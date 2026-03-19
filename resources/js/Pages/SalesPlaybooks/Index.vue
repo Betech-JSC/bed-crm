@@ -3,7 +3,7 @@
     <Head title="Sales Playbooks" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Sales Playbooks</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.sales_playbooks') }}</h1>
         <p class="mt-1 text-gray-600">Manage your sales strategies and talking points</p>
       </div>
       <Link href="/sales-playbooks/create">
@@ -85,6 +85,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -100,6 +101,10 @@ export default {
   layout: Layout,
   props: {
     playbooks: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
 }
 </script>

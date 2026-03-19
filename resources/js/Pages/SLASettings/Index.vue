@@ -3,7 +3,7 @@
     <Head title="SLA Settings" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">SLA Settings</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.sla_settings') }}</h1>
         <p class="mt-1 text-gray-600">Manage your Service Level Agreement settings</p>
       </div>
       <Link href="/sla-settings/create">
@@ -87,6 +87,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -102,6 +103,10 @@ export default {
   layout: Layout,
   props: {
     slaSettings: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     formatMinutes(minutes) {

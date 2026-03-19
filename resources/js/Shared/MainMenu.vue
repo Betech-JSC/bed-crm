@@ -1,6 +1,7 @@
 <template>
   <div class="main-menu">
-    <!-- Dashboard -->
+
+    <!-- ═══ Dashboard ═══ -->
     <div class="menu-section">
       <Link class="menu-link" :class="{ 'is-active': isUrl('') }" href="/">
         <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('') }">
@@ -10,119 +11,34 @@
       </Link>
     </div>
 
-
-    <!-- Sales Module -->
+    <!-- ═══ CRM / Sales ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.sales') }}</div>
-      <MenuGroup
-        :title="t('common.sales_management')"
-        icon="pi pi-shopping-bag"
-        :is-open="openGroups.includes('sales')"
-        @toggle="toggleGroup('sales')"
-      >
-        <MenuItem href="/leads" icon="pi pi-bullseye" :active="isUrl('leads')">{{ t('common.leads') }}</MenuItem>
-        <MenuItem href="/deals" icon="pi pi-briefcase" :active="isUrl('deals')">{{ t('common.deals') }}</MenuItem>
-        <MenuItem href="/contacts" icon="pi pi-id-card" :active="isUrl('contacts')">{{ t('common.contacts') }}</MenuItem>
-        <MenuItem href="/organizations" icon="pi pi-building" :active="isUrl('organizations')">{{ t('common.organizations') }}</MenuItem>
-        <MenuItem href="/proposals" icon="pi pi-file-edit" :active="isUrl('proposals')">{{ t('common.proposals') }}</MenuItem>
-        <MenuItem href="/sales-playbooks" icon="pi pi-book" :active="isUrl('sales-playbooks')">{{ t('common.sales_playbooks') }}</MenuItem>
-      </MenuGroup>
+      <MenuItem href="/leads" icon="pi pi-bullseye" :active="isUrl('leads')">{{ t('common.leads') }}</MenuItem>
+      <MenuItem href="/deals" icon="pi pi-briefcase" :active="isUrl('deals')">{{ t('common.deals') }}</MenuItem>
+      <MenuItem href="/contacts" icon="pi pi-id-card" :active="isUrl('contacts')">{{ t('common.contacts') }}</MenuItem>
+      <MenuItem href="/organizations" icon="pi pi-building" :active="isUrl('organizations')">{{ t('common.organizations') }}</MenuItem>
+      <MenuItem href="/proposals" icon="pi pi-file-edit" :active="isUrl('proposals')">{{ t('common.proposals') }}</MenuItem>
+      <MenuItem href="/sales-playbooks" icon="pi pi-book" :active="isUrl('sales-playbooks')">{{ t('common.sales_playbooks') }}</MenuItem>
+      <MenuItem href="/icps" icon="pi pi-star" :active="isUrl('icps')">{{ t('common.icp_profiles') }}</MenuItem>
     </div>
 
-    <!-- Customer Success Module -->
+    <!-- ═══ Customer & Projects ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.customer_success') }}</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('customers') }" href="/customers">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('customers') }">
-          <i class="pi pi-heart" />
-        </div>
-        <span class="menu-label">{{ t('common.customers') }}</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('projects') }" href="/projects">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('projects') }">
-          <i class="pi pi-folder" />
-        </div>
-        <span class="menu-label">{{ t('common.projects') }}</span>
-      </Link>
+      <MenuItem href="/customers" icon="pi pi-heart" :active="isUrl('customers')">{{ t('common.customers') }}</MenuItem>
+      <MenuItem href="/projects" icon="pi pi-folder" :active="isUrl('projects')">{{ t('common.projects') }}</MenuItem>
     </div>
 
-    <!-- HR & Performance Module -->
-    <div class="menu-section">
-      <div class="menu-section-title">HR &amp; Performance</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('hr') && !isUrl('hr/employees') && !isUrl('hr/kpi') }" href="/hr">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('hr') && !isUrl('hr/employees') && !isUrl('hr/kpi') }">
-          <i class="pi pi-chart-bar" />
-        </div>
-        <span class="menu-label">Team Dashboard</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('hr/employees') }" href="/hr/employees">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('hr/employees') }">
-          <i class="pi pi-users" />
-        </div>
-        <span class="menu-label">Employees</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('hr/kpi-definitions') }" href="/hr/kpi-definitions">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('hr/kpi-definitions') }">
-          <i class="pi pi-flag" />
-        </div>
-        <span class="menu-label">KPI Definitions</span>
-      </Link>
-    </div>
-
-    <!-- Finance Module -->
-    <div class="menu-section">
-      <div class="menu-section-title">Finance</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('finance') && !isUrl('finance/transactions') }" href="/finance">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('finance') && !isUrl('finance/transactions') }">
-          <i class="pi pi-chart-pie" />
-        </div>
-        <span class="menu-label">Overview</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('finance/transactions') }" href="/finance/transactions">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('finance/transactions') }">
-          <i class="pi pi-wallet" />
-        </div>
-        <span class="menu-label">Transactions</span>
-      </Link>
-    </div>
-
-    <!-- AI Intelligence -->
-    <!-- Strategy Module -->
-    <div class="menu-section">
-      <div class="menu-section-title">{{ t('common.strategy') || 'Strategy' }}</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('strategy') }" href="/strategy">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('strategy') }">
-          <i class="pi pi-compass" />
-        </div>
-        <span class="menu-label">{{ isVi ? 'Bảng chiến lược' : 'Strategy Cockpit' }}</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('okrs') }" href="/okrs">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('okrs') }">
-          <i class="pi pi-sitemap" />
-        </div>
-        <span class="menu-label">OKRs</span>
-      </Link>
-    </div>
-
-    <!-- Intelligence Module -->
-    <div class="menu-section">
-      <div class="menu-section-title">Intelligence</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('intelligence') }" href="/intelligence">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('intelligence') }">
-          <i class="pi pi-sparkles" />
-        </div>
-        <span class="menu-label">AI Analyst</span>
-      </Link>
-    </div>
-
-    <!-- Marketing Module -->
+    <!-- ═══ Marketing ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.marketing') }}</div>
+      <MenuItem href="/case-studies" icon="pi pi-trophy" :active="isUrl('case-studies')">{{ t('common.case_studies') }}</MenuItem>
       <MenuGroup
         :title="t('common.email_marketing')"
         icon="pi pi-envelope"
-        :is-open="openGroups.includes('marketing')"
-        @toggle="toggleGroup('marketing')"
+        :is-open="openGroups.includes('email')"
+        @toggle="toggleGroup('email')"
       >
         <MenuItem href="/email-templates" icon="pi pi-file" :active="isUrl('email-templates')">{{ t('common.templates') }}</MenuItem>
         <MenuItem href="/email-lists" icon="pi pi-list" :active="isUrl('email-lists')">{{ t('common.lists') }}</MenuItem>
@@ -142,59 +58,37 @@
       </MenuGroup>
     </div>
 
-    <!-- Automation Module -->
+    <!-- ═══ Organization ═══ -->
     <div class="menu-section">
-      <div class="menu-section-title">{{ t('common.automation') }}</div>
-      <MenuGroup
-        :title="t('common.automation')"
-        icon="pi pi-sync"
-        :is-open="openGroups.includes('automation')"
-        @toggle="toggleGroup('automation')"
-      >
-        <MenuItem href="/workflows" icon="pi pi-sitemap" :active="isUrl('workflows')">{{ t('common.workflows') }}</MenuItem>
-        <MenuItem href="/chat-widgets" icon="pi pi-comments" :active="isUrl('chat-widgets')">{{ t('common.chat_widgets') }}</MenuItem>
-        <MenuItem href="/chat-conversations" icon="pi pi-comment" :active="isUrl('chat-conversations')">{{ t('common.conversations') }}</MenuItem>
-      </MenuGroup>
+      <div class="menu-section-title">{{ t('common.org_structure') }}</div>
+      <MenuItem href="/org-structure" icon="pi pi-sitemap" :active="isUrl('org-structure')">{{ t('common.org_chart') }}</MenuItem>
+      <MenuItem href="/hr/employees" icon="pi pi-users" :active="isUrl('hr/employees')">{{ t('common.employees') }}</MenuItem>
+      <MenuItem href="/hr/kpi-definitions" icon="pi pi-flag" :active="isUrl('hr/kpi-definitions')">{{ t('common.kpi_definitions') }}</MenuItem>
+      <MenuItem href="/org-objectives" icon="pi pi-target" :active="isUrl('org-objectives')">{{ t('common.org_objectives') }}</MenuItem>
+      <MenuItem href="/approvals" icon="pi pi-check-circle" :active="isUrl('approvals')">{{ t('common.approvals') }}</MenuItem>
     </div>
 
-    <!-- Analytics Module -->
+    <!-- ═══ Strategy & Finance ═══ -->
     <div class="menu-section">
-      <div class="menu-section-title">{{ t('common.analytics') }}</div>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('reports') }" href="/reports">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('reports') }">
-          <i class="pi pi-chart-bar" />
-        </div>
-        <span class="menu-label">{{ t('common.reports') }}</span>
-      </Link>
-      <Link class="menu-link" :class="{ 'is-active': isUrl('icps') }" href="/icps">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('icps') }">
-          <i class="pi pi-star" />
-        </div>
-        <span class="menu-label">{{ t('common.icp_profiles') }}</span>
-      </Link>
+      <div class="menu-section-title">{{ t('common.strategy') }}</div>
+      <MenuItem href="/strategy" icon="pi pi-compass" :active="isUrl('strategy') && !isUrl('strategy/')">{{ t('common.strategy') }}</MenuItem>
+      <MenuItem href="/finance" icon="pi pi-chart-pie" :active="isUrl('finance') && !isUrl('finance/transactions')">{{ t('common.finance') }}</MenuItem>
+      <MenuItem href="/finance/transactions" icon="pi pi-wallet" :active="isUrl('finance/transactions')">{{ t('common.transactions') }}</MenuItem>
+      <MenuItem href="/intelligence" icon="pi pi-sparkles" :active="isUrl('intelligence')">{{ t('common.intelligence') }}</MenuItem>
+      <MenuItem href="/reports" icon="pi pi-chart-bar" :active="isUrl('reports')">{{ t('common.reports') }}</MenuItem>
     </div>
 
-    <!-- Notifications -->
+    <!-- ═══ Tools ═══ -->
     <div class="menu-section">
-      <Link class="menu-link" :class="{ 'is-active': isUrl('notifications') }" href="/notifications">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('notifications') }">
-          <i class="pi pi-bell" />
-        </div>
-        <span class="menu-label">{{ t('common.notifications') || 'Notifications' }}</span>
-      </Link>
+      <div class="menu-section-title">{{ t('common.tools') }}</div>
+      <MenuItem href="/workflows" icon="pi pi-sync" :active="isUrl('workflows')">{{ t('common.workflows') }}</MenuItem>
+      <MenuItem href="/chat-widgets" icon="pi pi-comments" :active="isUrl('chat-widgets')">{{ t('common.chat_widgets') }}</MenuItem>
+      <MenuItem href="/chat-conversations" icon="pi pi-comment" :active="isUrl('chat-conversations')">{{ t('common.conversations') }}</MenuItem>
+      <MenuItem href="/files" icon="pi pi-folder-open" :active="isUrl('files')">{{ t('common.files') }}</MenuItem>
+      <MenuItem href="/notifications" icon="pi pi-bell" :active="isUrl('notifications')">{{ t('common.notifications') }}</MenuItem>
     </div>
 
-    <!-- Files -->
-    <div class="menu-section">
-      <Link class="menu-link" :class="{ 'is-active': isUrl('files') }" href="/files">
-        <div class="menu-icon-wrapper" :class="{ 'icon-active': isUrl('files') }">
-          <i class="pi pi-folder" />
-        </div>
-        <span class="menu-label">{{ t('common.files') }}</span>
-      </Link>
-    </div>
-
-    <!-- Settings Section -->
+    <!-- ═══ Settings ═══ -->
     <div class="menu-section menu-section-settings">
       <div class="menu-section-title">{{ t('common.settings') }}</div>
       <MenuGroup
@@ -209,7 +103,6 @@
         <MenuItem href="/users" icon="pi pi-user" :active="isUrl('users')">{{ t('common.users') }}</MenuItem>
         <MenuItem href="/roles" icon="pi pi-shield" :active="isUrl('roles')">{{ t('common.roles') }}</MenuItem>
         <MenuItem href="/permissions" icon="pi pi-lock" :active="isUrl('permissions')">{{ t('common.permissions_menu') }}</MenuItem>
-        <MenuItem href="/settings/roles" icon="pi pi-verified" :active="isUrl('settings/roles')">{{ t('common.rbac') || 'RBAC' }}</MenuItem>
       </MenuGroup>
     </div>
   </div>
@@ -236,46 +129,20 @@ export default {
       openGroups: [],
     }
   },
-  computed: {
-    isVi() { return this.locale === 'vi' },
-  },
   mounted() {
     const currentUrl = this.$page.url.substr(1)
-    
-    if (currentUrl.startsWith('leads') || currentUrl.startsWith('deals') || 
-        currentUrl.startsWith('contacts') || currentUrl.startsWith('organizations') ||
-        currentUrl.startsWith('proposals') || currentUrl.startsWith('sales-playbooks')) {
-      this.openGroups.push('sales')
-    }
-    
-    if (currentUrl.startsWith('email-')) {
-      this.openGroups.push('marketing')
-    }
 
-    if (currentUrl.startsWith('content-') || currentUrl.startsWith('social-')) {
-      this.openGroups.push('content')
-    }
-    
-    if (currentUrl.startsWith('workflows') || currentUrl.startsWith('chat-')) {
-      this.openGroups.push('automation')
-    }
-    
-    if (currentUrl.startsWith('reports') || currentUrl.startsWith('icps')) {
-      this.openGroups.push('analytics')
-    }
-    
-    if (currentUrl.startsWith('account-settings') || currentUrl.startsWith('smtp-settings') || 
-        currentUrl.startsWith('sla-settings') || currentUrl.startsWith('users') ||
-        currentUrl.startsWith('roles') || currentUrl.startsWith('permissions')) {
+    // Auto-expand matching groups
+    if (currentUrl.startsWith('email-')) this.openGroups.push('email')
+    if (currentUrl.startsWith('content-') || currentUrl.startsWith('social-')) this.openGroups.push('content')
+    if (['account-settings', 'smtp-settings', 'sla-settings', 'users', 'roles', 'permissions'].some(p => currentUrl.startsWith(p))) {
       this.openGroups.push('settings')
     }
   },
   methods: {
     isUrl(...urls) {
       let currentUrl = this.$page.url.substr(1)
-      if (urls[0] === '') {
-        return currentUrl === ''
-      }
+      if (urls[0] === '') return currentUrl === ''
       return urls.filter((url) => currentUrl.startsWith(url)).length
     },
     toggleGroup(group) {

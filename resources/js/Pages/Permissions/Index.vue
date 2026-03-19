@@ -3,7 +3,7 @@
     <Head title="Permissions" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Permissions</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.permissions_menu') }}</h1>
         <p class="mt-1 text-gray-600">Manage system permissions</p>
       </div>
       <Link href="/permissions/create">
@@ -88,6 +88,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -104,6 +105,10 @@ export default {
   props: {
     permissions: Array,
     groups: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     confirmDelete(id) {

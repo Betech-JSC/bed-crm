@@ -231,6 +231,7 @@ import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -249,6 +250,10 @@ export default {
   props: {
     proposal: Object,
     versions: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

@@ -77,6 +77,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -93,6 +94,10 @@ export default {
     workflows: Array,
     triggerEvents: Object,
     actionTypes: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
 }
 </script>

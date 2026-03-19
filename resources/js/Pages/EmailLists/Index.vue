@@ -3,7 +3,7 @@
     <Head title="Email Lists" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Email Lists</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.lists') }}</h1>
         <p class="mt-1 text-gray-600">Manage your contact lists for email campaigns</p>
       </div>
       <Link href="/email-lists/create">
@@ -91,6 +91,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -106,6 +107,10 @@ export default {
   layout: Layout,
   props: {
     lists: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     confirmDelete(id) {

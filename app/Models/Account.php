@@ -180,4 +180,24 @@ class Account extends Model
     {
         return $this->hasMany(FinancialTransaction::class);
     }
+
+    public function departments(): HasMany
+    {
+        return $this->hasMany(Department::class);
+    }
+
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
+    }
+
+    public function orgObjectives(): HasMany
+    {
+        return $this->hasMany(OrgObjective::class);
+    }
+
+    public function approvalWorkflows(): HasMany
+    {
+        return $this->hasMany(ApprovalWorkflow::class);
+    }
 }

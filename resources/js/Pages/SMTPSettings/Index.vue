@@ -2,7 +2,7 @@
   <div>
     <Head title="SMTP Settings" />
     <div class="mb-6">
-      <h1 class="text-3xl font-bold">SMTP Settings</h1>
+      <h1 class="text-3xl font-bold">{{ t('common.smtp_settings') }}</h1>
       <p class="mt-1 text-gray-600">Configure your email server settings for sending emails</p>
     </div>
 
@@ -117,6 +117,7 @@ import Password from 'primevue/password'
 import Select from 'primevue/select'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -133,6 +134,10 @@ export default {
   layout: Layout,
   props: {
     smtpSetting: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

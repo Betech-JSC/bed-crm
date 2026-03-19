@@ -4,7 +4,7 @@
 
     <div class="page-header">
       <div>
-        <h1 class="page-title">KPI Definitions</h1>
+        <h1 class="page-title">{{ t('common.kpi_definitions') }}</h1>
         <p class="page-subtitle">{{ kpis.length }} KPIs defined</p>
       </div>
       <div class="header-actions">
@@ -35,7 +35,7 @@
             <i :class="kpi.higher_is_better ? 'pi pi-arrow-up' : 'pi pi-arrow-down'" />
             {{ kpi.higher_is_better ? 'Higher is better' : 'Lower is better' }}
           </span>
-          <span v-if="!kpi.is_active" class="inactive-badge">Inactive</span>
+          <span v-if="!kpi.is_active" class="inactive-badge">{{ t('common.inactive') }}</span>
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@
           <InputText v-model="kpiForm.name" placeholder="e.g. Monthly Revenue Target" class="w-full" />
         </div>
         <div class="form-group">
-          <label>Description</label>
+          <label>{{ t('common.description') }}</label>
           <Textarea v-model="kpiForm.description" placeholder="Brief description of this KPI..." rows="2" class="w-full" />
         </div>
         <div class="form-row">
@@ -101,6 +101,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Link, Button, InputText, Textarea, Select, Dialog },
@@ -110,6 +111,10 @@ export default {
     units: Object,
     periods: Object,
     categories: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

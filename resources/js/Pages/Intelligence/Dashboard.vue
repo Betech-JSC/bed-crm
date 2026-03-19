@@ -253,11 +253,16 @@ import { Head, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
 import Button from 'primevue/button'
 import axios from 'axios'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Button },
   layout: Layout,
   props: { analysis: Object },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return { refreshing: false }
   },

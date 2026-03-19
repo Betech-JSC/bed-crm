@@ -226,6 +226,7 @@ import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import Dialog from 'primevue/dialog'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -246,6 +247,10 @@ export default {
   props: {
     widget: Object,
     documents: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

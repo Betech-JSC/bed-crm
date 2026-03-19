@@ -27,7 +27,7 @@
           <text-input v-model="form.postal_code" :error="form.errors.postal_code" class="pb-8 pr-6 w-full lg:w-1/2" label="Postal code" />
         </div>
         <div class="flex items-center justify-end px-8 py-4 bg-gray-50 border-t border-gray-100">
-          <loading-button :loading="form.processing" class="btn-indigo" type="submit">Create Contact</loading-button>
+          <loading-button :loading="form.processing" class="btn-indigo" type="submit">{{ t('common.create_contact') }}</loading-button>
         </div>
       </form>
     </div>
@@ -40,6 +40,7 @@ import Layout from '@/Shared/Layout.vue'
 import TextInput from '@/Shared/TextInput.vue'
 import SelectInput from '@/Shared/SelectInput.vue'
 import LoadingButton from '@/Shared/LoadingButton.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -54,6 +55,10 @@ export default {
     organizations: Array,
   },
   remember: 'form',
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       form: this.$inertia.form({

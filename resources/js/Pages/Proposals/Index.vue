@@ -3,7 +3,7 @@
     <Head title="Proposals" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Proposals</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.proposals') }}</h1>
         <p class="mt-1 text-gray-600">Manage your quotations and proposals</p>
       </div>
       <Link href="/proposals/create">
@@ -16,7 +16,7 @@
       <template #content>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="flex flex-col">
-            <label class="mb-2 text-sm font-medium">Status</label>
+            <label class="mb-2 text-sm font-medium">{{ t('common.status') }}</label>
             <Select
               v-model="filters.status"
               :options="statusOptions"
@@ -150,6 +150,7 @@ import Badge from 'primevue/badge'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 import Paginator from 'primevue/paginator'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -170,6 +171,10 @@ export default {
     proposals: Object,
     statuses: Object,
     deals: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

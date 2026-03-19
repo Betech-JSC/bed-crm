@@ -112,6 +112,7 @@ import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -130,6 +131,10 @@ export default {
   props: {
     playbook: Object,
     dealStages: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

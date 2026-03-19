@@ -40,6 +40,7 @@ import FileInput from '@/Shared/FileInput.vue'
 import SelectInput from '@/Shared/SelectInput.vue'
 import LoadingButton from '@/Shared/LoadingButton.vue'
 import TrashedMessage from '@/Shared/TrashedMessage.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -56,6 +57,10 @@ export default {
     user: Object,
   },
   remember: 'form',
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       form: this.$inertia.form({

@@ -3,7 +3,7 @@
     <Head title="Social Accounts" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Social Accounts</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.social_accounts') }}</h1>
         <p class="mt-1 text-gray-600">Manage your connected social media accounts</p>
       </div>
       <Link href="/social-accounts/create">
@@ -106,6 +106,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -120,6 +121,10 @@ export default {
   layout: Layout,
   props: {
     socialAccounts: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     getPlatformSeverity(platform) {

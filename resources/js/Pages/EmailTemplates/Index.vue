@@ -3,7 +3,7 @@
     <Head title="Email Templates" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Email Templates</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.templates') }}</h1>
         <p class="mt-1 text-gray-600">Create and manage email templates for campaigns and automations</p>
       </div>
       <Link href="/email-templates/create">
@@ -87,6 +87,7 @@ import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -101,6 +102,10 @@ export default {
   layout: Layout,
   props: {
     templates: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     confirmDelete(id) {

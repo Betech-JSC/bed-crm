@@ -101,6 +101,7 @@ import Calendar from 'primevue/calendar'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -119,6 +120,10 @@ export default {
   props: {
     contentItems: Array,
     socialAccounts: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

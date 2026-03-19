@@ -44,7 +44,7 @@
             <h3 class="form-section-title">{{ isVi ? 'Thông tin liên hệ' : 'Contact Info' }}</h3>
             <div class="form-row">
               <div class="form-group flex-1">
-                <label>Email</label>
+                <label>{{ t('common.email') }}</label>
                 <InputText v-model="form.email" type="email" class="w-full" />
               </div>
               <div class="form-group flex-1">
@@ -53,7 +53,7 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Website</label>
+              <label>{{ t('common.website') }}</label>
               <InputText v-model="form.website" class="w-full" placeholder="https://..." />
             </div>
             <div class="form-group">

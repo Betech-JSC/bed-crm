@@ -29,13 +29,13 @@
         <thead>
           <tr>
             <th>Employee</th>
-            <th>Department</th>
+            <th>{{ t('common.department') }}</th>
             <th>Position</th>
             <th>Hire Date</th>
             <th>Tenure</th>
             <th>Base Salary</th>
             <th>Hourly Rate</th>
-            <th>Actions</th>
+            <th>{{ t('common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +83,7 @@
           <Select v-model="createForm.user_id" :options="availableUsers" optionLabel="name" optionValue="id" placeholder="Select user" class="w-full" filter />
         </div>
         <div class="form-group">
-          <label>Department</label>
+          <label>{{ t('common.department') }}</label>
           <Select v-model="createForm.department" :options="departmentOptions.slice(1)" optionLabel="label" optionValue="value" placeholder="Select department" class="w-full" />
         </div>
         <div class="form-group">
@@ -127,6 +127,7 @@ import Paginator from 'primevue/paginator'
 import Dialog from 'primevue/dialog'
 import throttle from 'lodash/throttle'
 import pickBy from 'lodash/pickBy'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Link, Button, InputText, Select, Paginator, Dialog },
@@ -136,6 +137,10 @@ export default {
     filters: Object,
     departments: Object,
     availableUsers: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

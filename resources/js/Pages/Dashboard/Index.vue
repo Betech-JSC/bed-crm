@@ -234,7 +234,7 @@
             <div class="hr-kpi"><span class="hr-val">{{ metrics.hr.headcount }}</span><span class="hr-lbl">{{ isVi ? 'Nhân viên' : 'Headcount' }}</span></div>
             <div class="hr-kpi"><span class="hr-val">{{ fmt(metrics.hr.revenue_per_employee) }}</span><span class="hr-lbl">Rev/Head</span></div>
             <div class="hr-kpi"><span class="hr-val" :class="metrics.hr.avg_kpi_achievement >= 80 ? 'text-green' : 'text-amber'">{{ metrics.hr.avg_kpi_achievement }}%</span><span class="hr-lbl">KPI</span></div>
-            <div class="hr-kpi"><span class="hr-val">{{ metrics.hr.active_employees }}</span><span class="hr-lbl">Active</span></div>
+            <div class="hr-kpi"><span class="hr-val">{{ metrics.hr.active_employees }}</span><span class="hr-lbl">{{ t('common.active') }}</span></div>
           </div>
         </div>
         <div class="module-card">

@@ -103,6 +103,7 @@ import Calendar from 'primevue/calendar'
 import FileUpload from 'primevue/fileupload'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -122,6 +123,10 @@ export default {
   props: {
     deal_id: Number,
     deals: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

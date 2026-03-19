@@ -3,7 +3,7 @@
     <Head title="Content Items" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Content Items</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.content_items') }}</h1>
         <p class="mt-1 text-gray-600">Manage your AI-generated content</p>
       </div>
       <Link href="/content-items/create">
@@ -86,6 +86,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -101,6 +102,10 @@ export default {
   layout: Layout,
   props: {
     contentItems: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     getStatusSeverity(status) {

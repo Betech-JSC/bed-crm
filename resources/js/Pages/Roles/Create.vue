@@ -6,7 +6,7 @@
     </div>
 
     <Card>
-      <template #title>Create Role</template>
+      <template #title>{{ t('common.create_role') }}</template>
       <template #content>
         <form @submit.prevent="submit">
           <div class="space-y-6">
@@ -80,6 +80,7 @@ import Textarea from 'primevue/textarea'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -95,6 +96,10 @@ export default {
   layout: Layout,
   props: {
     permissions: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

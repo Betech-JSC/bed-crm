@@ -361,6 +361,7 @@ import Divider from 'primevue/divider'
 import Tag from 'primevue/tag'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
 import PlaybookSuggestions from '@/Shared/PlaybookSuggestions.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -386,6 +387,10 @@ export default {
     sources: Object,
     salesUsers: Array,
     playbookSuggestions: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

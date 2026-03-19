@@ -3,7 +3,7 @@
     <Head title="Social Posts" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Social Posts</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.social_posts') }}</h1>
         <p class="mt-1 text-gray-600">Manage your scheduled and published posts</p>
       </div>
       <Link href="/social-posts/create">
@@ -87,6 +87,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -101,6 +102,10 @@ export default {
   layout: Layout,
   props: {
     posts: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     getPlatformSeverity(platform) {

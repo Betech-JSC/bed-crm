@@ -132,6 +132,7 @@ import Tag from 'primevue/tag'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -150,6 +151,10 @@ export default {
     permissions: Array,
     users: Array,
     availablePermissions: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   computed: {
     breadcrumbItems() {

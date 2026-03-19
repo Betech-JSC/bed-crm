@@ -3,7 +3,7 @@
     <Head title="Chat Widgets" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Chat Widgets</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.chat_widgets') }}</h1>
         <p class="mt-1 text-gray-600">Manage your AI chat widgets for website embedding</p>
       </div>
       <Link href="/chat-widgets/create">
@@ -87,6 +87,7 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -102,6 +103,10 @@ export default {
   layout: Layout,
   props: {
     widgets: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     copyEmbedCode(embedUrl) {

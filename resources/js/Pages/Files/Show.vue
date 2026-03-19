@@ -135,6 +135,7 @@ import Layout from '@/Shared/Layout.vue'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -147,6 +148,10 @@ export default {
   layout: Layout,
   props: {
     file: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   computed: {
     isVi() {

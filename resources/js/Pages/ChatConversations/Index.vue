@@ -3,7 +3,7 @@
     <Head title="Chat Conversations" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Chat Conversations</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.conversations') }}</h1>
         <p class="mt-1 text-gray-600">View and manage all chat conversations</p>
       </div>
     </div>
@@ -135,6 +135,7 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -154,6 +155,10 @@ export default {
     filters: Object,
     conversations: Object,
     widgets: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

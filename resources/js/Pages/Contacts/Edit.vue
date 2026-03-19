@@ -58,6 +58,7 @@ import SelectInput from '@/Shared/SelectInput.vue'
 import LoadingButton from '@/Shared/LoadingButton.vue'
 import TrashedMessage from '@/Shared/TrashedMessage.vue'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -76,6 +77,10 @@ export default {
     organizations: Array,
   },
   remember: 'form',
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       form: this.$inertia.form({

@@ -161,6 +161,7 @@ import Badge from 'primevue/badge'
 import Button from 'primevue/button'
 import Divider from 'primevue/divider'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -176,6 +177,10 @@ export default {
   layout: Layout,
   props: {
     playbook: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

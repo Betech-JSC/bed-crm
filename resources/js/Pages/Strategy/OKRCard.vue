@@ -53,6 +53,7 @@
 
 <script>
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Button },
@@ -62,6 +63,10 @@ export default {
     level: { type: Number, default: 0 },
   },
   emits: ['check-in', 'cascade'],
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   computed: {
     statusLabel() {
       const map = {

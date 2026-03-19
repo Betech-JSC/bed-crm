@@ -137,6 +137,7 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
 import Divider from 'primevue/divider'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -157,6 +158,10 @@ export default {
     salesUsers: Array,
   },
   remember: 'form',
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       form: this.$inertia.form({

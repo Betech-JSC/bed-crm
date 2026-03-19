@@ -3,7 +3,7 @@
     <Head title="Content Templates" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Content Templates</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.content_templates') }}</h1>
         <p class="mt-1 text-gray-600">Manage AI content generation templates</p>
       </div>
       <Link href="/content-templates/create">
@@ -79,6 +79,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -94,6 +95,10 @@ export default {
   layout: Layout,
   props: {
     templates: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
 }
 </script>

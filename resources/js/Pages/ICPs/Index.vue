@@ -3,7 +3,7 @@
     <Head title="ICP Profiles" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">ICP Profiles</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.icp_profiles') }}</h1>
         <p class="mt-1 text-gray-600">Manage your Ideal Customer Profiles</p>
       </div>
       <Link href="/icps/create">
@@ -77,6 +77,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Button from 'primevue/button'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -91,6 +92,10 @@ export default {
   layout: Layout,
   props: {
     icps: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
 }
 </script>

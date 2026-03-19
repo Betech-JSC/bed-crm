@@ -3,7 +3,7 @@
     <Head title="Roles" />
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold">Roles</h1>
+        <h1 class="text-3xl font-bold">{{ t('common.roles') }}</h1>
         <p class="mt-1 text-gray-600">Manage user roles and permissions</p>
       </div>
       <Link href="/roles/create">
@@ -95,6 +95,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Badge from 'primevue/badge'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -110,6 +111,10 @@ export default {
   layout: Layout,
   props: {
     roles: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   methods: {
     confirmDelete(id, isSystem) {

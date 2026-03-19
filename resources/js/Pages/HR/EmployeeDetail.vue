@@ -174,7 +174,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Notes</label>
+          <label>{{ t('common.notes') }}</label>
           <Textarea v-model="kpiForm.notes" rows="2" class="w-full" />
         </div>
       </div>
@@ -254,6 +254,7 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
 import axios from 'axios'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Link, Button, InputText, Textarea, Select, Dialog },
@@ -263,6 +264,10 @@ export default {
     kpiDefinitions: Array,
     ratings: Object,
     allUsers: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     const now = new Date()

@@ -189,7 +189,7 @@
         </div>
         <div class="comparison-grid">
           <div class="comp-item">
-            <span class="comp-label">Income</span>
+            <span class="comp-label">{{ t('common.income') }}</span>
             <div class="comp-values">
               <span class="comp-current">{{ fmtCompact(analytics.monthly_comparison.income.current) }}</span>
               <span class="comp-arrow" :class="analytics.monthly_comparison.income.change >= 0 ? 'arrow-up' : 'arrow-down'">
@@ -288,7 +288,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Notes</label>
+          <label>{{ t('common.notes') }}</label>
           <Textarea v-model="txnForm.notes" rows="2" class="w-full" />
         </div>
       </div>
@@ -308,6 +308,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
+import { useTranslation } from '@/composables/useTranslation'
 
 const INCOME_CATS = {
   deal_revenue: 'Deal Revenue', project_revenue: 'Project Revenue',
@@ -324,6 +325,10 @@ export default {
   components: { Head, Link, Button, InputText, Textarea, Select, Dialog },
   layout: Layout,
   props: { analytics: Object },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
+  },
   data() {
     return {
       showCreate: false,

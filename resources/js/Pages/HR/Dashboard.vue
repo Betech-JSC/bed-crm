@@ -212,6 +212,7 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: { Head, Link, Button, Select },
@@ -221,6 +222,10 @@ export default {
     filters: Object,
     departments: Object,
     periods: Array,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {

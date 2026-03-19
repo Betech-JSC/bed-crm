@@ -47,6 +47,7 @@ import Layout from '@/Shared/Layout.vue'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Breadcrumb from 'primevue/breadcrumb'
+import { useTranslation } from '@/composables/useTranslation'
 
 export default {
   components: {
@@ -58,6 +59,10 @@ export default {
   layout: Layout,
   props: {
     platforms: Object,
+  },
+  setup() {
+    const { t } = useTranslation()
+    return { t }
   },
   data() {
     return {
