@@ -29,3 +29,5 @@ require __DIR__ . '/modules/rbac.php';
 require __DIR__ . '/modules/strategy.php';
 require __DIR__ . '/modules/organization.php';
 require __DIR__ . '/modules/casestudies.php';
+require __DIR__ . '/modules/wiki.php';
+require __DIR__ . '/modules/ai-chat.php';

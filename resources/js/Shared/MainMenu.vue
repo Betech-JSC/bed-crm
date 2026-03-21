@@ -16,6 +16,7 @@
       <div class="menu-section-title">{{ t('common.sales') }}</div>
       <MenuItem href="/leads" icon="pi pi-bullseye" :active="isUrl('leads')">{{ t('common.leads') }}</MenuItem>
       <MenuItem href="/deals" icon="pi pi-briefcase" :active="isUrl('deals')">{{ t('common.deals') }}</MenuItem>
+      <MenuItem href="/sales-pipeline" icon="pi pi-arrow-right-arrow-left" :active="isUrl('sales-pipeline')">Quy trình bán hàng</MenuItem>
       <MenuItem href="/contacts" icon="pi pi-id-card" :active="isUrl('contacts')">{{ t('common.contacts') }}</MenuItem>
       <MenuItem href="/organizations" icon="pi pi-building" :active="isUrl('organizations')">{{ t('common.organizations') }}</MenuItem>
       <MenuItem href="/proposals" icon="pi pi-file-edit" :active="isUrl('proposals')">{{ t('common.proposals') }}</MenuItem>
@@ -81,9 +82,8 @@
     <!-- ═══ Tools ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.tools') }}</div>
-      <MenuItem href="/workflows" icon="pi pi-sync" :active="isUrl('workflows')">{{ t('common.workflows') }}</MenuItem>
-      <MenuItem href="/chat-widgets" icon="pi pi-comments" :active="isUrl('chat-widgets')">{{ t('common.chat_widgets') }}</MenuItem>
-      <MenuItem href="/chat-conversations" icon="pi pi-comment" :active="isUrl('chat-conversations')">{{ t('common.conversations') }}</MenuItem>
+      <MenuItem href="/ai-chat" icon="pi pi-sparkles" :active="isUrl('ai-chat')">AI Chat</MenuItem>
+      <MenuItem href="/wiki" icon="pi pi-book" :active="isUrl('wiki')">Wiki nội bộ</MenuItem>
       <MenuItem href="/files" icon="pi pi-folder-open" :active="isUrl('files')">{{ t('common.files') }}</MenuItem>
       <MenuItem href="/notifications" icon="pi pi-bell" :active="isUrl('notifications')">{{ t('common.notifications') }}</MenuItem>
     </div>
@@ -99,10 +99,10 @@
       >
         <MenuItem href="/account-settings" icon="pi pi-sliders-h" :active="isUrl('account-settings')">{{ t('common.account_settings') }}</MenuItem>
         <MenuItem href="/smtp-settings" icon="pi pi-envelope" :active="isUrl('smtp-settings')">{{ t('common.smtp_settings') }}</MenuItem>
-        <MenuItem href="/sla-settings" icon="pi pi-clock" :active="isUrl('sla-settings')">{{ t('common.sla_settings') }}</MenuItem>
         <MenuItem href="/users" icon="pi pi-user" :active="isUrl('users')">{{ t('common.users') }}</MenuItem>
         <MenuItem href="/roles" icon="pi pi-shield" :active="isUrl('roles')">{{ t('common.roles') }}</MenuItem>
         <MenuItem href="/permissions" icon="pi pi-lock" :active="isUrl('permissions')">{{ t('common.permissions_menu') }}</MenuItem>
+        <MenuItem href="/ai-providers" icon="pi pi-sparkles" :active="isUrl('ai-providers')">AI Providers</MenuItem>
       </MenuGroup>
     </div>
   </div>
@@ -135,7 +135,7 @@ export default {
     // Auto-expand matching groups
     if (currentUrl.startsWith('email-')) this.openGroups.push('email')
     if (currentUrl.startsWith('content-') || currentUrl.startsWith('social-')) this.openGroups.push('content')
-    if (['account-settings', 'smtp-settings', 'sla-settings', 'users', 'roles', 'permissions'].some(p => currentUrl.startsWith(p))) {
+    if (['account-settings', 'smtp-settings', 'users', 'roles', 'permissions', 'ai-providers'].some(p => currentUrl.startsWith(p))) {
       this.openGroups.push('settings')
     }
   },

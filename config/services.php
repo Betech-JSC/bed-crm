@@ -29,8 +29,13 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
+
     'ai' => [
-        'default' => env('AI_DEFAULT_SERVICE', 'openai'),
+        'default' => env('AI_DEFAULT_SERVICE', 'gemini'),
     ],
 
     'linkedin' => [

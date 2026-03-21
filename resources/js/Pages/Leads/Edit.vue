@@ -1,331 +1,332 @@
 <template>
   <div>
     <Head :title="lead.name" />
-    <div class="mb-6">
-      <Breadcrumb :model="breadcrumbItems" />
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="breadcrumb-row">
+          <Link href="/leads" class="breadcrumb-link">{{ t('common.leads') }}</Link>
+          <i class="pi pi-angle-right breadcrumb-sep" />
+          <span class="breadcrumb-current">{{ lead.name }}</span>
+        </div>
+        <h1 class="page-title">{{ lead.name }}</h1>
+        <div class="header-badges">
+          <span v-if="lead.status" class="status-badge" :class="`status-${lead.status}`">
+            <i class="status-dot" />
+            {{ statuses[lead.status] || lead.status }}
+          </span>
+          <span v-if="lead.score !== null && lead.score !== undefined" class="score-badge" :class="getScoreSeverityClass(lead.score)">
+            <i class="pi pi-star" /> {{ lead.score }}/100
+          </span>
+          <span v-if="lead.priority_label" class="priority-badge" :class="`priority-${(lead.priority_label || '').toLowerCase()}`">
+            {{ lead.priority_label }}
+          </span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <Button
+          v-if="!lead.deleted_at"
+          label="Xóa"
+          icon="pi pi-trash"
+          severity="danger"
+          text
+          size="small"
+          @click="destroy"
+        />
+      </div>
     </div>
 
-    <Message v-if="lead.deleted_at" severity="warn" :closable="false" class="mb-4">
-      This lead has been deleted.
-      <Button label="Restore" size="small" severity="warning" outlined class="ml-2" @click="restore" />
-    </Message>
+    <!-- Trashed Banner -->
+    <div v-if="lead.deleted_at" class="alert alert-warning">
+      <i class="pi pi-exclamation-triangle" />
+      <span>Lead này đã bị xóa.</span>
+      <Button label="Khôi phục" size="small" severity="warning" text @click="restore" />
+    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="edit-layout">
       <!-- Main Form -->
-      <div class="lg:col-span-2">
-        <Card>
-          <template #title>Edit Lead</template>
-          <template #content>
-            <form @submit.prevent="update" class="space-y-6">
-              <Message v-if="form.errors.duplicate" severity="error" :closable="false">
-                <div class="mb-2">{{ form.errors.duplicate }}</div>
-                <Link v-if="form.errors.duplicate_id" :href="`/leads/${form.errors.duplicate_id}/edit`" class="text-sm underline">
-                  View existing lead
-                </Link>
-              </Message>
+      <div class="edit-main">
+        <!-- Duplicate Warning -->
+        <div v-if="form.errors.duplicate" class="alert alert-error">
+          <i class="pi pi-exclamation-triangle" />
+          <div class="alert-content">
+            <span>{{ form.errors.duplicate }}</span>
+            <Link v-if="form.errors.duplicate_id" :href="`/leads/${form.errors.duplicate_id}/edit`" class="alert-link">
+              Xem lead hiện có →
+            </Link>
+          </div>
+        </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Name <span class="text-red-500">*</span></label>
+        <form @submit.prevent="update">
+          <!-- Contact Info -->
+          <div class="form-card">
+            <div class="card-header">
+              <i class="pi pi-user" />
+              <h2 class="card-title">Thông tin liên hệ</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>{{ t('common.name') }} <span class="required">*</span></label>
                   <InputText v-model="form.name" :class="{ 'p-invalid': form.errors.name }" />
                   <small v-if="form.errors.name" class="p-error">{{ form.errors.name }}</small>
                 </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Company</label>
+                <div class="form-group">
+                  <label>{{ t('common.company') }}</label>
                   <InputText v-model="form.company" :class="{ 'p-invalid': form.errors.company }" />
-                  <small v-if="form.errors.company" class="p-error">{{ form.errors.company }}</small>
                 </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Phone</label>
+                <div class="form-group">
+                  <label>{{ t('common.phone') }}</label>
                   <InputText v-model="form.phone" :class="{ 'p-invalid': form.errors.phone }" />
-                  <small v-if="form.errors.phone" class="p-error">{{ form.errors.phone }}</small>
                 </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Email</label>
+                <div class="form-group">
+                  <label>{{ t('common.email') }}</label>
                   <InputText v-model="form.email" type="email" :class="{ 'p-invalid': form.errors.email }" />
-                  <small v-if="form.errors.email" class="p-error">{{ form.errors.email }}</small>
-                </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Source</label>
-                  <Select
-                    v-model="form.source"
-                    :options="sourceOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Select source"
-                    :class="{ 'p-invalid': form.errors.source }"
-                  />
-                  <small v-if="form.errors.source" class="p-error">{{ form.errors.source }}</small>
-                </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Status <span class="text-red-500">*</span></label>
-                  <Select
-                    v-model="form.status"
-                    :options="statusOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    :class="{ 'p-invalid': form.errors.status }"
-                  />
-                  <small v-if="form.errors.status" class="p-error">{{ form.errors.status }}</small>
-                </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Assign To</label>
-                  <Select
-                    v-model="form.assigned_to"
-                    :options="assignedOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Unassigned"
-                    :class="{ 'p-invalid': form.errors.assigned_to }"
-                  />
-                  <small v-if="form.errors.assigned_to" class="p-error">{{ form.errors.assigned_to }}</small>
-                </div>
-
-                <div class="flex flex-col">
-                  <label class="mb-2 text-sm font-medium">Tags</label>
-                  <InputText v-model="tagsInput" placeholder="e.g. hot, vip, follow-up" />
-                  <small class="text-gray-500 text-xs mt-1">Separate tags with commas</small>
-                </div>
-              </div>
-
-              <div class="flex flex-col">
-                <label class="mb-2 text-sm font-medium">Notes</label>
-                <Textarea v-model="form.notes" rows="6" :class="{ 'p-invalid': form.errors.notes }" />
-                <small v-if="form.errors.notes" class="p-error">{{ form.errors.notes }}</small>
-              </div>
-
-              <!-- Lead Scoring & Enrichment -->
-              <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <div class="flex items-center justify-between mb-4">
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">Lead Scoring</p>
-                    <div v-if="lead.score !== null && lead.score !== undefined" class="mt-2 flex items-center gap-2">
-                      <Tag :value="`${lead.score}/100`" :severity="getScoreSeverity(lead.score)" />
-                      <Tag :value="lead.priority_label || 'Cold'" :severity="lead.priority_severity || 'info'" />
-                      <span v-if="lead.icp" class="text-xs text-gray-600">ICP: {{ lead.icp.name }}</span>
-                    </div>
-                    <p v-else class="text-xs text-gray-500 mt-1">Not scored yet</p>
-                  </div>
-                  <div class="flex gap-2">
-                    <Button
-                      label="Enrich"
-                      icon="pi pi-search"
-                      size="small"
-                      severity="secondary"
-                      outlined
-                      :loading="enriching"
-                      @click="enrichLead"
-                    />
-                    <Button
-                      label="Score"
-                      icon="pi pi-star"
-                      size="small"
-                      severity="secondary"
-                      outlined
-                      @click="scoreLead"
-                    />
-                  </div>
-                </div>
-
-                <!-- Scoring Breakdown -->
-                <div v-if="lead.scoring_details && lead.scoring_details.details" class="mt-4 space-y-3">
-                  <Divider />
-                  <div class="space-y-2">
-                    <h4 class="text-xs font-semibold text-gray-700 uppercase">Scoring Breakdown</h4>
-                    <div v-for="(detail, key) in lead.scoring_details.details" :key="key" class="text-xs">
-                      <div class="flex items-center justify-between mb-1">
-                        <span class="text-gray-600 capitalize">{{ key.replace('_', ' ') }}:</span>
-                        <span class="font-medium">{{ detail.score }}/100 ({{ detail.weight }}%)</span>
-                      </div>
-                      <div class="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                        <div
-                          class="bg-primary-500 h-1.5 rounded-full"
-                          :style="{ width: `${detail.score}%` }"
-                        />
-                      </div>
-                      <p class="text-gray-500 text-xs mb-2">{{ detail.explanation }}</p>
-                    </div>
-                  </div>
-                  
-                  <!-- Formula -->
-                  <div v-if="lead.scoring_details.formula" class="mt-3 p-2 bg-gray-50 rounded border border-gray-200">
-                    <p class="text-xs font-semibold text-gray-700 mb-1">Formula:</p>
-                    <p class="text-xs text-gray-600 font-mono">{{ lead.scoring_details.formula }}</p>
-                  </div>
-
-                  <!-- Suggested Action -->
-                  <div v-if="lead.scoring_details.suggested_action" class="mt-3 p-3 bg-white rounded border border-gray-200">
-                    <div class="flex items-start gap-2">
-                      <i :class="lead.scoring_details.suggested_action.icon || 'pi pi-info-circle'" class="text-primary-500 mt-0.5" />
-                      <div class="flex-1">
-                        <p class="text-xs font-semibold text-gray-700">{{ lead.scoring_details.suggested_action.label }}</p>
-                        <p class="text-xs text-gray-600 mt-1">{{ lead.scoring_details.suggested_action.description }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Engagement Stats -->
-                <div v-if="lead.email_opens > 0 || lead.website_visits > 0" class="mt-4 pt-4 border-t border-gray-200">
-                  <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Engagement</h4>
-                  <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span class="text-gray-600">Email Opens:</span>
-                      <span class="font-medium ml-1">{{ lead.email_opens || 0 }}</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">Email Clicks:</span>
-                      <span class="font-medium ml-1">{{ lead.email_clicks || 0 }}</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">Website Visits:</span>
-                      <span class="font-medium ml-1">{{ lead.website_visits || 0 }}</span>
-                    </div>
-                    <div>
-                      <span class="text-gray-600">Page Views:</span>
-                      <span class="font-medium ml-1">{{ lead.page_views || 0 }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Enrichment Data -->
-                <div v-if="lead.enrichment_data" class="mt-4 pt-4 border-t border-gray-200">
-                  <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Enriched Data</h4>
-                  <div class="text-xs text-gray-600 space-y-1">
-                    <p v-if="lead.enrichment_data.industry"><strong>Industry:</strong> {{ lead.enrichment_data.industry }}</p>
-                    <p v-if="lead.enrichment_data.employees"><strong>Employees:</strong> {{ lead.enrichment_data.employees }}</p>
-                    <p v-if="lead.enrichment_data.location"><strong>Location:</strong> {{ lead.enrichment_data.location }}</p>
-                    <p v-if="lead.enrichment_data.job_title"><strong>Job Title:</strong> {{ lead.enrichment_data.job_title }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- SLA Tracking -->
-              <div v-if="lead.sla_setting" class="p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200 mt-4">
-                <div class="flex items-center justify-between mb-3">
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">SLA Response Time</p>
-                    <div class="mt-1 flex items-center gap-2">
-                      <Tag
-                        :value="getSLAStatusLabel(lead.sla_status)"
-                        :severity="getSLAStatusSeverity(lead.sla_status)"
-                      />
-                      <span v-if="lead.response_time_minutes" class="text-xs text-gray-600">
-                        Response: {{ lead.response_time_minutes }} min
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="lead.sla_started_at && !lead.first_response_at" class="space-y-2">
-                  <div class="text-xs">
-                    <span class="text-gray-600">Threshold:</span>
-                    <span class="font-medium ml-1">{{ lead.sla_setting.first_response_threshold }} minutes</span>
-                  </div>
-                  <div class="text-xs">
-                    <span class="text-gray-600">Elapsed:</span>
-                    <span class="font-medium ml-1">{{ getElapsedMinutes(lead.sla_started_at) }} minutes</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      class="h-2 rounded-full transition-all"
-                      :class="getSLAProgressClass(lead.sla_status)"
-                      :style="{ width: `${getSLAProgress(lead)}%` }"
-                    />
-                  </div>
-                  <p v-if="lead.sla_status === 'breached'" class="text-xs text-red-600 font-medium">
-                    ⚠️ SLA Breached! Immediate action required.
-                  </p>
-                  <p v-else-if="lead.sla_status === 'warning'" class="text-xs text-orange-600 font-medium">
-                    ⚠️ Approaching SLA threshold.
-                  </p>
-                </div>
-
-                <div v-if="lead.first_response_at" class="text-xs text-green-600">
-                  ✓ First response recorded at {{ formatDateTime(lead.first_response_at) }}
-                </div>
-              </div>
-
-              <div v-if="!lead.deal" class="p-4 bg-green-50 rounded-lg border border-green-200">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">Ready to convert?</p>
-                    <p class="text-xs text-gray-600 mt-1">Convert this lead to a deal to start tracking in the pipeline</p>
-                  </div>
-                  <Button
-                    label="Convert to Deal"
-                    icon="pi pi-arrow-right"
-                    severity="success"
-                    @click="convertToDeal"
-                  />
-                </div>
-              </div>
-              <div v-else class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-700">Already converted</p>
-                    <Link :href="`/deals/${lead.deal.id}/edit`" class="text-xs text-primary-600 hover:text-primary-800">
-                      View Deal →
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between pt-4 border-t">
-                <Button
-                  v-if="!lead.deleted_at"
-                  label="Delete Lead"
-                  icon="pi pi-trash"
-                  severity="danger"
-                  outlined
-                  @click="destroy"
-                />
-                <div class="flex gap-2 ml-auto">
-                  <Link href="/leads">
-                    <Button label="Cancel" severity="secondary" outlined />
-                  </Link>
-                  <Button label="Update Lead" icon="pi pi-check" :loading="form.processing" type="submit" />
-                </div>
-              </div>
-            </form>
-          </template>
-        </Card>
-      </div>
-
-      <!-- Notes Sidebar -->
-      <div class="lg:col-span-1 space-y-6">
-        <Card>
-          <template #title>Add Note</template>
-          <template #content>
-            <form @submit.prevent="addNote" class="space-y-4">
-              <Textarea v-model="noteForm.note" rows="4" placeholder="Enter your note here..." :class="{ 'p-invalid': noteForm.errors.note }" />
-              <small v-if="noteForm.errors.note" class="p-error">{{ noteForm.errors.note }}</small>
-              <Button label="Add Note" icon="pi pi-plus" :loading="noteForm.processing" type="submit" class="w-full" />
-            </form>
-
-            <Divider />
-
-            <div v-if="formattedNotes.length > 0">
-              <h3 class="mb-4 text-sm font-semibold text-gray-700">Notes History</h3>
-              <div class="space-y-3 max-h-96 overflow-y-auto">
-                <div v-for="(note, index) in formattedNotes" :key="index" class="p-3 bg-gray-50 rounded-lg">
-                  <div class="mb-2 flex items-center justify-between">
-                    <span class="text-xs font-medium text-gray-500">{{ note.date }}</span>
-                  </div>
-                  <div class="text-sm text-gray-800 whitespace-pre-wrap">{{ note.text }}</div>
                 </div>
               </div>
             </div>
-            <div v-else class="py-8 text-center text-gray-400 text-sm">No notes yet</div>
-          </template>
-        </Card>
+          </div>
 
-        <!-- Sales Playbook Suggestions -->
+          <!-- Classification -->
+          <div class="form-card">
+            <div class="card-header">
+              <i class="pi pi-tag" />
+              <h2 class="card-title">Phân loại</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>{{ t('common.source') }}</label>
+                  <Select v-model="form.source" :options="sourceOptions" optionLabel="label" optionValue="value" placeholder="Chọn nguồn" />
+                </div>
+                <div class="form-group">
+                  <label>{{ t('common.status') }} <span class="required">*</span></label>
+                  <Select v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" />
+                </div>
+                <div class="form-group">
+                  <label>{{ t('common.assigned_to') }}</label>
+                  <Select v-model="form.assigned_to" :options="assignedOptions" optionLabel="label" optionValue="value" placeholder="Chưa phân công" />
+                </div>
+                <div class="form-group">
+                  <label>{{ t('common.tags') }}</label>
+                  <InputText v-model="tagsInput" placeholder="hot, vip, follow-up" />
+                  <small class="hint">Phân cách bằng dấu phẩy</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-card">
+            <div class="card-header">
+              <i class="pi pi-pencil" />
+              <h2 class="card-title">Ghi chú</h2>
+            </div>
+            <div class="card-body">
+              <Textarea v-model="form.notes" rows="5" :class="{ 'p-invalid': form.errors.notes }" placeholder="Ghi chú về lead..." />
+            </div>
+          </div>
+
+          <!-- Scoring & Intelligence -->
+          <div class="form-card">
+            <div class="card-header">
+              <i class="pi pi-chart-bar" />
+              <h2 class="card-title">Lead Scoring & Intelligence</h2>
+              <div class="card-header-actions">
+                <Button label="Enrich" icon="pi pi-search" size="small" severity="secondary" text :loading="enriching" @click="enrichLead" />
+                <Button label="Score" icon="pi pi-star" size="small" severity="secondary" text @click="scoreLead" />
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Score summary -->
+              <div v-if="lead.score !== null && lead.score !== undefined" class="score-summary">
+                <div class="score-circle" :class="getScoreSeverityClass(lead.score)">
+                  <span class="score-number">{{ lead.score }}</span>
+                  <span class="score-total">/100</span>
+                </div>
+                <div class="score-details">
+                  <div class="score-detail-row">
+                    <span>Ưu tiên:</span>
+                    <span class="priority-tag" :class="`priority-${(lead.priority_label || '').toLowerCase()}`">{{ lead.priority_label || 'Cold' }}</span>
+                  </div>
+                  <div v-if="lead.icp" class="score-detail-row">
+                    <span>ICP:</span>
+                    <span class="icp-name">{{ lead.icp.name }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="no-score">
+                <i class="pi pi-info-circle" />
+                <span>Chưa được chấm điểm. Nhấn "Score" để bắt đầu.</span>
+              </div>
+
+              <!-- Scoring Breakdown -->
+              <div v-if="lead.scoring_details && lead.scoring_details.details" class="scoring-breakdown">
+                <h4 class="breakdown-title">Phân tích chi tiết</h4>
+                <div v-for="(detail, key) in lead.scoring_details.details" :key="key" class="breakdown-item">
+                  <div class="breakdown-header">
+                    <span class="breakdown-label">{{ key.replace('_', ' ') }}</span>
+                    <span class="breakdown-value">{{ detail.score }}/100 <span class="breakdown-weight">({{ detail.weight }}%)</span></span>
+                  </div>
+                  <div class="breakdown-bar-track">
+                    <div class="breakdown-bar-fill" :style="{ width: `${detail.score}%` }" />
+                  </div>
+                  <p v-if="detail.explanation" class="breakdown-explain">{{ detail.explanation }}</p>
+                </div>
+
+                <!-- Formula -->
+                <div v-if="lead.scoring_details.formula" class="formula-box">
+                  <span class="formula-label">Công thức:</span>
+                  <code class="formula-code">{{ lead.scoring_details.formula }}</code>
+                </div>
+
+                <!-- Suggested Action -->
+                <div v-if="lead.scoring_details.suggested_action" class="suggested-action">
+                  <i :class="lead.scoring_details.suggested_action.icon || 'pi pi-lightbulb'" />
+                  <div>
+                    <strong>{{ lead.scoring_details.suggested_action.label }}</strong>
+                    <p>{{ lead.scoring_details.suggested_action.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Engagement -->
+              <div v-if="lead.email_opens > 0 || lead.website_visits > 0" class="engagement-grid">
+                <h4 class="breakdown-title">Tương tác</h4>
+                <div class="engagement-stats">
+                  <div class="engage-item">
+                    <i class="pi pi-envelope" />
+                    <span class="engage-value">{{ lead.email_opens || 0 }}</span>
+                    <span class="engage-label">Mở email</span>
+                  </div>
+                  <div class="engage-item">
+                    <i class="pi pi-external-link" />
+                    <span class="engage-value">{{ lead.email_clicks || 0 }}</span>
+                    <span class="engage-label">Click email</span>
+                  </div>
+                  <div class="engage-item">
+                    <i class="pi pi-globe" />
+                    <span class="engage-value">{{ lead.website_visits || 0 }}</span>
+                    <span class="engage-label">Website</span>
+                  </div>
+                  <div class="engage-item">
+                    <i class="pi pi-file" />
+                    <span class="engage-value">{{ lead.page_views || 0 }}</span>
+                    <span class="engage-label">Trang xem</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enriched Data -->
+              <div v-if="lead.enrichment_data" class="enrichment-data">
+                <h4 class="breakdown-title">Dữ liệu bổ sung</h4>
+                <div class="enrich-grid">
+                  <div v-if="lead.enrichment_data.industry" class="enrich-item">
+                    <span class="enrich-label">Ngành:</span>
+                    <span class="enrich-value">{{ lead.enrichment_data.industry }}</span>
+                  </div>
+                  <div v-if="lead.enrichment_data.employees" class="enrich-item">
+                    <span class="enrich-label">Nhân viên:</span>
+                    <span class="enrich-value">{{ lead.enrichment_data.employees }}</span>
+                  </div>
+                  <div v-if="lead.enrichment_data.location" class="enrich-item">
+                    <span class="enrich-label">Vị trí:</span>
+                    <span class="enrich-value">{{ lead.enrichment_data.location }}</span>
+                  </div>
+                  <div v-if="lead.enrichment_data.job_title" class="enrich-item">
+                    <span class="enrich-label">Chức danh:</span>
+                    <span class="enrich-value">{{ lead.enrichment_data.job_title }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SLA Tracking -->
+          <div v-if="lead.sla_setting" class="form-card sla-card">
+            <div class="card-header">
+              <i class="pi pi-clock" />
+              <h2 class="card-title">SLA Response Time</h2>
+              <span class="sla-status-tag" :class="`sla-${lead.sla_status}`">{{ getSLAStatusLabel(lead.sla_status) }}</span>
+            </div>
+            <div class="card-body">
+              <div v-if="lead.sla_started_at && !lead.first_response_at" class="sla-progress-section">
+                <div class="sla-meta">
+                  <span>Ngưỡng: <b>{{ lead.sla_setting.first_response_threshold }} phút</b></span>
+                  <span>Đã qua: <b>{{ getElapsedMinutes(lead.sla_started_at) }} phút</b></span>
+                </div>
+                <div class="sla-bar-track">
+                  <div class="sla-bar-fill" :class="`sla-fill-${lead.sla_status}`" :style="{ width: `${getSLAProgress(lead)}%` }" />
+                </div>
+                <p v-if="lead.sla_status === 'breached'" class="sla-warning breached">
+                  <i class="pi pi-exclamation-triangle" /> SLA đã vi phạm! Cần hành động ngay.
+                </p>
+                <p v-else-if="lead.sla_status === 'warning'" class="sla-warning warn">
+                  <i class="pi pi-exclamation-circle" /> Sắp đến ngưỡng SLA.
+                </p>
+              </div>
+              <div v-if="lead.first_response_at" class="sla-resolved">
+                <i class="pi pi-check-circle" />
+                <span>Phản hồi đầu tiên: {{ formatDateTime(lead.first_response_at) }}</span>
+              </div>
+              <div v-if="lead.response_time_minutes" class="sla-meta">
+                Thời gian phản hồi: <b>{{ lead.response_time_minutes }} phút</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Convert / Deal Action -->
+          <div class="form-card action-card" :class="lead.deal ? 'action-done' : 'action-ready'">
+            <div class="card-body">
+              <div v-if="!lead.deal" class="action-content">
+                <div>
+                  <h3 class="action-title"><i class="pi pi-arrow-right" /> Sẵn sàng chuyển đổi?</h3>
+                  <p class="action-desc">Chuyển lead thành deal để bắt đầu theo dõi trong pipeline</p>
+                </div>
+                <Button label="Chuyển thành Deal" icon="pi pi-arrow-right" severity="success" @click="convertToDeal" />
+              </div>
+              <div v-else class="action-content">
+                <div>
+                  <h3 class="action-title"><i class="pi pi-check-circle" /> Đã chuyển đổi</h3>
+                  <Link :href="`/deals/${lead.deal.id}/edit`" class="action-link">Xem Deal →</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <Link href="/leads"><Button label="Hủy" severity="secondary" text /></Link>
+            <Button label="Cập nhật Lead" icon="pi pi-check" :loading="form.processing" type="submit" />
+          </div>
+        </form>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="edit-sidebar">
+        <!-- Add Note -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-title"><i class="pi pi-comment" /> Thêm ghi chú</h3>
+          <form @submit.prevent="addNote">
+            <Textarea v-model="noteForm.note" rows="3" placeholder="Viết ghi chú..." class="w-full" :class="{ 'p-invalid': noteForm.errors.note }" />
+            <small v-if="noteForm.errors.note" class="p-error">{{ noteForm.errors.note }}</small>
+            <Button label="Thêm" icon="pi pi-plus" :loading="noteForm.processing" type="submit" size="small" class="w-full note-btn" />
+          </form>
+        </div>
+
+        <!-- Notes History -->
+        <div v-if="formattedNotes.length > 0" class="sidebar-card">
+          <h3 class="sidebar-title"><i class="pi pi-history" /> Lịch sử ghi chú</h3>
+          <div class="notes-list">
+            <div v-for="(note, index) in formattedNotes" :key="index" class="note-item">
+              <div v-if="note.date" class="note-date">{{ note.date }}</div>
+              <div class="note-text">{{ note.text }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Playbook Suggestions -->
         <PlaybookSuggestions
           v-if="playbookSuggestions && playbookSuggestions.length > 0"
           :playbooks="playbookSuggestions"
@@ -333,15 +334,14 @@
           :subject-id="lead.id"
         />
 
-        <Card>
-          <template #content>
-            <ActivityTimeline
-              :activities="activities"
-              subject-type="App\Models\Lead"
-              :subject-id="lead.id"
-            />
-          </template>
-        </Card>
+        <!-- Activity Timeline -->
+        <div class="sidebar-card">
+          <ActivityTimeline
+            :activities="activities"
+            subject-type="App\Models\Lead"
+            :subject-id="lead.id"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -350,35 +350,16 @@
 <script>
 import { Head, Link } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
-import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
-import Message from 'primevue/message'
-import Breadcrumb from 'primevue/breadcrumb'
-import Divider from 'primevue/divider'
-import Tag from 'primevue/tag'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
 import PlaybookSuggestions from '@/Shared/PlaybookSuggestions.vue'
 import { useTranslation } from '@/composables/useTranslation'
 
 export default {
-  components: {
-    Head,
-    Link,
-    Card,
-    InputText,
-    Textarea,
-    Select,
-    Button,
-    Message,
-    Breadcrumb,
-    Divider,
-    Tag,
-    ActivityTimeline,
-    PlaybookSuggestions,
-  },
+  components: { Head, Link, InputText, Textarea, Select, Button, ActivityTimeline, PlaybookSuggestions },
   layout: Layout,
   props: {
     lead: Object,
@@ -392,14 +373,10 @@ export default {
     const { t } = useTranslation()
     return { t }
   },
-  data() {
-    return {
-      enriching: false,
-    }
-  },
   remember: 'form',
   data() {
     return {
+      enriching: false,
       tagsInput: this.lead.tags ? this.lead.tags.join(', ') : '',
       form: this.$inertia.form({
         name: this.lead.name,
@@ -415,11 +392,6 @@ export default {
       noteForm: this.$inertia.form({
         note: '',
       }),
-      enriching: false,
-      breadcrumbItems: [
-        { label: 'Leads', route: '/leads' },
-        { label: this.lead.name },
-      ],
     }
   },
   computed: {
@@ -427,22 +399,17 @@ export default {
       return Object.entries(this.statuses).map(([value, label]) => ({ label, value }))
     },
     sourceOptions() {
-      return [{ label: 'Select source', value: null }, ...Object.entries(this.sources).map(([value, label]) => ({ label, value }))]
+      return [{ label: 'Chọn nguồn', value: null }, ...Object.entries(this.sources).map(([value, label]) => ({ label, value }))]
     },
     assignedOptions() {
-      return [{ label: 'Unassigned', value: null }, ...this.salesUsers.map(user => ({ label: user.name, value: user.id }))]
-    },
-    hasDeal() {
-      return this.lead.deal !== null && this.lead.deal !== undefined
+      return [{ label: 'Chưa phân công', value: null }, ...this.salesUsers.map(user => ({ label: user.name, value: user.id }))]
     },
     formattedNotes() {
       if (!this.lead.notes) return []
       const notes = this.lead.notes.split('\n\n').filter(n => n.trim())
       return notes.map(note => {
         const match = note.match(/^\[(.+?)\]\s*(.+)$/s)
-        if (match) {
-          return { date: match[1], text: match[2].trim() }
-        }
+        if (match) return { date: match[1], text: match[2].trim() }
         return { date: '', text: note.trim() }
       }).reverse()
     },
@@ -457,12 +424,12 @@ export default {
       this.form.put(`/leads/${this.lead.id}`)
     },
     destroy() {
-      if (confirm('Are you sure you want to delete this lead?')) {
+      if (confirm('Bạn có chắc muốn xóa lead này?')) {
         this.$inertia.delete(`/leads/${this.lead.id}`)
       }
     },
     restore() {
-      if (confirm('Are you sure you want to restore this lead?')) {
+      if (confirm('Bạn có muốn khôi phục lead này?')) {
         this.$inertia.put(`/leads/${this.lead.id}/restore`)
       }
     },
@@ -471,15 +438,12 @@ export default {
         preserveScroll: true,
         onSuccess: () => {
           this.noteForm.reset()
-          // Refresh lead data
           this.$inertia.reload({ only: ['lead'] })
         },
       })
     },
     convertToDeal() {
-      this.$inertia.post(`/leads/${this.lead.id}/convert`, {}, {
-        preserveScroll: true,
-      })
+      this.$inertia.post(`/leads/${this.lead.id}/convert`, {}, { preserveScroll: true })
     },
     async enrichLead() {
       this.enriching = true
@@ -492,9 +456,7 @@ export default {
           },
         })
         const data = await response.json()
-        if (data.success) {
-          this.$inertia.reload({ only: ['lead'] })
-        }
+        if (data.success) this.$inertia.reload({ only: ['lead'] })
       } catch (error) {
         console.error('Enrichment failed:', error)
       } finally {
@@ -502,66 +464,258 @@ export default {
       }
     },
     scoreLead() {
-      this.$inertia.post(`/leads/${this.lead.id}/score`, {}, {
-        preserveScroll: true,
-      })
+      this.$inertia.post(`/leads/${this.lead.id}/score`, {}, { preserveScroll: true })
     },
-    getScoreSeverity(score) {
-      if (score >= 80) return 'success'
-      if (score >= 60) return 'warning'
-      if (score >= 40) return 'info'
-      return 'danger'
+    getScoreSeverityClass(score) {
+      if (score >= 80) return 'severity-success'
+      if (score >= 60) return 'severity-warning'
+      if (score >= 40) return 'severity-info'
+      return 'severity-danger'
     },
     getSLAStatusLabel(status) {
-      const labels = {
-        pending: 'Pending',
-        on_time: 'On Time',
-        warning: 'Warning',
-        breached: 'Breached',
-        resolved: 'Resolved',
-      }
-      return labels[status] || status
-    },
-    getSLAStatusSeverity(status) {
-      const severities = {
-        pending: 'info',
-        on_time: 'success',
-        warning: 'warning',
-        breached: 'danger',
-        resolved: 'success',
-      }
-      return severities[status] || 'secondary'
+      return { pending: 'Chờ', on_time: 'Đúng hạn', warning: 'Cảnh báo', breached: 'Vi phạm', resolved: 'Đã xử lý' }[status] || status
     },
     getElapsedMinutes(startedAt) {
       if (!startedAt) return 0
-      const start = new Date(startedAt)
-      const now = new Date()
-      return Math.floor((now - start) / (1000 * 60))
+      return Math.floor((new Date() - new Date(startedAt)) / 60000)
     },
     getSLAProgress(lead) {
-      if (!lead.sla_setting || !lead.sla_started_at || lead.first_response_at) {
-        return 0
-      }
-      const elapsed = this.getElapsedMinutes(lead.sla_started_at)
-      const threshold = lead.sla_setting.first_response_threshold
-      return Math.min(100, (elapsed / threshold) * 100)
+      if (!lead.sla_setting || !lead.sla_started_at || lead.first_response_at) return 0
+      return Math.min(100, (this.getElapsedMinutes(lead.sla_started_at) / lead.sla_setting.first_response_threshold) * 100)
     },
-    getSLAProgressClass(status) {
-      if (status === 'breached') return 'bg-red-500'
-      if (status === 'warning') return 'bg-orange-500'
-      return 'bg-blue-500'
-    },
-    formatDateTime(dateTimeString) {
-      if (!dateTimeString) return ''
-      const date = new Date(dateTimeString)
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+    formatDateTime(d) {
+      if (!d) return ''
+      return new Date(d).toLocaleString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     },
   },
 }
 </script>
+
+<style scoped>
+/* ===== Page Header ===== */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; margin: 0; }
+
+.breadcrumb-row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; }
+.breadcrumb-link { font-size: 0.75rem; color: #6366f1; text-decoration: none; font-weight: 500; transition: color 0.15s; }
+.breadcrumb-link:hover { color: #4f46e5; }
+.breadcrumb-sep { font-size: 0.6rem; color: #cbd5e1; }
+.breadcrumb-current { font-size: 0.75rem; color: #94a3b8; }
+
+.header-badges { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 20px;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.status-new { background: #eff6ff; color: #3b82f6; }
+.status-new .status-dot { background: #3b82f6; }
+.status-contacted { background: #fef3c7; color: #d97706; }
+.status-contacted .status-dot { background: #d97706; }
+.status-qualified { background: #d1fae5; color: #059669; }
+.status-qualified .status-dot { background: #059669; }
+.status-won { background: #d1fae5; color: #059669; }
+.status-won .status-dot { background: #059669; }
+.status-lost { background: #fee2e2; color: #dc2626; }
+.status-lost .status-dot { background: #dc2626; }
+
+.score-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; display: flex; align-items: center; gap: 0.2rem; }
+.score-badge i { font-size: 0.55rem; }
+.severity-success { background: #d1fae5; color: #059669; }
+.severity-warning { background: #fef3c7; color: #d97706; }
+.severity-info { background: #dbeafe; color: #2563eb; }
+.severity-danger { background: #fee2e2; color: #dc2626; }
+
+.priority-badge { font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.priority-hot  { background: #fef2f2; color: #ef4444; }
+.priority-warm { background: #fffbeb; color: #f59e0b; }
+.priority-cold { background: #eff6ff; color: #3b82f6; }
+
+.header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+/* ===== Alerts ===== */
+.alert {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem;
+  font-size: 0.82rem;
+}
+.alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #d97706; }
+.alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+.alert-content { display: flex; flex-direction: column; gap: 0.2rem; }
+.alert-link { font-size: 0.75rem; color: #6366f1; text-decoration: underline; }
+
+/* ===== Layout ===== */
+.edit-layout { display: flex; gap: 1.25rem; align-items: flex-start; }
+.edit-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
+.edit-main form { display: flex; flex-direction: column; gap: 1rem; }
+
+/* ===== Form Card ===== */
+.form-card {
+  background: white; border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9; overflow: hidden;
+}
+.card-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  background: #fafbfc; border-bottom: 1px solid #f1f5f9;
+}
+.card-header i { font-size: 0.85rem; color: #6366f1; }
+.card-title { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin: 0; flex: 1; }
+.card-header-actions { display: flex; gap: 0.25rem; }
+.card-body { padding: 1.25rem; }
+
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 0.78rem; font-weight: 500; color: #475569; margin-bottom: 0.35rem; }
+.required { color: #ef4444; }
+.hint { font-size: 0.7rem; color: #94a3b8; margin-top: 0.2rem; }
+.form-group :deep(.p-inputtext), .form-group :deep(.p-select), .form-group :deep(.p-textarea) { width: 100%; }
+
+/* ===== Score Summary ===== */
+.score-summary { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1rem; }
+.score-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 3px solid; flex-shrink: 0;
+}
+.score-circle.severity-success { border-color: #10b981; background: #ecfdf5; }
+.score-circle.severity-warning { border-color: #f59e0b; background: #fffbeb; }
+.score-circle.severity-info { border-color: #3b82f6; background: #eff6ff; }
+.score-circle.severity-danger { border-color: #ef4444; background: #fef2f2; }
+.score-number { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+.score-total { font-size: 0.6rem; color: #94a3b8; }
+.score-details { display: flex; flex-direction: column; gap: 0.35rem; }
+.score-detail-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #64748b; }
+.priority-tag { font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; text-transform: uppercase; }
+.icp-name { font-weight: 500; color: #475569; }
+.no-score { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #94a3b8; padding: 0.5rem 0; }
+.no-score i { font-size: 0.85rem; }
+
+/* ===== Scoring Breakdown ===== */
+.scoring-breakdown { border-top: 1px solid #f1f5f9; padding-top: 1rem; }
+.breakdown-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin: 0 0 0.75rem; }
+.breakdown-item { margin-bottom: 0.75rem; }
+.breakdown-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem; }
+.breakdown-label { font-size: 0.78rem; color: #475569; font-weight: 500; text-transform: capitalize; }
+.breakdown-value { font-size: 0.72rem; font-weight: 600; color: #1e293b; }
+.breakdown-weight { color: #94a3b8; font-weight: 400; }
+.breakdown-bar-track { width: 100%; height: 4px; background: #f1f5f9; border-radius: 2px; overflow: hidden; }
+.breakdown-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.3s; }
+.breakdown-explain { font-size: 0.7rem; color: #94a3b8; margin: 0.2rem 0 0; }
+
+.formula-box {
+  padding: 0.65rem; background: #f8fafc; border-radius: 8px;
+  border: 1px solid #e2e8f0; margin-top: 0.75rem;
+}
+.formula-label { font-size: 0.7rem; font-weight: 600; color: #475569; }
+.formula-code { font-size: 0.7rem; color: #64748b; font-family: 'Courier New', monospace; display: block; margin-top: 0.2rem; }
+
+.suggested-action {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  padding: 0.75rem; background: #eef2ff; border-radius: 8px;
+  margin-top: 0.75rem; border: 1px solid #c7d2fe;
+}
+.suggested-action i { color: #6366f1; font-size: 1rem; margin-top: 0.1rem; }
+.suggested-action strong { font-size: 0.78rem; color: #1e293b; display: block; }
+.suggested-action p { font-size: 0.72rem; color: #64748b; margin: 0.15rem 0 0; }
+
+/* ===== Engagement ===== */
+.engagement-grid { border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: 1rem; }
+.engagement-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.engage-item {
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+  padding: 0.6rem; background: #f8fafc; border-radius: 8px;
+}
+.engage-item i { font-size: 0.85rem; color: #6366f1; }
+.engage-value { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+.engage-label { font-size: 0.6rem; color: #94a3b8; text-align: center; }
+
+/* ===== Enrichment ===== */
+.enrichment-data { border-top: 1px solid #f1f5f9; padding-top: 1rem; margin-top: 1rem; }
+.enrich-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+.enrich-item { font-size: 0.78rem; }
+.enrich-label { color: #94a3b8; }
+.enrich-value { color: #1e293b; font-weight: 500; margin-left: 0.25rem; }
+
+/* ===== SLA ===== */
+.sla-card .card-header { gap: 0.5rem; }
+.sla-status-tag {
+  font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.4rem;
+  border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sla-pending { background: #dbeafe; color: #2563eb; }
+.sla-on_time { background: #d1fae5; color: #059669; }
+.sla-warning { background: #fef3c7; color: #d97706; }
+.sla-breached { background: #fee2e2; color: #dc2626; }
+.sla-resolved { background: #d1fae5; color: #059669; }
+
+.sla-progress-section { margin-bottom: 0.5rem; }
+.sla-meta { font-size: 0.78rem; color: #64748b; display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+.sla-meta b { color: #1e293b; }
+.sla-bar-track { width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
+.sla-bar-fill { height: 100%; border-radius: 3px; transition: all 0.3s; }
+.sla-fill-on_time { background: #10b981; }
+.sla-fill-warning { background: #f59e0b; }
+.sla-fill-breached { background: #ef4444; }
+.sla-fill-pending { background: #3b82f6; }
+.sla-warning { font-size: 0.75rem; font-weight: 600; margin: 0.4rem 0 0; display: flex; align-items: center; gap: 0.3rem; }
+.sla-warning.breached { color: #dc2626; }
+.sla-warning.warn { color: #d97706; }
+.sla-resolved { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #059669; font-weight: 500; }
+.sla-resolved i { font-size: 0.85rem; }
+
+/* ===== Action Card ===== */
+.action-card.action-ready { border-color: #bbf7d0; }
+.action-card.action-ready .card-body { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); }
+.action-card.action-done { border-color: #bfdbfe; }
+.action-card.action-done .card-body { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+.action-content { display: flex; align-items: center; justify-content: space-between; }
+.action-title { font-size: 0.88rem; font-weight: 600; color: #1e293b; margin: 0 0 0.2rem; display: flex; align-items: center; gap: 0.3rem; }
+.action-title i { font-size: 0.82rem; }
+.action-desc { font-size: 0.75rem; color: #64748b; margin: 0; }
+.action-link { font-size: 0.78rem; color: #6366f1; text-decoration: none; font-weight: 500; }
+.action-link:hover { color: #4f46e5; text-decoration: underline; }
+
+/* ===== Form Actions ===== */
+.form-actions {
+  display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
+  padding-top: 0.75rem; border-top: 1px solid #f1f5f9;
+}
+
+/* ===== Sidebar ===== */
+.edit-sidebar {
+  width: 320px; flex-shrink: 0;
+  position: sticky; top: 80px;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.sidebar-card {
+  background: white; border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+}
+.sidebar-title {
+  font-size: 0.82rem; font-weight: 600; color: #1e293b; margin: 0 0 0.75rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.sidebar-title i { color: #6366f1; font-size: 0.82rem; }
+.w-full { width: 100%; }
+.note-btn { margin-top: 0.5rem; }
+
+.notes-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 350px; overflow-y: auto; }
+.note-item { padding: 0.65rem; background: #f8fafc; border-radius: 8px; }
+.note-date { font-size: 0.65rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.25rem; }
+.note-text { font-size: 0.8rem; color: #334155; white-space: pre-wrap; line-height: 1.5; }
+
+@media (max-width: 768px) {
+  .edit-layout { flex-direction: column; }
+  .edit-sidebar { width: 100%; position: static; }
+  .form-grid { grid-template-columns: 1fr; }
+  .engagement-stats { grid-template-columns: repeat(2, 1fr); }
+  .action-content { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+}
+</style>

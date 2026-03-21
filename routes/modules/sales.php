@@ -10,10 +10,27 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesIntelligenceController;
 use App\Http\Controllers\SalesTargetsController;
 use App\Http\Controllers\LeadAssignmentRulesController;
+use App\Http\Controllers\SalesPipelineController;
 use Illuminate\Support\Facades\Route;
 
 
 Route::middleware('auth')->group(function () {
+    // ── Sales Pipeline (Quy trình bán hàng) ──
+    Route::get('sales-pipeline', [SalesPipelineController::class, 'index'])->name('sales-pipeline');
+    Route::get('sales-pipeline/create', [SalesPipelineController::class, 'create'])->name('sales-pipeline.create');
+    Route::post('sales-pipeline', [SalesPipelineController::class, 'store'])->name('sales-pipeline.store');
+    Route::get('sales-pipeline/{pipeline}/edit', [SalesPipelineController::class, 'edit'])->name('sales-pipeline.edit');
+    Route::put('sales-pipeline/{pipeline}', [SalesPipelineController::class, 'update'])->name('sales-pipeline.update');
+    Route::delete('sales-pipeline/{pipeline}', [SalesPipelineController::class, 'destroy'])->name('sales-pipeline.destroy');
+    Route::put('sales-pipeline/{pipeline}/restore', [SalesPipelineController::class, 'restore'])->name('sales-pipeline.restore');
+    Route::patch('sales-pipeline/{pipeline}/stage', [SalesPipelineController::class, 'updateStage'])->name('sales-pipeline.update-stage');
+    Route::post('sales-pipeline/{pipeline}/audit', [SalesPipelineController::class, 'storeAudit'])->name('sales-pipeline.audit');
+    Route::post('sales-pipeline/{pipeline}/ai-analyze', [SalesPipelineController::class, 'aiAnalyze'])->name('sales-pipeline.ai-analyze');
+    Route::post('sales-pipeline/{pipeline}/ai-proposal', [SalesPipelineController::class, 'aiProposal'])->name('sales-pipeline.ai-proposal');
+    Route::post('sales-pipeline/{pipeline}/quote', [SalesPipelineController::class, 'storeQuote'])->name('sales-pipeline.quote');
+    Route::post('sales-pipeline/{pipeline}/close-won', [SalesPipelineController::class, 'closeWon'])->name('sales-pipeline.close-won');
+    Route::post('sales-pipeline/{pipeline}/close-lost', [SalesPipelineController::class, 'closeLost'])->name('sales-pipeline.close-lost');
+
     // Activities
     Route::post('activities', [ActivitiesController::class, 'store'])->name('activities.store');
     Route::put('activities/{activity}', [ActivitiesController::class, 'update'])->name('activities.update');

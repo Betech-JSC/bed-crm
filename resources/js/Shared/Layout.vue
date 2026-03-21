@@ -115,6 +115,9 @@
           <slot />
         </main>
       </div>
+
+      <!-- AI Chat Widget (global) -->
+      <ai-chat-widget />
     </div>
   </div>
 </template>
@@ -127,9 +130,11 @@ import Dropdown from '@/Shared/Dropdown.vue'
 import MainMenu from '@/Shared/MainMenu.vue'
 import FlashMessages from '@/Shared/FlashMessages.vue'
 import LanguageSwitcher from '@/Shared/LanguageSwitcher.vue'
+import AiChatWidget from '@/Shared/AiChatWidget.vue'
 
 export default {
   components: {
+    AiChatWidget,
     Dropdown,
     FlashMessages,
     Icon,

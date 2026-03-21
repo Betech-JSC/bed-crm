@@ -71,7 +71,7 @@ class EmailSegmentsController extends Controller
 
     public function show(EmailSegment $emailSegment): Response
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
 
         return Inertia::render('EmailSegments/Show', [
             'segment' => [
@@ -103,7 +103,7 @@ class EmailSegmentsController extends Controller
 
     public function edit(EmailSegment $emailSegment): Response
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
 
         return Inertia::render('EmailSegments/Edit', [
             'segment' => $emailSegment->only(['id', 'name', 'description', 'type', 'rules', 'is_active']),
@@ -113,7 +113,7 @@ class EmailSegmentsController extends Controller
 
     public function update(EmailSegment $emailSegment): RedirectResponse
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
 
         $validated = Request::validate([
             'name' => ['required', 'string', 'max:255'],
@@ -134,21 +134,21 @@ class EmailSegmentsController extends Controller
 
     public function destroy(EmailSegment $emailSegment): RedirectResponse
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
         $emailSegment->delete();
         return Redirect::route('email-segments.index')->with('success', 'Segment deleted.');
     }
 
     public function recompute(EmailSegment $emailSegment): RedirectResponse
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
         $count = $emailSegment->recompute();
         return Redirect::back()->with('success', "Segment recomputed: {$count} contacts matched.");
     }
 
     public function addContact(EmailSegment $emailSegment): RedirectResponse
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
 
         $validated = Request::validate([
             'email' => ['required', 'email'],
@@ -176,13 +176,13 @@ class EmailSegmentsController extends Controller
 
     public function removeContact(EmailSegment $emailSegment, EmailSegmentContact $segmentContact): RedirectResponse
     {
-        $this->authorize($emailSegment);
+        $this->authorizeSegment($emailSegment);
         $segmentContact->update(['unsubscribed_at' => now()]);
         $emailSegment->decrement('contacts_count');
         return Redirect::back()->with('success', 'Contact removed from segment.');
     }
 
-    private function authorize(EmailSegment $segment): void
+    private function authorizeSegment(EmailSegment $segment): void
     {
         if ($segment->account_id !== Auth::user()->account_id) {
             abort(403);

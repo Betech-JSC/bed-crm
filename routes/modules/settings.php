@@ -7,6 +7,7 @@ use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\FilesController;
 use App\Http\Controllers\ImagesController;
+use App\Http\Controllers\AiProvidersController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -46,6 +47,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('files/{file}', [FilesController::class, 'destroy'])->name('files.destroy');
     Route::get('files/{file}/download', [FilesController::class, 'download'])->name('files.download');
     Route::get('files/{file}/preview', [FilesController::class, 'preview'])->name('files.preview');
+
+    // AI Providers
+    Route::get('ai-providers', [AiProvidersController::class, 'index'])->name('ai-providers.index');
+    Route::post('ai-providers', [AiProvidersController::class, 'store'])->name('ai-providers.store');
+    Route::post('ai-providers/{provider}/test', [AiProvidersController::class, 'test'])->name('ai-providers.test');
+    Route::post('ai-providers/{provider}/default', [AiProvidersController::class, 'setDefault'])->name('ai-providers.set-default');
+    Route::post('ai-providers/{provider}/toggle', [AiProvidersController::class, 'toggle'])->name('ai-providers.toggle');
+    Route::delete('ai-providers/{provider}', [AiProvidersController::class, 'destroy'])->name('ai-providers.destroy');
 
     // Language switching
     Route::get('lang/{locale}', function ($locale) {

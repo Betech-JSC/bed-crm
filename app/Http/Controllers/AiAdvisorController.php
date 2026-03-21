@@ -27,6 +27,8 @@ class AiAdvisorController extends Controller
     {
         $accountId = Auth::user()->account_id;
         return response()->json($this->service->getPredictiveCashflowStatus($accountId));
+    }
+
     /**
      * POST /api/ai-advisor/simulate
      */

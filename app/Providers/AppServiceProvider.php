@@ -14,6 +14,8 @@ use App\Listeners\LogDealStageTransition;
 use App\Listeners\RecordLeadFirstResponse;
 use App\Listeners\StartLeadSLATracking;
 use App\Listeners\TriggerLeadWorkflow;
+use App\Listeners\AI\AiAutoScoreListener;
+use App\Listeners\AI\AiDealInsightListener;
 use App\Models\Deal;
 use App\Models\Project;
 use App\Models\ProjectExpense;
@@ -91,5 +93,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(DealStageChanged::class, LogDealStageTransition::class);
         Event::listen(DealWon::class, HandleDealWon::class);
         Event::listen(DealLost::class, HandleDealLost::class);
+
+        // AI-Native event listeners (queued)
+        Event::listen(LeadCreated::class, AiAutoScoreListener::class);
+        Event::listen(DealStageChanged::class, AiDealInsightListener::class);
     }
 }

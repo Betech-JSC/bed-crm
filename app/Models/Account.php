@@ -200,4 +200,20 @@ class Account extends Model
     {
         return $this->hasMany(ApprovalWorkflow::class);
     }
+
+    public function salesPipelines(): HasMany
+    {
+        return $this->hasMany(SalesPipeline::class);
+    }
+
+    public function wikiCategories(): HasMany
+    {
+        return $this->hasMany(WikiCategory::class);
+    }
+
+    public function wikiArticles(): HasMany
+    {
+        return $this->hasMany(WikiArticle::class);
+    }
 }
+
