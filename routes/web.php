@@ -31,3 +31,6 @@ require __DIR__ . '/modules/organization.php';
 require __DIR__ . '/modules/casestudies.php';
 require __DIR__ . '/modules/wiki.php';
 require __DIR__ . '/modules/ai-chat.php';
+require __DIR__ . '/modules/ai-trends.php';
+require __DIR__ . '/modules/content-studio.php';
+require __DIR__ . '/modules/system-logs.php';

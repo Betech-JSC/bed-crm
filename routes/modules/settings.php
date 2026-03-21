@@ -8,6 +8,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\FilesController;
 use App\Http\Controllers\ImagesController;
 use App\Http\Controllers\AiProvidersController;
+use App\Http\Controllers\SocialPlatformSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -32,6 +33,13 @@ Route::middleware('auth')->group(function () {
     Route::get('smtp-settings', [SMTPSettingsController::class, 'index'])->name('smtp-settings.index');
     Route::post('smtp-settings', [SMTPSettingsController::class, 'store'])->name('smtp-settings.store');
     Route::post('smtp-settings/test', [SMTPSettingsController::class, 'test'])->name('smtp-settings.test');
+
+    // Social Platform Settings (OAuth Configuration)
+    Route::get('social-platforms', [SocialPlatformSettingsController::class, 'index'])->name('social-platforms.index');
+    Route::post('social-platforms', [SocialPlatformSettingsController::class, 'store'])->name('social-platforms.store');
+    Route::post('social-platforms/{platform}/toggle', [SocialPlatformSettingsController::class, 'toggle'])->name('social-platforms.toggle');
+    Route::delete('social-platforms/{platform}', [SocialPlatformSettingsController::class, 'destroy'])->name('social-platforms.destroy');
+    Route::get('api/social-platforms/{platform}/auth-url', [SocialPlatformSettingsController::class, 'getAuthUrl'])->name('social-platforms.auth-url');
 
     // Permissions & Roles
     Route::resource('permissions', PermissionsController::class);
@@ -69,3 +77,4 @@ Route::middleware('auth')->group(function () {
 
 // Images (public)
 Route::get('/img/{path}', [ImagesController::class, 'show'])->where('path', '.*')->name('image');
+

@@ -83,9 +83,12 @@
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.tools') }}</div>
       <MenuItem href="/ai-chat" icon="pi pi-sparkles" :active="isUrl('ai-chat')">AI Chat</MenuItem>
+      <MenuItem href="/ai-trends" icon="pi pi-bolt" :active="isUrl('ai-trends')">AI Trends</MenuItem>
+      <MenuItem href="/content-studio" icon="pi pi-palette" :active="isUrl('content-studio')">Content Studio</MenuItem>
       <MenuItem href="/wiki" icon="pi pi-book" :active="isUrl('wiki')">Wiki nội bộ</MenuItem>
       <MenuItem href="/files" icon="pi pi-folder-open" :active="isUrl('files')">{{ t('common.files') }}</MenuItem>
       <MenuItem href="/notifications" icon="pi pi-bell" :active="isUrl('notifications')">{{ t('common.notifications') }}</MenuItem>
+      <MenuItem href="/system-logs" icon="pi pi-list" :active="isUrl('system-logs')">System Logs</MenuItem>
     </div>
 
     <!-- ═══ Settings ═══ -->
@@ -103,6 +106,7 @@
         <MenuItem href="/roles" icon="pi pi-shield" :active="isUrl('roles')">{{ t('common.roles') }}</MenuItem>
         <MenuItem href="/permissions" icon="pi pi-lock" :active="isUrl('permissions')">{{ t('common.permissions_menu') }}</MenuItem>
         <MenuItem href="/ai-providers" icon="pi pi-sparkles" :active="isUrl('ai-providers')">AI Providers</MenuItem>
+        <MenuItem href="/social-platforms" icon="pi pi-share-alt" :active="isUrl('social-platforms')">Social Platforms</MenuItem>
       </MenuGroup>
     </div>
   </div>

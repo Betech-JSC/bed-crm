@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SocialAccount;
+use App\Models\SocialPost;
 use App\Providers\SocialServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -15,20 +16,48 @@ class SocialAccountsController extends Controller
 {
     public function index(): Response
     {
+        $user = Auth::user();
+        $accountId = $user->account_id;
+
+        $socialAccounts = $user->account->socialAccounts()
+            ->orderBy('platform')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($account) => [
+                'id' => $account->id,
+                'platform' => $account->platform,
+                'name' => $account->name,
+                'username' => $account->username,
+                'is_active' => $account->is_active,
+                'is_connected' => $account->is_connected,
+                'is_token_expired' => $account->isTokenExpired(),
+                'token_expires_at' => $account->token_expires_at?->format('Y-m-d H:i'),
+                'last_sync_at' => $account->last_sync_at?->diffForHumans() ?? null,
+                'posts_count' => $account->posts()->count(),
+                'published_count' => $account->posts()->where('status', 'published')->count(),
+                'created_at' => $account->created_at->diffForHumans(),
+            ]);
+
+        // Stats
+        $stats = [
+            'total' => SocialAccount::where('account_id', $accountId)->count(),
+            'connected' => SocialAccount::where('account_id', $accountId)->where('is_connected', true)->count(),
+            'expired' => SocialAccount::where('account_id', $accountId)->get()->filter(fn ($a) => $a->isTokenExpired())->count(),
+            'total_posts' => SocialPost::where('account_id', $accountId)->where('status', 'published')->count(),
+        ];
+
+        // Platform metadata
+        $platformsMeta = [
+            'facebook' => ['label' => 'Facebook', 'icon' => 'pi pi-facebook', 'color' => '#1877F2', 'gradient' => 'linear-gradient(135deg, #1877F2, #0d65d9)'],
+            'instagram' => ['label' => 'Instagram', 'icon' => 'pi pi-instagram', 'color' => '#E4405F', 'gradient' => 'linear-gradient(135deg, #E4405F, #fd1d1d, #F77737)'],
+            'linkedin' => ['label' => 'LinkedIn', 'icon' => 'pi pi-linkedin', 'color' => '#0A66C2', 'gradient' => 'linear-gradient(135deg, #0A66C2, #004182)'],
+            'twitter' => ['label' => 'Twitter / X', 'icon' => 'pi pi-twitter', 'color' => '#1DA1F2', 'gradient' => 'linear-gradient(135deg, #1DA1F2, #0d8ecf)'],
+        ];
+
         return Inertia::render('SocialAccounts/Index', [
-            'socialAccounts' => Auth::user()->account->socialAccounts()
-                ->orderBy('platform')
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($account) => [
-                    'id' => $account->id,
-                    'platform' => $account->platform,
-                    'name' => $account->name,
-                    'username' => $account->username,
-                    'is_active' => $account->is_active,
-                    'is_connected' => $account->is_connected,
-                    'last_sync_at' => $account->last_sync_at?->format('Y-m-d H:i'),
-                ]),
+            'socialAccounts' => $socialAccounts,
+            'stats' => $stats,
+            'platformsMeta' => $platformsMeta,
         ]);
     }
 
@@ -76,9 +105,9 @@ class SocialAccountsController extends Controller
                 'is_connected' => true,
             ]);
 
-            return Redirect::route('social-accounts')->with('success', 'Social account connected successfully.');
+            return Redirect::route('social-accounts')->with('success', 'Kết nối tài khoản thành công!');
         } catch (\Exception $e) {
-            return Redirect::back()->with('error', 'Failed to connect account: ' . $e->getMessage());
+            return Redirect::back()->with('error', 'Không thể kết nối: ' . $e->getMessage());
         }
     }
 
@@ -86,7 +115,7 @@ class SocialAccountsController extends Controller
     {
         $socialAccount->delete();
 
-        return Redirect::back()->with('success', 'Social account disconnected.');
+        return Redirect::back()->with('success', 'Đã ngắt kết nối tài khoản.');
     }
 
     public function refresh(SocialAccount $socialAccount): RedirectResponse
@@ -104,9 +133,9 @@ class SocialAccountsController extends Controller
                 'token_expires_at' => $refreshed['expires_at'],
             ]);
 
-            return Redirect::back()->with('success', 'Token refreshed successfully.');
+            return Redirect::back()->with('success', 'Token đã được làm mới!');
         } catch (\Exception $e) {
-            return Redirect::back()->with('error', 'Failed to refresh token: ' . $e->getMessage());
+            return Redirect::back()->with('error', 'Không thể làm mới token: ' . $e->getMessage());
         }
     }
 
@@ -124,6 +153,6 @@ class SocialAccountsController extends Controller
             'is_connected' => $isValid,
         ]);
 
-        return Redirect::back()->with($isValid ? 'success' : 'error', $isValid ? 'Connection is valid.' : 'Connection is invalid.');
+        return Redirect::back()->with($isValid ? 'success' : 'error', $isValid ? 'Kết nối hợp lệ!' : 'Kết nối không hợp lệ.');
     }
 }

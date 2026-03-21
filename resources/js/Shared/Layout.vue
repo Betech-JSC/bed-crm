@@ -199,9 +199,11 @@ export default {
 .sidebar-logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   text-decoration: none;
   overflow: hidden;
   transition: opacity 0.2s;
+  flex: 1;
 }
 
 .logo-img {

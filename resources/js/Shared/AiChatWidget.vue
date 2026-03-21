@@ -128,9 +128,8 @@ export default {
       try {
         // Create conversation if none
         if (!this.conversationId) {
-          const res = await fetch('/ai-chat', {
+          const res = await this.fetchWithCsrf('/ai-chat', {
             method: 'POST',
-            headers: this.headers(),
             body: JSON.stringify({ title: text.substring(0, 60) }),
           })
           const data = await res.json()
@@ -138,9 +137,8 @@ export default {
         }
 
         // Send message
-        const res = await fetch(`/ai-chat/${this.conversationId}/messages`, {
+        const res = await this.fetchWithCsrf(`/ai-chat/${this.conversationId}/messages`, {
           method: 'POST',
-          headers: this.headers(),
           body: JSON.stringify({ message: text }),
         })
 
@@ -200,9 +198,62 @@ export default {
 
     headers() {
       return {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+        'X-CSRF-TOKEN': this.getCsrfToken(),
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    },
+
+    getCsrfToken() {
+      // Try meta tag first
+      const meta = document.querySelector('meta[name="csrf-token"]')
+      if (meta) return meta.getAttribute('content') || ''
+
+      // Fallback: try XSRF cookie
+      const cookie = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='))
+      if (cookie) return decodeURIComponent(cookie.split('=')[1])
+
+      return ''
+    },
+
+    /**
+     * Fetch wrapper that handles CSRF token mismatch (419) by
+     * refreshing the token and retrying the request once.
+     */
+    async fetchWithCsrf(url, options = {}, retried = false) {
+      const res = await fetch(url, {
+        ...options,
+        headers: this.headers(),
+        credentials: 'same-origin',
+      })
+
+      // CSRF mismatch — refresh token and retry once
+      if (res.status === 419 && !retried) {
+        await this.refreshCsrfToken()
+        return this.fetchWithCsrf(url, options, true)
+      }
+
+      return res
+    },
+
+    async refreshCsrfToken() {
+      try {
+        // Fetch a fresh page to get new CSRF token
+        const res = await fetch('/', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { 'Accept': 'text/html' },
+        })
+        const html = await res.text()
+        const match = html.match(/csrf-token['"]\s+content=['"](.*?)['"]/)
+        if (match && match[1]) {
+          const meta = document.querySelector('meta[name="csrf-token"]')
+          if (meta) meta.setAttribute('content', match[1])
+        }
+      } catch (e) {
+        // If refresh fails, redirect to login
+        window.location.href = '/login'
       }
     },
   },
