@@ -323,31 +323,134 @@
         </div>
       </div>
 
-      <!-- Right: Recent Content & Preview -->
+      <!-- Right: Preview & Recent -->
       <div class="sidebar-panel">
-        <!-- Live Preview -->
+        <!-- Real Social Preview -->
         <div v-if="currentStep === 2 && generatedData.contents[activePreviewPlatform]" class="preview-card">
-          <div class="preview-header">
-            <i :class="platforms[activePreviewPlatform]?.icon" :style="{ color: platforms[activePreviewPlatform]?.color }" />
-            <span>Xem trước {{ platforms[activePreviewPlatform]?.label }}</span>
+          <!-- Preview Tabs -->
+          <div class="preview-tabs">
+            <button
+              v-for="platform in form.platforms" :key="platform"
+              class="preview-tab-btn" :class="{ active: previewPlatform === platform }"
+              @click="previewPlatform = platform"
+            >
+              <i :class="platforms[platform]?.icon" />
+            </button>
           </div>
-          <div class="preview-body">
-            <div class="preview-post">
-              <div class="preview-author">
-                <div class="preview-avatar"><i class="pi pi-user" /></div>
-                <div>
-                  <span class="preview-name">Tài khoản của bạn</span>
-                  <span class="preview-time">Vừa xong</span>
+
+          <!-- Facebook Preview -->
+          <div v-if="previewPlatform === 'facebook'" class="fb-preview">
+            <div class="fb-header">
+              <div class="fb-avatar"><i class="pi pi-user" /></div>
+              <div class="fb-author">
+                <span class="fb-name">{{ previewAccountName }}</span>
+                <span class="fb-time">Vừa xong · <i class="pi pi-globe" /></span>
+              </div>
+              <i class="pi pi-ellipsis-h fb-more" />
+            </div>
+            <p class="fb-text">{{ previewText }}</p>
+            <div v-if="previewHashtags.length" class="fb-hashtags">
+              <span v-for="(t, i) in previewHashtags" :key="i" class="fb-hash">#{{ t }}</span>
+            </div>
+            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="fb-image" />
+            <div class="fb-stats">
+              <span><span class="fb-emoji">👍❤️</span> 42</span>
+              <span>5 bình luận · 2 chia sẻ</span>
+            </div>
+            <div class="fb-actions">
+              <button><i class="pi pi-thumbs-up" /> Thích</button>
+              <button><i class="pi pi-comment" /> Bình luận</button>
+              <button><i class="pi pi-share-alt" /> Chia sẻ</button>
+            </div>
+          </div>
+
+          <!-- Instagram Preview -->
+          <div v-if="previewPlatform === 'instagram'" class="ig-preview">
+            <div class="ig-header">
+              <div class="ig-avatar-ring"><div class="ig-avatar"><i class="pi pi-user" /></div></div>
+              <span class="ig-username">{{ previewUsername }}</span>
+              <i class="pi pi-ellipsis-h ig-more" />
+            </div>
+            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="ig-image" />
+            <div v-else class="ig-image-placeholder"><i class="pi pi-image" /></div>
+            <div class="ig-actions">
+              <div class="ig-actions-left">
+                <i class="pi pi-heart" />
+                <i class="pi pi-comment" />
+                <i class="pi pi-send" />
+              </div>
+              <i class="pi pi-bookmark" />
+            </div>
+            <div class="ig-likes">128 lượt thích</div>
+            <div class="ig-caption">
+              <span class="ig-cap-user">{{ previewUsername }}</span>
+              {{ previewTextShort(2200) }}
+            </div>
+            <div v-if="previewHashtags.length" class="ig-hash-row">
+              <span v-for="(t, i) in previewHashtags" :key="i" class="ig-hash">#{{ t }}</span>
+            </div>
+            <div class="ig-time-ago">2 PHÚT TRƯỚC</div>
+          </div>
+
+          <!-- LinkedIn Preview -->
+          <div v-if="previewPlatform === 'linkedin'" class="li-preview">
+            <div class="li-header">
+              <div class="li-avatar"><i class="pi pi-user" /></div>
+              <div class="li-author">
+                <span class="li-name">{{ previewAccountName }}</span>
+                <span class="li-title">Digital Marketing · 1st</span>
+                <span class="li-time">Vừa xong · <i class="pi pi-globe" /></span>
+              </div>
+              <i class="pi pi-ellipsis-h li-more" />
+            </div>
+            <p class="li-text">{{ previewTextShort(3000) }}</p>
+            <div v-if="previewHashtags.length" class="li-hashtags">
+              <span v-for="(t, i) in previewHashtags" :key="i" class="li-hash">#{{ t }}</span>
+            </div>
+            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="li-image" />
+            <div class="li-stats">
+              <span class="li-reactions">👍 💡 ❤️ 36</span>
+              <span>4 bình luận · 1 chia sẻ lại</span>
+            </div>
+            <div class="li-actions">
+              <button><i class="pi pi-thumbs-up" /> Thích</button>
+              <button><i class="pi pi-comment" /> Bình luận</button>
+              <button><i class="pi pi-replay" /> Chia sẻ</button>
+              <button><i class="pi pi-send" /> Gửi</button>
+            </div>
+          </div>
+
+          <!-- Twitter/X Preview -->
+          <div v-if="previewPlatform === 'twitter'" class="tw-preview">
+            <div class="tw-header">
+              <div class="tw-avatar"><i class="pi pi-user" /></div>
+              <div class="tw-author">
+                <div class="tw-name-row">
+                  <span class="tw-name">{{ previewAccountName }}</span>
+                  <i class="pi pi-verified tw-verified" />
+                  <span class="tw-handle">@{{ previewUsername }}</span>
+                  <span class="tw-dot">·</span>
+                  <span class="tw-time">vừa xong</span>
                 </div>
               </div>
-              <p class="preview-text">{{ generatedData.contents[activePreviewPlatform].content }}</p>
-              <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="preview-image" />
-              <div class="preview-hashtags" v-if="generatedData.contents[activePreviewPlatform].hashtags?.length">
-                <span v-for="(tag, idx) in generatedData.contents[activePreviewPlatform].hashtags" :key="idx" class="preview-tag">
-                  #{{ tag }}
-                </span>
-              </div>
             </div>
+            <p class="tw-text">{{ previewTextShort(280) }}</p>
+            <div v-if="previewHashtags.length" class="tw-hashtags">
+              <span v-for="(t, i) in previewHashtags" :key="i" class="tw-hash">#{{ t }}</span>
+            </div>
+            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="tw-image" />
+            <div class="tw-actions">
+              <button class="tw-act"><i class="pi pi-comment" /> <span>12</span></button>
+              <button class="tw-act tw-retweet"><i class="pi pi-replay" /> <span>5</span></button>
+              <button class="tw-act tw-like"><i class="pi pi-heart" /> <span>28</span></button>
+              <button class="tw-act"><i class="pi pi-chart-bar" /> <span>1.2K</span></button>
+              <button class="tw-act"><i class="pi pi-bookmark" /></button>
+              <button class="tw-act"><i class="pi pi-upload" /></button>
+            </div>
+          </div>
+
+          <div class="preview-footer">
+            <span class="preview-label">📱 Xem trước {{ platforms[previewPlatform]?.label }}</span>
           </div>
         </div>
 
@@ -406,6 +509,7 @@ export default {
       isPublishing: false,
       isRegeneratingThumb: false,
       activePreviewPlatform: '',
+      previewPlatform: '',
       selectedAccounts: [],
       scheduleMode: false,
       scheduledAt: '',
@@ -441,6 +545,20 @@ export default {
       d.setMinutes(d.getMinutes() + 10)
       return d.toISOString().slice(0, 16)
     },
+    previewAccountName() {
+      const acct = this.socialAccounts.find(a => a.platform === this.previewPlatform)
+      return acct?.name || 'Tài khoản của bạn'
+    },
+    previewUsername() {
+      const acct = this.socialAccounts.find(a => a.platform === this.previewPlatform)
+      return acct?.username || 'youraccount'
+    },
+    previewText() {
+      return this.generatedData.contents[this.previewPlatform]?.content || ''
+    },
+    previewHashtags() {
+      return this.generatedData.contents[this.previewPlatform]?.hashtags || []
+    },
   },
   methods: {
     togglePlatform(platform) {
@@ -468,6 +586,7 @@ export default {
         if (data.success) {
           this.generatedData = data.data
           this.activePreviewPlatform = this.form.platforms[0]
+          this.previewPlatform = this.form.platforms[0]
           this.currentStep = 2
         } else {
           alert(data.message || 'Lỗi tạo nội dung')
@@ -587,11 +706,17 @@ export default {
     getCharLimit(platform) {
       return { twitter: 280, linkedin: 3000, facebook: 2000, instagram: 2200 }[platform] || 2000
     },
+    previewTextShort(limit) {
+      const text = this.previewText
+      if (text.length <= limit) return text
+      return text.substring(0, limit - 3) + '...'
+    },
 
     resetAll() {
       this.currentStep = 1
       this.generatedData = { contents: {}, thumbnail_url: null, ai_model: '', tokens_used: 0 }
       this.selectedAccounts = []
+      this.previewPlatform = ''
       this.publishResult = null
       this.form.topic = ''
     },
@@ -819,32 +944,107 @@ export default {
 /* ===== Sidebar ===== */
 .sidebar-panel { display: flex; flex-direction: column; gap: 1rem; }
 
-/* Preview Card */
+/* ===== Preview Card ===== */
 .preview-card {
   background: white; border-radius: 14px; border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
 }
-.preview-header {
-  display: flex; align-items: center; gap: 0.4rem;
-  padding: 0.65rem 1rem; border-bottom: 1px solid #f8fafc;
-  font-size: 0.78rem; font-weight: 600; color: #475569;
+.preview-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid #f1f5f9;
 }
-.preview-body { padding: 0.85rem; }
-.preview-post { font-size: 0.78rem; }
-.preview-author { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
-.preview-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: #e2e8f0; display: flex; align-items: center; justify-content: center;
-  color: #94a3b8; font-size: 0.78rem;
+.preview-tab-btn {
+  flex: 1; padding: 0.55rem; border: none; background: #f8fafc;
+  cursor: pointer; font-size: 0.85rem; color: #94a3b8; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
 }
-.preview-name { font-weight: 600; color: #1e293b; display: block; font-size: 0.78rem; }
-.preview-time { font-size: 0.62rem; color: #94a3b8; }
-.preview-text { color: #475569; line-height: 1.55; margin: 0 0 0.65rem; white-space: pre-wrap; word-break: break-word; }
-.preview-image { width: 100%; border-radius: 10px; margin-bottom: 0.5rem; }
-.preview-hashtags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.preview-tag { font-size: 0.68rem; color: #6366f1; }
+.preview-tab-btn:hover { background: #f1f5f9; }
+.preview-tab-btn.active { background: white; color: #1e293b; box-shadow: inset 0 -2px 0 #6366f1; }
+.preview-footer { padding: 0.45rem 0.75rem; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; }
+.preview-label { font-size: 0.62rem; color: #94a3b8; }
 
-/* Sidebar Card */
+/* ===== FACEBOOK Preview ===== */
+.fb-preview { padding: 0; font-family: Helvetica, Arial, sans-serif; }
+.fb-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; }
+.fb-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #1877f2, #42a5f5); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; }
+.fb-author { flex: 1; }
+.fb-name { font-size: 0.82rem; font-weight: 700; color: #050505; display: block; }
+.fb-time { font-size: 0.65rem; color: #65676b; display: flex; align-items: center; gap: 0.2rem; }
+.fb-time i { font-size: 0.55rem; }
+.fb-more { color: #65676b; font-size: 0.85rem; cursor: pointer; }
+.fb-text { font-size: 0.82rem; color: #050505; line-height: 1.5; padding: 0 0.75rem 0.5rem; white-space: pre-wrap; word-break: break-word; margin: 0; }
+.fb-hashtags { padding: 0 0.75rem 0.5rem; display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.fb-hash { font-size: 0.78rem; color: #1877f2; cursor: pointer; }
+.fb-image { width: 100%; }
+.fb-stats { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; font-size: 0.72rem; color: #65676b; border-bottom: 1px solid #ced0d4; }
+.fb-emoji { font-size: 0.82rem; }
+.fb-actions { display: flex; border-top: 0; padding: 0.25rem; }
+.fb-actions button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem; border: none; background: none; font-size: 0.78rem; font-weight: 600; color: #65676b; cursor: pointer; border-radius: 4px; font-family: inherit; }
+.fb-actions button:hover { background: #f2f2f2; }
+.fb-actions button i { font-size: 0.82rem; }
+
+/* ===== INSTAGRAM Preview ===== */
+.ig-preview { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+.ig-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.75rem; }
+.ig-avatar-ring { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); padding: 2px; }
+.ig-avatar { width: 100%; height: 100%; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #262626; }
+.ig-username { font-size: 0.78rem; font-weight: 600; color: #262626; flex: 1; }
+.ig-more { color: #262626; font-size: 0.82rem; cursor: pointer; }
+.ig-image { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.ig-image-placeholder { width: 100%; aspect-ratio: 1; background: #fafafa; display: flex; align-items: center; justify-content: center; color: #dbdbdb; font-size: 2rem; }
+.ig-actions { display: flex; justify-content: space-between; padding: 0.55rem 0.75rem; }
+.ig-actions-left { display: flex; gap: 0.85rem; }
+.ig-actions i { font-size: 1.1rem; color: #262626; cursor: pointer; }
+.ig-likes { font-size: 0.78rem; font-weight: 600; color: #262626; padding: 0 0.75rem 0.2rem; }
+.ig-caption { font-size: 0.78rem; color: #262626; line-height: 1.4; padding: 0 0.75rem 0.3rem; white-space: pre-wrap; word-break: break-word; }
+.ig-cap-user { font-weight: 600; margin-right: 0.25rem; }
+.ig-hash-row { padding: 0 0.75rem 0.3rem; display: flex; flex-wrap: wrap; gap: 0.15rem; }
+.ig-hash { font-size: 0.78rem; color: #00376b; }
+.ig-time-ago { font-size: 0.6rem; color: #8e8e8e; text-transform: uppercase; padding: 0 0.75rem 0.65rem; letter-spacing: 0.02em; }
+
+/* ===== LINKEDIN Preview ===== */
+.li-preview { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+.li-header { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.75rem; }
+.li-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0077b5, #00a0dc); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.92rem; flex-shrink: 0; }
+.li-author { flex: 1; }
+.li-name { font-size: 0.82rem; font-weight: 700; color: rgba(0,0,0,0.9); display: block; }
+.li-title { font-size: 0.68rem; color: rgba(0,0,0,0.6); display: block; }
+.li-time { font-size: 0.62rem; color: rgba(0,0,0,0.6); display: flex; align-items: center; gap: 0.2rem; }
+.li-time i { font-size: 0.5rem; }
+.li-more { color: rgba(0,0,0,0.6); font-size: 0.82rem; cursor: pointer; }
+.li-text { font-size: 0.82rem; color: rgba(0,0,0,0.9); line-height: 1.5; padding: 0 0.75rem 0.5rem; white-space: pre-wrap; word-break: break-word; margin: 0; }
+.li-hashtags { padding: 0 0.75rem 0.5rem; display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.li-hash { font-size: 0.78rem; color: #0a66c2; cursor: pointer; font-weight: 600; }
+.li-image { width: 100%; }
+.li-stats { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; font-size: 0.68rem; color: rgba(0,0,0,0.6); border-bottom: 1px solid #e0e0e0; }
+.li-reactions { display: flex; align-items: center; gap: 0.2rem; }
+.li-actions { display: flex; padding: 0.15rem; }
+.li-actions button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.5rem 0.25rem; border: none; background: none; font-size: 0.65rem; font-weight: 600; color: rgba(0,0,0,0.6); cursor: pointer; border-radius: 4px; font-family: inherit; }
+.li-actions button:hover { background: rgba(0,0,0,0.08); }
+.li-actions button i { font-size: 0.82rem; }
+
+/* ===== TWITTER/X Preview ===== */
+.tw-preview { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 0.75rem; }
+.tw-header { display: flex; gap: 0.55rem; margin-bottom: 0.2rem; }
+.tw-avatar { width: 40px; height: 40px; border-radius: 50%; background: #1d9bf0; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; flex-shrink: 0; }
+.tw-author { flex: 1; }
+.tw-name-row { display: flex; align-items: center; gap: 0.2rem; flex-wrap: wrap; }
+.tw-name { font-size: 0.82rem; font-weight: 700; color: #0f1419; }
+.tw-verified { color: #1d9bf0; font-size: 0.72rem; }
+.tw-handle { font-size: 0.78rem; color: #536471; }
+.tw-dot { color: #536471; }
+.tw-time { font-size: 0.78rem; color: #536471; }
+.tw-text { font-size: 0.82rem; color: #0f1419; line-height: 1.45; margin: 0.2rem 0 0.5rem 0; white-space: pre-wrap; word-break: break-word; padding-left: 3rem; }
+.tw-hashtags { padding-left: 3rem; margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.2rem; }
+.tw-hash { font-size: 0.82rem; color: #1d9bf0; cursor: pointer; }
+.tw-image { width: calc(100% - 3rem); border-radius: 16px; margin-left: 3rem; margin-bottom: 0.5rem; }
+.tw-actions { display: flex; justify-content: space-between; padding-left: 3rem; padding-right: 1rem; max-width: 340px; }
+.tw-act { display: flex; align-items: center; gap: 0.25rem; border: none; background: none; color: #536471; font-size: 0.72rem; cursor: pointer; padding: 0.3rem; border-radius: 50%; transition: all 0.15s; font-family: inherit; }
+.tw-act:hover { color: #1d9bf0; }
+.tw-act i { font-size: 0.78rem; }
+.tw-retweet:hover { color: #00ba7c; }
+.tw-like:hover { color: #f91880; }
+
+/* ===== Sidebar Card ===== */
 .sidebar-card {
   background: white; border-radius: 14px; border: 1px solid #f1f5f9;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;
@@ -893,5 +1093,6 @@ export default {
   .platform-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
   .step-indicator { flex-wrap: wrap; }
+  .tw-text, .tw-hashtags, .tw-image, .tw-actions { padding-left: 0; margin-left: 0; }
 }
 </style>
