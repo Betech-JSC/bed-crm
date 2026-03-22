@@ -326,13 +326,6 @@
           </div>
         </div>
 
-        <!-- Playbook Suggestions -->
-        <PlaybookSuggestions
-          v-if="playbookSuggestions && playbookSuggestions.length > 0"
-          :playbooks="playbookSuggestions"
-          subject-type="lead"
-          :subject-id="lead.id"
-        />
 
         <!-- Activity Timeline -->
         <div class="sidebar-card">
@@ -355,11 +348,11 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
-import PlaybookSuggestions from '@/Shared/PlaybookSuggestions.vue'
+
 import { useTranslation } from '@/composables/useTranslation'
 
 export default {
-  components: { Head, Link, InputText, Textarea, Select, Button, ActivityTimeline, PlaybookSuggestions },
+  components: { Head, Link, InputText, Textarea, Select, Button, ActivityTimeline },
   layout: Layout,
   props: {
     lead: Object,
@@ -367,7 +360,6 @@ export default {
     statuses: Object,
     sources: Object,
     salesUsers: Array,
-    playbookSuggestions: Array,
   },
   setup() {
     const { t } = useTranslation()

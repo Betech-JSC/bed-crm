@@ -1,137 +1,219 @@
 <template>
   <div>
-    <Head :title="t('common.approvals')" />
-
+    <Head title="Phê duyệt" />
     <div class="page-header">
-      <div class="page-header-left">
-        <div class="header-icon"><i class="pi pi-verified" /></div>
-        <div>
-          <h1 class="page-title">{{ t('common.approvals') }}</h1>
-          <p class="page-subtitle">{{ isVi ? 'Quản lý yêu cầu duyệt' : 'Manage approval requests' }}</p>
-        </div>
+      <div class="header-content">
+        <div class="header-icon-wrapper"><i class="pi pi-verified" /></div>
+        <div><h1 class="page-title">Phê duyệt báo giá & hợp đồng</h1><p class="page-subtitle">{{ stats.total_pending }} yêu cầu đang chờ phê duyệt</p></div>
       </div>
-      <div class="header-tabs">
-        <button class="tab-btn" :class="{ active: activeTab === 'pending' }" @click="activeTab = 'pending'">
-          {{ isVi ? 'Chờ duyệt' : 'Pending' }} <span class="tab-count" v-if="pendingCount">{{ pendingCount }}</span>
-        </button>
-        <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
-          {{ isVi ? 'Tất cả' : 'All' }}
-        </button>
+      <div class="stat-chips">
+        <span class="stat-chip s1"><i class="pi pi-file-edit" /> {{ stats.pending_quotations }} báo giá</span>
+        <span class="stat-chip s2"><i class="pi pi-file-check" /> {{ stats.pending_contracts }} hợp đồng</span>
+        <span class="stat-chip s3"><i class="pi pi-check-circle" /> {{ stats.approved_this_month }} duyệt tháng này</span>
       </div>
     </div>
 
-    <div v-if="filteredRequests.length === 0" class="empty-state">
-      <div class="empty-illustration"><i class="pi pi-check-circle" /></div>
-      <h3>{{ activeTab === 'pending' ? (isVi ? 'Không có yêu cầu chờ duyệt' : 'No pending requests') : (isVi ? 'Chưa có yêu cầu nào' : 'No requests yet') }}</h3>
-      <p>{{ isVi ? 'Các yêu cầu duyệt sẽ xuất hiện ở đây khi được tạo' : 'Approval requests will appear here when created' }}</p>
-    </div>
-
-    <TransitionGroup name="list" tag="div" class="request-list" v-else>
-      <div v-for="req in filteredRequests" :key="req.id" class="request-card">
-        <div class="req-status-bar" :class="`bar-${req.status}`" />
-        <div class="req-body">
-          <div class="req-header">
-            <div class="req-icon" :class="`icon-${req.status}`"><i :class="statusIcon(req.status)" /></div>
-            <div class="req-info">
-              <h3 class="req-title">{{ req.title }}</h3>
-              <p class="req-desc" v-if="req.description">{{ req.description }}</p>
+    <!-- Pending Quotations -->
+    <div v-if="pendingQuotations.length" class="section-block">
+      <h2 class="section-label"><i class="pi pi-file-edit" /> Báo giá chờ duyệt ({{ pendingQuotations.length }})</h2>
+      <div class="approval-list">
+        <div v-for="q in pendingQuotations" :key="`q-${q.id}`" class="approval-card">
+          <div class="card-left">
+            <div class="card-icon quotation-icon"><i class="pi pi-file-edit" /></div>
+            <div class="card-info">
+              <div class="card-top-row">
+                <span class="card-number">{{ q.number }}</span>
+                <span class="type-badge quotation">{{ q.type_label }}</span>
+              </div>
+              <h3 class="card-title">{{ q.title }}</h3>
+              <div class="card-meta">
+                <span><i class="pi pi-building" /> {{ q.customer_name }}</span>
+                <span><i class="pi pi-user" /> {{ q.creator_name }}</span>
+                <span><i class="pi pi-calendar" /> {{ q.created_at }}</span>
+                <span v-if="q.valid_until"><i class="pi pi-clock" /> HSD: {{ q.valid_until }}</span>
+              </div>
             </div>
-            <span class="req-status-badge" :class="`status-${req.status}`">
-              <i :class="statusIcon(req.status)" /> {{ statusLabel(req.status) }}
-            </span>
           </div>
-          <div class="req-meta">
-            <span class="meta-item"><i class="pi pi-tag" /> {{ req.entity_type }}</span>
-            <span class="meta-item"><i class="pi pi-arrow-right" /> {{ isVi ? 'Bước' : 'Step' }} {{ req.current_step }}</span>
-            <span class="meta-item" v-if="req.requester"><i class="pi pi-user" /> {{ req.requester.first_name }} {{ req.requester.last_name }}</span>
-            <span class="meta-item"><i class="pi pi-clock" /> {{ timeAgo(req.created_at) }}</span>
-          </div>
-          <div class="req-actions" v-if="req.status === 'pending'">
-            <Button :label="isVi ? 'Duyệt' : 'Approve'" icon="pi pi-check" size="small" severity="success" @click="approve(req)" />
-            <Button :label="isVi ? 'Từ chối' : 'Reject'" icon="pi pi-times" size="small" severity="danger" outlined @click="reject(req)" />
+          <div class="card-right">
+            <div class="card-value">{{ formatPrice(q.total) }}</div>
+            <div class="card-actions">
+              <Button icon="pi pi-check" severity="success" size="small" rounded v-tooltip="'Phê duyệt'" @click="approve('quotation', q.id)" :loading="processing === `approve-q-${q.id}`" />
+              <Button icon="pi pi-times" severity="danger" size="small" rounded outlined v-tooltip="'Từ chối'" @click="openReject('quotation', q.id, q.title)" :loading="processing === `reject-q-${q.id}`" />
+              <Link :href="`/quotations/${q.id}/edit`"><Button icon="pi pi-eye" severity="secondary" size="small" rounded text v-tooltip="'Xem chi tiết'" /></Link>
+            </div>
           </div>
         </div>
       </div>
-    </TransitionGroup>
+    </div>
+
+    <!-- Pending Contracts -->
+    <div v-if="pendingContracts.length" class="section-block">
+      <h2 class="section-label"><i class="pi pi-file-check" /> Hợp đồng chờ duyệt ({{ pendingContracts.length }})</h2>
+      <div class="approval-list">
+        <div v-for="c in pendingContracts" :key="`c-${c.id}`" class="approval-card">
+          <div class="card-left">
+            <div class="card-icon contract-icon"><i class="pi pi-file-check" /></div>
+            <div class="card-info">
+              <div class="card-top-row">
+                <span class="card-number contract-num">{{ c.number }}</span>
+                <span class="type-badge contract">{{ c.type_label }}</span>
+                <span class="contract-type-tag">{{ c.contract_type }}</span>
+              </div>
+              <h3 class="card-title">{{ c.title }}</h3>
+              <div class="card-meta">
+                <span><i class="pi pi-building" /> {{ c.customer_name }}</span>
+                <span><i class="pi pi-user" /> {{ c.creator_name }}</span>
+                <span><i class="pi pi-calendar" /> {{ c.created_at }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-right">
+            <div class="card-value">{{ formatPrice(c.total) }}</div>
+            <div class="card-actions">
+              <Button icon="pi pi-check" severity="success" size="small" rounded v-tooltip="'Phê duyệt'" @click="approve('contract', c.id)" :loading="processing === `approve-c-${c.id}`" />
+              <Button icon="pi pi-times" severity="danger" size="small" rounded outlined v-tooltip="'Từ chối'" @click="openReject('contract', c.id, c.title)" :loading="processing === `reject-c-${c.id}`" />
+              <Link :href="`/contracts/${c.id}/edit`"><Button icon="pi pi-eye" severity="secondary" size="small" rounded text v-tooltip="'Xem chi tiết'" /></Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No pending -->
+    <div v-if="!pendingQuotations.length && !pendingContracts.length" class="empty-state">
+      <div class="empty-icon"><i class="pi pi-check-circle" /></div>
+      <h3>Không có yêu cầu chờ duyệt</h3>
+      <p>Tất cả báo giá và hợp đồng đã được xử lý.</p>
+    </div>
+
+    <!-- Recently Processed -->
+    <div v-if="recentlyProcessed.length" class="section-block recent">
+      <h2 class="section-label"><i class="pi pi-history" /> Đã xử lý gần đây</h2>
+      <div class="recent-list">
+        <div v-for="r in recentlyProcessed" :key="`r-${r.type}-${r.id}`" class="recent-item">
+          <div class="recent-dot" :class="r.status === 'approved' ? 'dot-approved' : 'dot-rejected'" />
+          <div class="recent-info">
+            <span class="recent-number">{{ r.number }}</span>
+            <span class="recent-title">{{ r.title }}</span>
+          </div>
+          <span class="recent-status" :class="r.status === 'approved' ? 'approved' : 'rejected'">{{ r.status_label }}</span>
+          <span class="recent-meta">{{ r.approved_by }} — {{ r.approved_at }}</span>
+          <span class="recent-value">{{ formatPrice(r.total) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Dialog -->
+    <div v-if="rejectDialog" class="dialog-overlay" @click.self="rejectDialog = false" @keydown.esc="rejectDialog = false">
+      <div class="dialog-card">
+        <h3>Từ chối: {{ rejectTitle }}</h3>
+        <div class="form-group"><label>Lý do từ chối</label><Textarea v-model="rejectReason" class="w-full" rows="3" placeholder="Nhập lý do..." /></div>
+        <div class="dialog-actions">
+          <Button label="Hủy" severity="secondary" outlined @click="rejectDialog = false" />
+          <Button label="Từ chối" severity="danger" icon="pi pi-times" @click="confirmReject" :loading="!!processing" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
 import Button from 'primevue/button'
-import { useTranslation } from '@/composables/useTranslation'
+import Textarea from 'primevue/textarea'
+
 export default {
-  components: { Head, Button },
+  components: { Head, Link, Button, Textarea },
   layout: Layout,
-  props: { requests: Array, workflows: Array },
-  setup() { const { t, locale } = useTranslation(); return { t, locale } },
-  data() { return { activeTab: 'pending' } },
-  computed: {
-    isVi() { return this.locale === 'vi' },
-    pendingCount() { return (this.requests || []).filter(r => r.status === 'pending').length },
-    filteredRequests() {
-      if (!this.requests) return []
-      if (this.activeTab === 'pending') return this.requests.filter(r => r.status === 'pending')
-      return this.requests
-    },
+  props: { pendingQuotations: Array, pendingContracts: Array, recentlyProcessed: Array, stats: Object },
+  data() {
+    return {
+      processing: null,
+      rejectDialog: false, rejectType: null, rejectId: null, rejectTitle: '', rejectReason: '',
+    }
+  },
+  mounted() {
+    this._escHandler = (e) => { if (e.key === 'Escape') { this.rejectDialog = false } }
+    document.addEventListener('keydown', this._escHandler)
+  },
+  beforeUnmount() {
+    document.removeEventListener('keydown', this._escHandler)
   },
   methods: {
-    statusIcon(s) { return { pending: 'pi pi-clock', approved: 'pi pi-check-circle', rejected: 'pi pi-times-circle', cancelled: 'pi pi-ban' }[s] || 'pi pi-circle' },
-    statusLabel(s) { const m = { pending: this.isVi ? 'Chờ duyệt' : 'Pending', approved: this.isVi ? 'Đã duyệt' : 'Approved', rejected: this.isVi ? 'Từ chối' : 'Rejected', cancelled: this.isVi ? 'Đã huỷ' : 'Cancelled' }; return m[s] || s },
-    timeAgo(d) { if (!d) return ''; const now = new Date(), then = new Date(d), diff = Math.floor((now - then) / 60000); if (diff < 60) return `${diff}m`; if (diff < 1440) return `${Math.floor(diff / 60)}h`; return `${Math.floor(diff / 1440)}d` },
-    approve(req) { router.post(`/approvals/${req.id}/approve`) },
-    reject(req) { if (confirm(this.isVi ? 'Xác nhận từ chối?' : 'Confirm rejection?')) router.post(`/approvals/${req.id}/reject`) },
+    formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + ' ₫' },
+    approve(type, id) {
+      this.processing = `approve-${type[0]}-${id}`
+      this.$inertia.post('/approvals/approve', { type, id }, {
+        preserveScroll: true, onFinish: () => { this.processing = null },
+      })
+    },
+    openReject(type, id, title) {
+      this.rejectType = type; this.rejectId = id; this.rejectTitle = title
+      this.rejectReason = ''; this.rejectDialog = true
+    },
+    confirmReject() {
+      this.processing = `reject-${this.rejectType[0]}-${this.rejectId}`
+      this.$inertia.post('/approvals/reject', {
+        type: this.rejectType, id: this.rejectId, reason: this.rejectReason,
+      }, { preserveScroll: true, onFinish: () => { this.processing = null; this.rejectDialog = false } })
+    },
   },
 }
 </script>
 
 <style scoped>
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
-.page-header-left { display: flex; align-items: center; gap: 0.75rem; }
-.header-icon { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #059669, #10b981); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.15rem; }
-.page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; margin: 0; }
-.page-subtitle { font-size: 0.78rem; color: #94a3b8; margin: 0; }
-.header-tabs { display: flex; gap: 0.25rem; background: #f1f5f9; padding: 0.2rem; border-radius: 10px; }
-.tab-btn { border: none; background: transparent; padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.35rem; }
-.tab-btn.active { background: white; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.tab-count { background: #ef4444; color: white; font-size: 0.6rem; padding: 0.1rem 0.35rem; border-radius: 10px; min-width: 18px; text-align: center; }
-
-.request-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.request-card { background: white; border: 1px solid #f1f5f9; border-radius: 14px; overflow: hidden; transition: all 0.25s; }
-.request-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-.req-status-bar { height: 3px; }
-.bar-pending { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.bar-approved { background: linear-gradient(90deg, #10b981, #34d399); }
-.bar-rejected { background: linear-gradient(90deg, #ef4444, #f87171); }
-.bar-cancelled { background: #e2e8f0; }
-.req-body { padding: 1.15rem 1.35rem; }
-.req-header { display: flex; align-items: flex-start; gap: 0.75rem; }
-.req-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.95rem; }
-.icon-pending { background: #fffbeb; color: #d97706; }
-.icon-approved { background: #dcfce7; color: #16a34a; }
-.icon-rejected { background: #fee2e2; color: #dc2626; }
-.icon-cancelled { background: #f1f5f9; color: #94a3b8; }
-.req-info { flex: 1; min-width: 0; }
-.req-title { font-size: 0.95rem; font-weight: 600; color: #1e293b; margin: 0; }
-.req-desc { font-size: 0.78rem; color: #64748b; margin: 0.2rem 0 0; }
-.req-status-badge { font-size: 0.65rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 20px; display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
-.req-status-badge i { font-size: 0.58rem; }
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-approved { background: #dcfce7; color: #166534; }
-.status-rejected { background: #fee2e2; color: #991b1b; }
-.status-cancelled { background: #f1f5f9; color: #64748b; }
-.req-meta { display: flex; gap: 1rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f8fafc; flex-wrap: wrap; }
-.meta-item { font-size: 0.72rem; color: #94a3b8; display: flex; align-items: center; gap: 0.25rem; }
-.meta-item i { font-size: 0.62rem; }
-.req-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
-
-.empty-state { text-align: center; padding: 4rem 2rem; background: white; border-radius: 20px; border: 2px dashed #e2e8f0; }
-.empty-illustration { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #dcfce7, #bbf7d0); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
-.empty-illustration i { font-size: 1.75rem; color: #10b981; }
-.empty-state h3 { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin: 0 0 0.25rem; }
-.empty-state p { font-size: 0.82rem; color: #94a3b8; margin: 0; }
-
-.list-enter-active { animation: slideIn 0.3s ease; }
-@keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+.header-content{display:flex;align-items:center;gap:.85rem}
+.header-icon-wrapper{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:1.25rem;box-shadow:0 4px 14px rgba(139,92,246,.3)}
+.page-title{font-size:1.5rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:-.02em}.page-subtitle{font-size:.82rem;color:#64748b;margin:.15rem 0 0}
+.stat-chips{display:flex;gap:.4rem;flex-wrap:wrap}
+.stat-chip{display:flex;align-items:center;gap:.3rem;padding:.3rem .65rem;border-radius:20px;font-size:.65rem;font-weight:600}.stat-chip i{font-size:.58rem}
+.s1{background:#eff6ff;color:#3b82f6}.s2{background:#ecfdf5;color:#059669}.s3{background:#f5f3ff;color:#7c3aed}
+.section-block{margin-bottom:1.5rem}
+.section-label{font-size:.85rem;font-weight:700;color:#1e293b;margin:0 0 .65rem;display:flex;align-items:center;gap:.35rem}
+.section-label i{font-size:.75rem;color:#8b5cf6}
+.approval-list{display:flex;flex-direction:column;gap:.5rem}
+.approval-card{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.15rem;background:white;border:1.5px solid #f1f5f9;border-radius:14px;transition:all .25s;gap:1rem}
+.approval-card:hover{border-color:#8b5cf6;box-shadow:0 4px 18px rgba(139,92,246,.06)}
+.card-left{display:flex;align-items:center;gap:.75rem;flex:1;min-width:0}
+.card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.quotation-icon{background:linear-gradient(135deg,#dbeafe,#eff6ff);color:#3b82f6}
+.contract-icon{background:linear-gradient(135deg,#d1fae5,#ecfdf5);color:#059669}
+.card-info{min-width:0;flex:1}
+.card-top-row{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.card-number{font-size:.62rem;font-weight:700;color:#3b82f6;font-family:monospace}
+.card-number.contract-num{color:#059669}
+.type-badge{font-size:.48rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;text-transform:uppercase}
+.type-badge.quotation{background:#eff6ff;color:#3b82f6}.type-badge.contract{background:#ecfdf5;color:#059669}
+.contract-type-tag{font-size:.48rem;font-weight:600;padding:.06rem .3rem;border-radius:4px;background:#f8fafc;color:#94a3b8}
+.card-title{font-size:.85rem;font-weight:700;color:#1e293b;margin:.1rem 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{display:flex;gap:.6rem;flex-wrap:wrap}
+.card-meta span{font-size:.62rem;color:#94a3b8;display:flex;align-items:center;gap:.15rem}
+.card-meta i{font-size:.52rem}
+.card-right{display:flex;align-items:center;gap:1rem;flex-shrink:0}
+.card-value{font-size:1rem;font-weight:800;color:#1e293b;min-width:110px;text-align:right}
+.card-actions{display:flex;gap:.25rem}
+.section-block.recent{border-top:1px solid #f1f5f9;padding-top:1.25rem}
+.recent-list{display:flex;flex-direction:column;gap:.3rem}
+.recent-item{display:flex;align-items:center;gap:.6rem;padding:.45rem .75rem;background:white;border:1px solid #f8fafc;border-radius:10px;font-size:.72rem}
+.recent-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-approved{background:#059669}.dot-rejected{background:#ef4444}
+.recent-info{flex:1;display:flex;align-items:center;gap:.4rem;min-width:0}
+.recent-number{font-weight:700;color:#64748b;font-family:monospace;font-size:.62rem}
+.recent-title{color:#1e293b;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-status{font-size:.52rem;font-weight:700;padding:.06rem .3rem;border-radius:4px;text-transform:uppercase;flex-shrink:0}
+.recent-status.approved{background:#ecfdf5;color:#059669}.recent-status.rejected{background:#fef2f2;color:#ef4444}
+.recent-meta{color:#94a3b8;font-size:.62rem;flex-shrink:0}
+.recent-value{font-weight:700;color:#1e293b;min-width:80px;text-align:right;flex-shrink:0}
+.empty-state{text-align:center;padding:3rem 2rem;background:white;border-radius:16px;border:2px dashed #e2e8f0}
+.empty-icon{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;color:#8b5cf6}
+.empty-state h3{font-size:1rem;font-weight:700;color:#1e293b;margin:0 0 .35rem}.empty-state p{font-size:.82rem;color:#94a3b8;margin:0}
+.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);padding:1.5rem}
+.dialog-card{background:white;border-radius:16px;padding:1.5rem;width:420px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.dialog-card h3{font-size:1rem;font-weight:700;color:#1e293b;margin:0 0 1rem}
+.form-group{margin-bottom:1rem}.form-group label{display:block;font-size:.72rem;font-weight:600;color:#475569;margin-bottom:.35rem}.w-full{width:100%}
+.dialog-actions{display:flex;justify-content:flex-end;gap:.5rem}
+@media(max-width:768px){.page-header{flex-direction:column;align-items:flex-start}.approval-card{flex-direction:column;align-items:flex-start}.card-right{width:100%;justify-content:space-between}.recent-item{flex-wrap:wrap}}
 </style>

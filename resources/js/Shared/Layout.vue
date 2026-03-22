@@ -57,11 +57,40 @@
           <div class="topbar-right">
             <LanguageSwitcher :locale="locale" />
 
-            <!-- Notifications placeholder -->
-            <button class="topbar-icon-btn" title="Notifications">
-              <i class="pi pi-bell" />
-              <span class="notification-dot" />
-            </button>
+            <!-- Notifications -->
+            <div class="notif-wrapper" v-click-outside="() => notifOpen = false">
+              <button class="topbar-icon-btn" title="Notifications" @click="notifOpen = !notifOpen">
+                <i class="pi pi-bell" />
+                <span v-if="notifications.unread_count > 0" class="notification-badge">{{ notifications.unread_count > 9 ? '9+' : notifications.unread_count }}</span>
+              </button>
+
+              <transition name="notif-slide">
+                <div v-if="notifOpen" class="notif-panel">
+                  <div class="notif-panel-header">
+                    <h4>Thông báo</h4>
+                    <button v-if="notifications.items.length" class="notif-mark-all" @click="markAllRead">Đánh dấu tất cả đã đọc</button>
+                  </div>
+                  <div class="notif-panel-body">
+                    <div v-if="notifications.items.length" class="notif-list">
+                      <div v-for="n in notifications.items" :key="n.id" class="notif-item" :class="'ni-' + (n.severity || 'info')" @click="openNotif(n)">
+                        <div class="notif-icon-box"><i :class="n.icon || 'pi pi-info-circle'" /></div>
+                        <div class="notif-content">
+                          <span class="notif-title">{{ n.title }}</span>
+                          <span class="notif-body" v-if="n.body">{{ n.body }}</span>
+                          <span class="notif-time">{{ n.created_at }}</span>
+                        </div>
+                        <button class="notif-dismiss" @click.stop="markRead(n)" title="Đánh dấu đã đọc"><i class="pi pi-check" /></button>
+                      </div>
+                    </div>
+                    <div v-else class="notif-empty">
+                      <i class="pi pi-check-circle" />
+                      <span>Không có thông báo mới</span>
+                    </div>
+                  </div>
+                  <Link href="/notifications" class="notif-panel-footer" @click="notifOpen = false">Xem tất cả thông báo <i class="pi pi-arrow-right" /></Link>
+                </div>
+              </transition>
+            </div>
 
             <!-- User dropdown -->
             <dropdown placement="bottom-end">
@@ -111,19 +140,21 @@
 
         <!-- Page Content -->
         <main class="main-content" scroll-region>
-          <flash-messages />
           <slot />
         </main>
       </div>
 
       <!-- AI Chat Widget (global) -->
       <ai-chat-widget />
+
+      <!-- Toast Notifications (global) -->
+      <flash-messages />
     </div>
   </div>
 </template>
 
 <script>
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import Icon from '@/Shared/Icon.vue'
 import Logo from '@/Shared/Logo.vue'
 import Dropdown from '@/Shared/Dropdown.vue'
@@ -143,22 +174,62 @@ export default {
     Logo,
     MainMenu,
   },
+  directives: {
+    'click-outside': {
+      mounted(el, binding) {
+        el._clickOutside = (e) => {
+          if (!el.contains(e.target)) binding.value(e)
+        }
+        document.addEventListener('click', el._clickOutside)
+      },
+      unmounted(el) {
+        document.removeEventListener('click', el._clickOutside)
+      },
+    },
+  },
   props: {
     auth: Object,
     locale: {
       type: String,
       default: 'vi',
     },
+    notifications: {
+      type: Object,
+      default: () => ({ unread_count: 0, items: [] }),
+    },
   },
   data() {
     return {
       sidebarCollapsed: false,
       mobileMenuOpen: false,
+      notifOpen: false,
     }
   },
   methods: {
     toggleSidebar() {
       this.sidebarCollapsed = !this.sidebarCollapsed
+    },
+    markRead(n) {
+      fetch(`/notifications/${n.id}/read`, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept': 'application/json' } })
+        .then(() => {
+          const idx = this.notifications.items.findIndex(i => i.id === n.id)
+          if (idx !== -1) this.notifications.items.splice(idx, 1)
+          this.notifications.unread_count = Math.max(0, this.notifications.unread_count - 1)
+        })
+    },
+    markAllRead() {
+      fetch('/notifications/read-all', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept': 'application/json' } })
+        .then(() => {
+          this.notifications.items = []
+          this.notifications.unread_count = 0
+        })
+    },
+    openNotif(n) {
+      this.markRead(n)
+      this.notifOpen = false
+      if (n.link) {
+        router.visit(n.link)
+      }
     },
   },
 }
@@ -408,16 +479,80 @@ export default {
   color: #374151;
 }
 
-.notification-dot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ef4444;
-  border: 2px solid white;
+.notif-wrapper { position: relative }
+.notification-badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 9px; background: #ef4444; color: white;
+  font-size: 0.58rem; font-weight: 700; line-height: 17px;
+  text-align: center; border: 2px solid white;
 }
+.notif-panel {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  width: 380px; max-height: 480px;
+  background: white; border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.14); border: 1px solid #e5e7eb;
+  display: flex; flex-direction: column; overflow: hidden; z-index: 100;
+}
+.notif-slide-enter-active, .notif-slide-leave-active { transition: all .2s ease }
+.notif-slide-enter-from, .notif-slide-leave-to { opacity: 0; transform: translateY(-8px) }
+.notif-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 1rem; border-bottom: 1px solid #f3f4f6;
+}
+.notif-panel-header h4 { margin: 0; font-size: .9rem; font-weight: 700; color: #111827 }
+.notif-mark-all {
+  background: none; border: none; font-size: .68rem; font-weight: 600;
+  color: #6366f1; cursor: pointer; padding: .2rem .4rem; border-radius: 6px;
+  transition: background .2s; font-family: inherit;
+}
+.notif-mark-all:hover { background: #eef2ff }
+.notif-panel-body { flex: 1; overflow-y: auto; max-height: 360px }
+.notif-list { padding: .25rem 0 }
+.notif-item {
+  display: flex; align-items: flex-start; gap: .65rem;
+  padding: .65rem 1rem; cursor: pointer; transition: background .15s;
+  border-left: 3px solid transparent;
+}
+.notif-item:hover { background: #fafbfe }
+.ni-info { border-left-color: #3b82f6 }
+.ni-success { border-left-color: #16a34a }
+.ni-warning { border-left-color: #f59e0b }
+.ni-danger { border-left-color: #ef4444 }
+.notif-icon-box {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; flex-shrink: 0;
+}
+.ni-info .notif-icon-box { background: #eff6ff; color: #3b82f6 }
+.ni-success .notif-icon-box { background: #f0fdf4; color: #16a34a }
+.ni-warning .notif-icon-box { background: #fffbeb; color: #f59e0b }
+.ni-danger .notif-icon-box { background: #fef2f2; color: #ef4444 }
+.notif-content { flex: 1; min-width: 0 }
+.notif-title { display: block; font-size: .78rem; font-weight: 600; color: #1e293b; line-height: 1.3 }
+.notif-body { display: block; font-size: .7rem; color: #64748b; margin-top: .1rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.notif-time { display: block; font-size: .6rem; color: #94a3b8; margin-top: .2rem }
+.notif-dismiss {
+  width: 24px; height: 24px; border-radius: 6px; border: none;
+  background: transparent; color: #94a3b8; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .6rem; transition: all .2s; flex-shrink: 0; margin-top: .15rem;
+}
+.notif-dismiss:hover { background: #dcfce7; color: #16a34a }
+.notif-empty {
+  display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  padding: 2rem 1rem; color: #94a3b8;
+}
+.notif-empty i { font-size: 1.5rem; color: #d1d5db }
+.notif-empty span { font-size: .82rem }
+.notif-panel-footer {
+  display: flex; align-items: center; justify-content: center; gap: .3rem;
+  padding: .65rem 1rem; border-top: 1px solid #f3f4f6;
+  font-size: .78rem; font-weight: 600; color: #6366f1;
+  text-decoration: none; transition: background .15s;
+}
+.notif-panel-footer:hover { background: #fafbfe }
+.notif-panel-footer i { font-size: .6rem }
 
 /* ===== User Trigger ===== */
 .topbar-user-trigger {

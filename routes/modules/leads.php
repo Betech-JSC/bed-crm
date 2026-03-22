@@ -22,8 +22,4 @@ Route::middleware('auth')->group(function () {
     Route::post('leads/{lead}/score', [LeadScoringController::class, 'score'])->name('leads.score');
     Route::post('leads/score-all', [LeadScoringController::class, 'scoreAll'])->name('leads.score-all');
     Route::post('leads/{lead}/enrich', [LeadScoringController::class, 'enrich'])->name('leads.enrich');
-
-    // Playbook suggestions
-    Route::get('leads/{lead}/playbook-suggestions', [\App\Http\Controllers\SalesPlaybooksController::class, 'suggestionsForLead'])
-        ->name('leads.playbook-suggestions');
 });

@@ -7,6 +7,9 @@ Route::middleware('auth')->group(function () {
     // Main page
     Route::get('ai-trends', [AiTrendController::class, 'index'])->name('ai-trends.index');
 
+    // Ecosystem Map
+    Route::get('ai-trends/ecosystem', [AiTrendController::class, 'ecosystem'])->name('ai-trends.ecosystem');
+
     // Monitor CRUD
     Route::post('ai-trends/monitors', [AiTrendController::class, 'storeMonitor'])->name('ai-trends.monitors.store');
     Route::put('ai-trends/monitors/{monitor}', [AiTrendController::class, 'updateMonitor'])->name('ai-trends.monitors.update');

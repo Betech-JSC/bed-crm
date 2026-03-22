@@ -333,7 +333,7 @@ Color mapping:
 
 ### 6.7 Dialogs/Modals
 
-- Dùng PrimeVue `<Dialog>`
+- Dùng PrimeVue `<Dialog>` hoặc **Custom Popup Overlay** (xem 6.11)
 - Props: `v-model:visible`, `header`, `:modal="true"`, `:style="{ width: '420px-450px' }"`
 - Footer slot: `<Button label="Hủy" severity="secondary" text />` + action button
 
@@ -391,6 +391,259 @@ Color mapping:
 .bar-warning { background: #f59e0b; }
 .bar-low     { background: #ef4444; }
 .bar-neutral { background: #94a3b8; }
+```
+
+### 6.11 Popup/Dialog CRUD Pattern ⭐ (Preferred for new modules)
+
+> **KHI NÀO DÙNG POPUP**: Sử dụng popup cho Create/Edit khi form **KHÔNG quá phức tạp** (< 10 fields, không có sub-forms lồng nhau như line items). Ví dụ: Biên bản, Biểu mẫu, Hướng dẫn CRM, Cài đặt đơn giản.
+>
+> **KHI NÀO DÙNG TRANG RIÊNG**: Khi form **phức tạp** (dynamic line items, multi-section, dependent fields). Ví dụ: Báo giá (có line items), Hợp đồng, Deals.
+
+#### Popup Structure
+
+```html
+<!-- Overlay -->
+<div v-if="dialog" class="dialog-overlay" @click.self="dialog = false">
+  <div class="dialog-card">
+    <!-- Header -->
+    <div class="dialog-header">
+      <div class="dialog-header-left">
+        <div class="dialog-icon"><i class="pi pi-file" /></div>
+        <h3>{{ form.id ? 'Chỉnh sửa' : 'Thêm mới' }} item</h3>
+      </div>
+      <button class="dialog-close" @click="dialog = false"><i class="pi pi-times" /></button>
+    </div>
+    <!-- Body -->
+    <form @submit.prevent="submitForm" class="dialog-body">
+      <!-- ...form fields... -->
+      <!-- Footer -->
+      <div class="dialog-footer">
+        <Button label="Hủy" severity="secondary" outlined @click="dialog = false" type="button" />
+        <Button :label="form.id ? 'Cập nhật' : 'Tạo'" icon="pi pi-check" type="submit" :loading="form.processing" />
+      </div>
+    </form>
+  </div>
+</div>
+```
+
+#### Popup CSS
+
+```css
+.dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.dialog-card {
+  background: white; border-radius: 18px;
+  width: 620px; max-width: 92vw; max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,.18);
+  animation: slideUp .25s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+.dialog-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+}
+.dialog-header-left { display: flex; align-items: center; gap: .6rem }
+.dialog-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, [THEME-COLOR-1], [THEME-COLOR-2]);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: .85rem;
+}
+.dialog-header h3 { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 }
+.dialog-close {
+  background: none; border: none; width: 32px; height: 32px;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: #94a3b8; cursor: pointer; transition: all .2s;
+}
+.dialog-close:hover { background: #fef2f2; color: #ef4444 }
+.dialog-body { padding: 1.25rem 1.5rem }
+.dialog-footer {
+  display: flex; justify-content: flex-end; gap: .5rem;
+  padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9;
+}
+```
+
+#### Popup JS Methods Pattern
+
+```javascript
+methods: {
+  // Empty form factory
+  emptyForm() {
+    return this.$inertia.form({
+      id: null, title: '', /* ...other fields... */
+    })
+  },
+  // Open dialog (create or edit)
+  openDialog(item = null) {
+    if (item) {
+      this.form = this.$inertia.form({
+        id: item.id, title: item.title, /* ...populate fields... */
+      })
+    } else {
+      this.form = this.emptyForm()
+    }
+    this.dialog = true
+  },
+  // Submit (auto-detect create vs update)
+  submitForm() {
+    if (this.form.id) {
+      this.form.put(`/items/${this.form.id}`, {
+        preserveScroll: true, onSuccess: () => { this.dialog = false }
+      })
+    } else {
+      this.form.post('/items', {
+        preserveScroll: true, onSuccess: () => { this.dialog = false }
+      })
+    }
+  },
+  // Delete with confirm
+  deleteItem(item) {
+    if (confirm(`Xóa "${item.title}"?`)) {
+      this.$inertia.delete(`/items/${item.id}`, { preserveScroll: true })
+    }
+  },
+}
+```
+
+#### Backend: Popup Pattern Controller
+
+```php
+// store() and update() đều return back() thay vì redirect
+public function store(Request $request) {
+    // validate + create
+    return back()->with('success', 'Đã tạo.');
+}
+public function update(Request $request, Model $model) {
+    // validate + update
+    return back()->with('success', 'Đã cập nhật.');
+}
+// Không cần create() hoặc edit() method (không có trang riêng)
+```
+
+#### Routes: Popup Pattern
+
+```php
+// Không cần create/edit routes (không dùng resource)
+Route::get('items', [Controller::class, 'index'])->name('items.index');
+Route::post('items', [Controller::class, 'store'])->name('items.store');
+Route::put('items/{item}', [Controller::class, 'update'])->name('items.update');
+Route::delete('items/{item}', [Controller::class, 'destroy'])->name('items.destroy');
+```
+
+### 6.12 Module Color Themes
+
+Mỗi module mới cần **1 accent color riêng** để phân biệt. Sử dụng cho:
+- Header icon gradient
+- Search focus ring
+- Card hover border
+- Stat chips
+- Dialog icon gradient
+
+| Module | Primary | Gradient | Usage |
+|--------|---------|----------|-------|
+| Sales/Leads | `#6366f1` | `#6366f1 → #8b5cf6` | Indigo |
+| Products | `#f59e0b` | `#f59e0b → #d97706` | Amber |
+| Quotations | `#3b82f6` | `#3b82f6 → #2563eb` | Blue |
+| Contracts | `#059669` | `#059669 → #047857` | Green |
+| Approvals | `#8b5cf6` | `#8b5cf6 → #7c3aed` | Purple |
+| Documents | `#ec4899` | `#ec4899 → #db2777` | Pink |
+| CRM Guides | `#0ea5e9` | `#0ea5e9 → #0284c7` | Sky |
+| System/Tools | `#64748b` | `#64748b → #475569` | Slate |
+
+### 6.13 Toast Notification System
+
+> **File:** `resources/js/Shared/FlashMessages.vue`
+> **Vị trí:** Global — mount trong `Layout.vue`, Teleport to `body`
+> **Trigger:** Tự động bắt `$page.props.flash` từ backend
+
+#### Khi nào dùng
+
+| Trường hợp | Type |
+|------------|------|
+| CRUD thành công | `success` |
+| Validation error | `error` |
+| Cảnh báo (delete, irreversible) | `warning` |
+| Thông tin chung | `info` |
+
+#### UX Specifications
+
+| Property | Value |
+|----------|-------|
+| Position | Top-right, fixed |
+| Max width | 400px |
+| Auto-dismiss | 4500ms |
+| Animation in | `slideIn` from right, 0.35s cubic-bezier |
+| Animation out | `slideOut` to right, 0.25s ease-in |
+| Progress bar | 3px, gradient, shrinks over duration |
+| Border-left | 4px colored by severity |
+| Icon | 32×32px rounded-10px gradient background |
+| Z-index | 9999 |
+| Click | Click toast to dismiss |
+| Close button | ✕ icon, top-right |
+
+#### Severity Colors
+
+| Type | Left Border | Icon BG | Title Color |
+|------|-------------|---------|-------------|
+| `success` | `#10b981` | `#ecfdf5 → #d1fae5` | `#059669` |
+| `error` | `#ef4444` | `#fef2f2 → #fecaca` | `#dc2626` |
+| `warning` | `#f59e0b` | `#fffbeb → #fde68a` | `#d97706` |
+| `info` | `#3b82f6` | `#eff6ff → #dbeafe` | `#2563eb` |
+
+#### Backend Integration
+
+```php
+// Controller — trigger toast từ backend
+return back()->with('success', 'Đã tạo thành công.');
+return back()->with('error', 'Không thể xóa mục này.');
+return back()->with('warning', 'Hành động này không thể hoàn tác.');
+return back()->with('info', 'Dữ liệu đã được cập nhật.');
+```
+
+#### Component Structure
+
+```html
+<!-- Toast Container (Teleport to body) -->
+<div class="toast-container">
+  <div class="toast-item toast-{type}">
+    <div class="toast-icon-wrap"><i class="pi pi-check-circle" /></div>
+    <div class="toast-body">
+      <span class="toast-title">Thành công</span>
+      <p class="toast-message">Đã tạo sản phẩm.</p>
+    </div>
+    <button class="toast-close"><i class="pi pi-times" /></button>
+    <div class="toast-progress">
+      <div class="toast-progress-bar bar-success" />
+    </div>
+  </div>
+</div>
+```
+
+#### Key CSS
+
+```css
+.toast-container {
+  position: fixed; top: 1.25rem; right: 1.25rem;
+  z-index: 9999; max-width: 400px;
+}
+.toast-item {
+  border-radius: 14px; background: white;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  border-left: 4px solid; /* color by type */
+  overflow: hidden;
+}
+.toast-progress-bar {
+  animation: progressShrink linear forwards;
+}
+@keyframes progressShrink { from{width:100%} to{width:0%} }
 ```
 
 ---
@@ -477,10 +730,10 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);  /* sidebar, layout shifts */
 - **Drag rotate**: `transform: rotate(1deg)` on chosen-card
 - **Focus ring**: `box-shadow: 0 0 0 3px rgba(99,102,241, 0.1)` (indigo glow)
 - **Scale on active**: `transform: scale(1.1)` for stage step dots
-- **Slide-up animation** (dropdown panels):
+- **Slide-up animation** (dropdown panels, popup dialogs):
   ```css
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(10px-20px); }
     to { opacity: 1; transform: translateY(0); }
   }
   ```
@@ -513,6 +766,8 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);  /* sidebar, layout shifts */
   /* Wiki layout: column direction */
   .wiki-layout { flex-direction: column; }
   .wiki-sidebar { width: 100%; position: static; }
+  /* Dialog responsive */
+  .dialog-card { max-width: 95vw; max-height: 92vh; }
 }
 ```
 
@@ -612,3 +867,6 @@ Khi tạo page mới, kiểm tra:
 - [ ] Flash messages tự động qua `FlashMessages.vue` trong Layout
 - [ ] Vietnamese labels cho tất cả text hiển thị
 - [ ] Scoped CSS — KHÔNG dùng global styles
+- [ ] **Popup vs Page**: Form đơn giản → dùng popup dialog (6.11). Form phức tạp → dùng trang riêng
+- [ ] **Module color**: Chọn 1 accent color riêng cho module (xem 6.12)
+- [ ] **Slide-up animation**: Dialog phải có `animation: slideUp .25s ease-out`

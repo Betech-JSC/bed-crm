@@ -19,9 +19,17 @@
       <MenuItem href="/sales-pipeline" icon="pi pi-arrow-right-arrow-left" :active="isUrl('sales-pipeline')">Quy trình bán hàng</MenuItem>
       <MenuItem href="/contacts" icon="pi pi-id-card" :active="isUrl('contacts')">{{ t('common.contacts') }}</MenuItem>
       <MenuItem href="/organizations" icon="pi pi-building" :active="isUrl('organizations')">{{ t('common.organizations') }}</MenuItem>
-      <MenuItem href="/proposals" icon="pi pi-file-edit" :active="isUrl('proposals')">{{ t('common.proposals') }}</MenuItem>
-      <MenuItem href="/sales-playbooks" icon="pi pi-book" :active="isUrl('sales-playbooks')">{{ t('common.sales_playbooks') }}</MenuItem>
-      <MenuItem href="/icps" icon="pi pi-star" :active="isUrl('icps')">{{ t('common.icp_profiles') }}</MenuItem>
+
+    </div>
+
+    <!-- ═══ Business ═══ -->
+    <div class="menu-section">
+      <div class="menu-section-title">Kinh doanh</div>
+      <MenuItem href="/products" icon="pi pi-box" :active="isUrl('products')">Sản phẩm & DV</MenuItem>
+      <MenuItem href="/quotations" icon="pi pi-file-edit" :active="isUrl('quotations')">Báo giá</MenuItem>
+      <MenuItem href="/contracts" icon="pi pi-file-check" :active="isUrl('contracts')">Hợp đồng</MenuItem>
+      <MenuItem href="/approvals" icon="pi pi-verified" :active="isUrl('approvals') && !isUrl('approvals/')">Phê duyệt</MenuItem>
+      <MenuItem href="/dropship" icon="pi pi-truck" :active="isUrl('dropship')">Dropship</MenuItem>
     </div>
 
     <!-- ═══ Customer & Projects ═══ -->
@@ -89,6 +97,11 @@
       <MenuItem href="/files" icon="pi pi-folder-open" :active="isUrl('files')">{{ t('common.files') }}</MenuItem>
       <MenuItem href="/notifications" icon="pi pi-bell" :active="isUrl('notifications')">{{ t('common.notifications') }}</MenuItem>
       <MenuItem href="/system-logs" icon="pi pi-list" :active="isUrl('system-logs')">System Logs</MenuItem>
+      <MenuItem href="/system-history" icon="pi pi-history" :active="isUrl('system-history')">Lịch sử</MenuItem>
+      <MenuItem href="/system-trash" icon="pi pi-trash" :active="isUrl('system-trash')">Thùng rác</MenuItem>
+      <MenuItem href="/documents" icon="pi pi-file-word" :active="isUrl('documents')">Biên bản & Biểu mẫu</MenuItem>
+      <MenuItem href="/crm-guides" icon="pi pi-question-circle" :active="isUrl('crm-guides')">Hướng dẫn CRM</MenuItem>
+      <MenuItem href="/dev-portal" icon="pi pi-code" :active="isUrl('dev-portal')">Dev Portal</MenuItem>
     </div>
 
     <!-- ═══ Settings ═══ -->

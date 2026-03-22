@@ -1,11 +1,10 @@
 <?php
 
 use App\Http\Controllers\ActivitiesController;
-use App\Http\Controllers\ICPsController;
+
 use App\Http\Controllers\WorkflowsController;
 use App\Http\Controllers\SLASettingsController;
-use App\Http\Controllers\ProposalsController;
-use App\Http\Controllers\SalesPlaybooksController;
+
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SalesIntelligenceController;
 use App\Http\Controllers\SalesTargetsController;
@@ -31,6 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::post('sales-pipeline/{pipeline}/close-won', [SalesPipelineController::class, 'closeWon'])->name('sales-pipeline.close-won');
     Route::post('sales-pipeline/{pipeline}/close-lost', [SalesPipelineController::class, 'closeLost'])->name('sales-pipeline.close-lost');
 
+    // ── Sales Channels (Kênh bán hàng) ──
+    Route::post('sales-channels', [SalesPipelineController::class, 'storeChannel'])->name('sales-channels.store');
+    Route::put('sales-channels/{channel}', [SalesPipelineController::class, 'updateChannel'])->name('sales-channels.update');
+    Route::delete('sales-channels/{channel}', [SalesPipelineController::class, 'destroyChannel'])->name('sales-channels.destroy');
+
     // Activities
     Route::post('activities', [ActivitiesController::class, 'store'])->name('activities.store');
     Route::put('activities/{activity}', [ActivitiesController::class, 'update'])->name('activities.update');
@@ -39,13 +43,7 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::get('reports', [ReportsController::class, 'index'])->name('reports');
 
-    // ICPs
-    Route::get('icps', [ICPsController::class, 'index'])->name('icps');
-    Route::get('icps/create', [ICPsController::class, 'create'])->name('icps.create');
-    Route::post('icps', [ICPsController::class, 'store'])->name('icps.store');
-    Route::get('icps/{icp}/edit', [ICPsController::class, 'edit'])->name('icps.edit');
-    Route::put('icps/{icp}', [ICPsController::class, 'update'])->name('icps.update');
-    Route::delete('icps/{icp}', [ICPsController::class, 'destroy'])->name('icps.destroy');
+
 
     // Workflows
     Route::get('workflows', [WorkflowsController::class, 'index'])->name('workflows');
@@ -63,29 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::put('sla-settings/{slaSetting}', [SLASettingsController::class, 'update'])->name('sla-settings.update');
     Route::delete('sla-settings/{slaSetting}', [SLASettingsController::class, 'destroy'])->name('sla-settings.destroy');
 
-    // Proposals
-    Route::get('proposals', [ProposalsController::class, 'index'])->name('proposals');
-    Route::get('proposals/create', [ProposalsController::class, 'create'])->name('proposals.create');
-    Route::post('proposals', [ProposalsController::class, 'store'])->name('proposals.store');
-    Route::get('proposals/{proposal}', [ProposalsController::class, 'show'])->name('proposals.show');
-    Route::get('proposals/{proposal}/edit', [ProposalsController::class, 'edit'])->name('proposals.edit');
-    Route::put('proposals/{proposal}', [ProposalsController::class, 'update'])->name('proposals.update');
-    Route::delete('proposals/{proposal}', [ProposalsController::class, 'destroy'])->name('proposals.destroy');
-    Route::post('proposals/{proposal}/version', [ProposalsController::class, 'createVersion'])->name('proposals.version');
-    Route::post('proposals/{proposal}/send', [ProposalsController::class, 'send'])->name('proposals.send');
-    Route::post('proposals/{proposal}/accept', [ProposalsController::class, 'accept'])->name('proposals.accept');
-    Route::post('proposals/{proposal}/reject', [ProposalsController::class, 'reject'])->name('proposals.reject');
-    Route::get('proposals/{proposal}/download', [ProposalsController::class, 'download'])->name('proposals.download');
-    Route::post('proposals/{proposal}/track-view', [ProposalsController::class, 'trackView'])->name('proposals.track-view');
 
-    // Sales Playbooks
-    Route::get('sales-playbooks', [SalesPlaybooksController::class, 'index'])->name('sales-playbooks');
-    Route::get('sales-playbooks/create', [SalesPlaybooksController::class, 'create'])->name('sales-playbooks.create');
-    Route::post('sales-playbooks', [SalesPlaybooksController::class, 'store'])->name('sales-playbooks.store');
-    Route::get('sales-playbooks/{playbook}', [SalesPlaybooksController::class, 'show'])->name('sales-playbooks.show');
-    Route::get('sales-playbooks/{playbook}/edit', [SalesPlaybooksController::class, 'edit'])->name('sales-playbooks.edit');
-    Route::put('sales-playbooks/{playbook}', [SalesPlaybooksController::class, 'update'])->name('sales-playbooks.update');
-    Route::delete('sales-playbooks/{playbook}', [SalesPlaybooksController::class, 'destroy'])->name('sales-playbooks.destroy');
 
     // ── Sales Intelligence APIs ──
     Route::prefix('sales-intelligence')->name('sales-intel.')->group(function () {

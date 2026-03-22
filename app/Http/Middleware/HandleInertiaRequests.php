@@ -65,6 +65,29 @@ class HandleInertiaRequests extends Middleware
                     'common' => trans('common'),
                 ];
             },
+            'notifications' => function () use ($request) {
+                if (!$request->user()) return ['unread_count' => 0, 'items' => []];
+                $userId = $request->user()->id;
+                return [
+                    'unread_count' => \App\Models\Notification::forUser($userId)->unread()->count(),
+                    'items' => \App\Models\Notification::forUser($userId)
+                        ->unread()
+                        ->latest()
+                        ->limit(10)
+                        ->get()
+                        ->map(fn ($n) => [
+                            'id' => $n->id,
+                            'title' => $n->title,
+                            'body' => $n->body,
+                            'icon' => $n->icon,
+                            'severity' => $n->severity,
+                            'link' => $n->link,
+                            'event_type' => $n->event_type,
+                            'read_at' => $n->read_at,
+                            'created_at' => $n->created_at->diffForHumans(),
+                        ]),
+                ];
+            },
         ]);
     }
 }

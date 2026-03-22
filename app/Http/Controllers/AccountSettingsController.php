@@ -92,7 +92,10 @@ class AccountSettingsController extends Controller
             'account' => [
                 'id' => $account->id,
                 'name' => $account->name,
+                'slogan' => $account->slogan,
+                'description' => $account->description,
                 'logo' => $account->logo ? Storage::url($account->logo) : null,
+                'favicon' => $account->favicon ? Storage::url($account->favicon) : null,
                 'timezone' => $account->timezone,
                 'currency' => $account->currency,
                 'locale' => $account->locale,
@@ -104,8 +107,11 @@ class AccountSettingsController extends Controller
                 'website' => $account->website,
                 'address' => $account->address,
                 'tax_id' => $account->tax_id,
+                'registration_number' => $account->registration_number,
                 'industry' => $account->industry,
                 'company_size' => $account->company_size,
+                'founded_year' => $account->founded_year,
+                'social_links' => $account->social_links ?? [],
             ],
             'config_groups' => $configGroups,
             'options' => self::options(),
@@ -121,7 +127,10 @@ class AccountSettingsController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slogan' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:2000',
             'logo' => 'nullable|image|max:2048',
+            'favicon' => 'nullable|image|max:1024',
             'timezone' => 'sometimes|string|max:50',
             'currency' => 'sometimes|string|max:10',
             'locale' => 'sometimes|in:vi,en',
@@ -133,8 +142,17 @@ class AccountSettingsController extends Controller
             'website' => 'nullable|url|max:255',
             'address' => 'nullable|string',
             'tax_id' => 'nullable|string|max:30',
+            'registration_number' => 'nullable|string|max:50',
             'industry' => 'nullable|string|max:50',
             'company_size' => 'nullable|integer|min:1',
+            'founded_year' => 'nullable|string|max:4',
+            'social_links' => 'nullable|array',
+            'social_links.facebook' => 'nullable|url|max:255',
+            'social_links.linkedin' => 'nullable|url|max:255',
+            'social_links.twitter' => 'nullable|url|max:255',
+            'social_links.youtube' => 'nullable|url|max:255',
+            'social_links.instagram' => 'nullable|url|max:255',
+            'social_links.tiktok' => 'nullable|url|max:255',
         ]);
 
         $account = Auth::user()->account;
@@ -147,6 +165,16 @@ class AccountSettingsController extends Controller
             $validated['logo'] = $request->file('logo')->store('accounts/logos', 'public');
         } else {
             unset($validated['logo']);
+        }
+
+        // Handle favicon upload
+        if ($request->hasFile('favicon')) {
+            if ($account->favicon && Storage::exists($account->favicon)) {
+                Storage::delete($account->favicon);
+            }
+            $validated['favicon'] = $request->file('favicon')->store('accounts/favicons', 'public');
+        } else {
+            unset($validated['favicon']);
         }
 
         $account->update($validated);
@@ -208,6 +236,19 @@ class AccountSettingsController extends Controller
             Storage::delete($account->logo);
         }
         $account->update(['logo' => null]);
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Remove favicon.
+     */
+    public function removeFavicon(): JsonResponse
+    {
+        $account = Auth::user()->account;
+        if ($account->favicon && Storage::exists($account->favicon)) {
+            Storage::delete($account->favicon);
+        }
+        $account->update(['favicon' => null]);
         return response()->json(['success' => true]);
     }
 }

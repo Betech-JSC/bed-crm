@@ -8,14 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Account extends Model
 {
     protected $fillable = [
-        'name', 'logo',
+        'name', 'slogan', 'description', 'logo', 'favicon',
         'timezone', 'currency', 'locale', 'date_format', 'time_format',
         'fiscal_year_start', 'phone', 'email', 'website', 'address',
-        'tax_id', 'industry', 'company_size',
+        'tax_id', 'registration_number', 'industry', 'company_size', 'founded_year',
+        'social_links',
     ];
 
     protected $casts = [
         'company_size' => 'integer',
+        'social_links' => 'array',
     ];
 
     // ── Config helpers ──
@@ -61,9 +63,17 @@ class Account extends Model
         return $this->hasMany(Activity::class);
     }
 
-    public function icps(): HasMany
+
+
+
+    public function salesChannels(): HasMany
     {
-        return $this->hasMany(ICP::class);
+        return $this->hasMany(SalesChannel::class);
+    }
+
+    public function videoProjects(): HasMany
+    {
+        return $this->hasMany(VideoProject::class);
     }
 
     public function workflows(): HasMany

@@ -113,53 +113,7 @@ class Lead extends Model
         return $this->morphMany(Activity::class, 'subject')->orderBy('date', 'desc');
     }
 
-    public function icp(): BelongsTo
-    {
-        return $this->belongsTo(ICP::class, 'icp_id');
-    }
 
-    /**
-     * Score this lead against all active ICPs
-     */
-    public function scoreAgainstICPs(array $enrichmentData = []): ?array
-    {
-        $icps = $this->account->icps()->where('is_active', true)->get();
-
-        if ($icps->isEmpty()) {
-            return null;
-        }
-
-        $bestMatch = null;
-        $bestScore = 0;
-
-        foreach ($icps as $icp) {
-            $result = $icp->scoreLead($this, $enrichmentData);
-
-            if ($result['total_score'] > $bestScore) {
-                $bestScore = $result['total_score'];
-                $bestMatch = [
-                    'icp_id' => $icp->id,
-                    'icp_name' => $icp->name,
-                    'score' => $result['total_score'],
-                    'is_match' => $result['is_match'],
-                    'details' => $result['scores'],
-                    'weights' => $result['weights'],
-                ];
-            }
-        }
-
-        if ($bestMatch) {
-            $this->update([
-                'score' => $bestMatch['score'],
-                'icp_id' => $bestMatch['icp_id'],
-                'scoring_details' => $bestMatch,
-                'enrichment_data' => $enrichmentData,
-                'last_scored_at' => now(),
-            ]);
-        }
-
-        return $bestMatch;
-    }
 
     /**
      * Get score quality label

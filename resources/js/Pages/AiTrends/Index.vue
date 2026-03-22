@@ -14,6 +14,9 @@
         </p>
       </div>
       <div class="header-actions">
+        <Link href="/ai-trends/ecosystem">
+          <Button label="Ecosystem Map" icon="pi pi-sitemap" severity="secondary" text size="small" />
+        </Link>
         <Button
           label="Đánh dấu đã đọc"
           icon="pi pi-check-circle"

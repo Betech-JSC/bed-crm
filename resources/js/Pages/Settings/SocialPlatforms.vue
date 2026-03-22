@@ -4,12 +4,14 @@
 
     <!-- Header -->
     <div class="page-header">
-      <div>
-        <h1 class="page-title">
-          <i class="pi pi-cog" style="color: #6366f1; margin-right: 0.5rem" />
-          Cấu hình Social Platforms
-        </h1>
-        <p class="page-subtitle">Thiết lập OAuth cho từng nền tảng mạng xã hội</p>
+      <div class="header-content">
+        <div class="header-icon-wrapper">
+          <i class="pi pi-share-alt" />
+        </div>
+        <div>
+          <h1 class="page-title">Cấu hình Social Platforms</h1>
+          <p class="page-subtitle">Thiết lập OAuth cho từng nền tảng mạng xã hội</p>
+        </div>
       </div>
       <Link href="/social-accounts">
         <Button label="Xem tài khoản" icon="pi pi-arrow-right" severity="secondary" outlined size="small" />
@@ -270,9 +272,20 @@ export default {
 
 <style scoped>
 /* ===== Header ===== */
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; }
-.page-subtitle { font-size: 0.82rem; color: #94a3b8; margin: 0.15rem 0 0; }
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.header-content { display: flex; align-items: center; gap: 0.85rem; }
+.header-icon-wrapper {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.25rem;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+}
+.page-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+.page-subtitle { font-size: 0.82rem; color: #64748b; margin: 0.15rem 0 0; }
 
 /* ===== Platforms Grid ===== */
 .platforms-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem; }
@@ -312,7 +325,6 @@ export default {
 .status-chip--unconfigured { background: #f1f5f9; color: #64748b; }
 
 /* Config Form */
-.config-form { }
 .form-group { margin-bottom: 0.75rem; }
 .form-group label {
   display: block; font-size: 0.72rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem;

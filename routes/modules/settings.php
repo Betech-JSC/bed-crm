@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('account-settings', [AccountSettingsController::class, 'index'])->name('account-settings.index');
     Route::put('account-settings', [AccountSettingsController::class, 'update'])->name('account-settings.update');
     Route::delete('account-settings/logo', [AccountSettingsController::class, 'removeLogo'])->name('account-settings.logo.remove');
+    Route::delete('account-settings/favicon', [AccountSettingsController::class, 'removeFavicon'])->name('account-settings.favicon.remove');
     Route::post('account-settings/seed', [AccountSettingsController::class, 'seedDefaults'])->name('account-settings.seed');
     Route::get('account-settings/config/{group}', [AccountSettingsController::class, 'getConfigGroup'])->name('account-settings.config.get');
     Route::put('account-settings/config/{group}', [AccountSettingsController::class, 'updateConfigGroup'])->name('account-settings.config.update');

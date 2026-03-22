@@ -4,6 +4,14 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
 import 'primeicons/primeicons.css'
+import axios from 'axios'
+
+// Configure axios CSRF for Laravel
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+if (csrfToken) {
+  axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken
+}
 
 createInertiaApp({
   resolve: name => {

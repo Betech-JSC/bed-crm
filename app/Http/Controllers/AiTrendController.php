@@ -57,6 +57,14 @@ class AiTrendController extends Controller
     }
 
     /**
+     * AI Ecosystem Map — 13-layer overview of AI tools & platforms.
+     */
+    public function ecosystem(): Response
+    {
+        return Inertia::render('AiTrends/EcosystemMap');
+    }
+
+    /**
      * Create a new trend monitor.
      */
     public function storeMonitor(Request $request): JsonResponse

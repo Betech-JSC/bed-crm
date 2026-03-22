@@ -9,7 +9,16 @@
           <i class="pi pi-palette" style="color: #8b5cf6; margin-right: 0.5rem;" />
           Content Studio
         </h1>
-        <p class="page-subtitle">AI tự động tạo bài viết + thumbnail → Đăng lên mạng xã hội</p>
+        <p class="page-subtitle">AI tạo bài viết cho Social Media & Website SEO</p>
+      </div>
+      <!-- Mode Switcher -->
+      <div class="mode-switcher">
+        <button class="mode-btn" :class="{ active: studioMode === 'social' }" @click="studioMode = 'social'">
+          <i class="pi pi-share-alt" /> Social Media
+        </button>
+        <button class="mode-btn" :class="{ active: studioMode === 'seo' }" @click="studioMode = 'seo'">
+          <i class="pi pi-globe" /> SEO Blog
+        </button>
       </div>
     </div>
 
@@ -32,7 +41,8 @@
       </div>
     </div>
 
-    <!-- Main Layout -->
+    <!-- ══════════ SOCIAL MEDIA MODE ══════════ -->
+    <div v-if="studioMode === 'social'">
     <div class="studio-layout">
       <!-- Left: Generator Panel -->
       <div class="generator-panel">
@@ -481,6 +491,289 @@
         </div>
       </div>
     </div>
+    </div><!-- end social mode -->
+
+    <!-- ══════════ SEO BLOG MODE ══════════ -->
+    <div v-if="studioMode === 'seo'">
+      <div class="seo-layout">
+        <!-- Left: SEO Generator -->
+        <div class="seo-generator">
+          <!-- Step 1: Config -->
+          <div v-if="seoStep === 1" class="config-card">
+            <div class="config-header">
+              <i class="pi pi-globe" />
+              <h3>Tạo bài viết SEO</h3>
+            </div>
+
+            <div class="form-group">
+              <label>Chủ đề bài viết <span class="required">*</span></label>
+              <textarea v-model="seoForm.topic" rows="3" class="form-textarea" placeholder="VD: Hướng dẫn SEO On-Page cho website WordPress 2026..." />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Focus Keyword</label>
+                <input v-model="seoForm.focus_keyword" class="form-select" placeholder="VD: seo on-page" />
+              </div>
+              <div class="form-group">
+                <label>Độ dài bài viết</label>
+                <select v-model="seoForm.article_length" class="form-select">
+                  <option value="short">Ngắn (800-1200 từ)</option>
+                  <option value="medium">Trung bình (1500-2500 từ)</option>
+                  <option value="long">Dài (3000-5000 từ)</option>
+                  <option value="pillar">Pillar (5000-8000 từ)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phong cách</label>
+                <select v-model="seoForm.tone" class="form-select">
+                  <option value="professional">Chuyên nghiệp</option>
+                  <option value="casual">Thân thiện</option>
+                  <option value="educational">Giáo dục</option>
+                  <option value="storytelling">Kể chuyện</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ngôn ngữ</label>
+                <div class="lang-toggle">
+                  <button :class="{ active: seoForm.language === 'vi' }" @click="seoForm.language = 'vi'">🇻🇳 Tiếng Việt</button>
+                  <button :class="{ active: seoForm.language === 'en' }" @click="seoForm.language = 'en'">🇺🇸 English</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Kiểu thumbnail</label>
+                <select v-model="seoForm.thumbnail_style" class="form-select">
+                  <option v-for="(label, key) in thumbnailStyles" :key="key" :value="key">{{ label }}</option>
+                </select>
+              </div>
+              <label class="toggle-label">
+                <input type="checkbox" v-model="seoForm.generate_thumbnail" />
+                <span class="toggle-slider" />
+                <span>Tạo thumbnail</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Hướng dẫn bổ sung <span class="optional">(tuỳ chọn)</span></label>
+              <textarea v-model="seoForm.instructions" rows="2" class="form-textarea form-textarea--sm" placeholder="VD: Thêm case study cụ thể, nhấn mạnh E-E-A-T..." />
+            </div>
+
+            <div class="generate-action">
+              <Button label="📝 AI Viết bài SEO" icon="pi pi-sparkles" :loading="isSeoGenerating" :disabled="!seoForm.topic" @click="generateSeoArticle" class="generate-btn seo-gen-btn" />
+            </div>
+          </div>
+
+          <!-- Step 2: Edit Article -->
+          <div v-if="seoStep === 2" class="config-card">
+            <div class="config-header">
+              <i class="pi pi-file-edit" />
+              <h3>Chỉnh sửa bài viết</h3>
+              <Button label="← Quay lại" text size="small" @click="seoStep = 1" />
+            </div>
+
+            <!-- SEO Meta Fields -->
+            <div class="seo-meta-section">
+              <h4 class="seo-section-title"><i class="pi pi-search" /> SEO Meta</h4>
+              <div class="form-group">
+                <label>Meta Title <span class="char-hint" :class="{ 'char-warn': (seoArticle.meta_title||'').length > 60 }">{{ (seoArticle.meta_title||'').length }}/60</span></label>
+                <input v-model="seoArticle.meta_title" class="form-select" />
+              </div>
+              <div class="form-group">
+                <label>Meta Description <span class="char-hint" :class="{ 'char-warn': (seoArticle.meta_description||'').length > 160 }">{{ (seoArticle.meta_description||'').length }}/160</span></label>
+                <textarea v-model="seoArticle.meta_description" rows="2" class="form-textarea form-textarea--sm" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>URL Slug</label>
+                  <div class="slug-input"><span class="slug-prefix">yoursite.com/</span><input v-model="seoArticle.slug" class="form-select slug-field" /></div>
+                </div>
+                <div class="form-group">
+                  <label>Focus Keyword</label>
+                  <input v-model="seoArticle.focus_keyword" class="form-select" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Keywords -->
+            <div v-if="seoArticle.secondary_keywords?.length" class="keywords-bar">
+              <span class="kw-label">Keywords:</span>
+              <span v-for="(kw, i) in seoArticle.secondary_keywords" :key="i" class="kw-chip">{{ kw }}</span>
+            </div>
+
+            <!-- Thumbnail -->
+            <div v-if="seoData.thumbnail_url" class="thumbnail-preview">
+              <img :src="seoData.thumbnail_url" alt="Generated thumbnail" />
+              <div class="thumbnail-overlay">
+                <Button icon="pi pi-refresh" label="Tạo lại" text size="small" @click="regenerateSeoThumb" :loading="isRegeneratingThumb" />
+              </div>
+            </div>
+
+            <!-- Content Editor -->
+            <div class="seo-section-title"><i class="pi pi-align-left" /> Nội dung bài viết</div>
+            <div class="article-editor">
+              <div class="editor-toolbar">
+                <span class="editor-stat"><i class="pi pi-book" /> {{ seoArticle.word_count || 0 }} từ</span>
+                <span class="editor-stat"><i class="pi pi-clock" /> {{ seoArticle.reading_time || 0 }} phút đọc</span>
+                <span style="flex:1"></span>
+                <button class="editor-toggle" :class="{ active: showHtmlSource }" @click="showHtmlSource = !showHtmlSource" type="button">
+                  <i class="pi pi-code" /> {{ showHtmlSource ? 'Visual' : 'HTML' }}
+                </button>
+              </div>
+              <div v-if="showHtmlSource">
+                <textarea v-model="seoArticle.content" rows="20" class="form-textarea article-textarea" />
+              </div>
+              <div v-else class="editor-wrapper">
+                <Editor v-model="seoArticle.content" editorStyle="min-height: 400px; font-size: 0.85rem; line-height: 1.8;" />
+              </div>
+            </div>
+
+            <!-- Article Images -->
+            <div class="img-gen-section">
+              <h4 class="seo-section-title"><i class="pi pi-images" /> Ảnh minh hoạ bài viết</h4>
+              <div class="img-gen-form">
+                <div class="img-gen-row">
+                  <input v-model="imgGenContext" class="form-select img-gen-input" :placeholder="seoForm.language === 'vi' ? 'Mô tả ảnh cần tạo (VD: ảnh minh họa SEO on-page)...' : 'Describe the image (e.g. SEO on-page illustration)...'" />
+                  <select v-model="imgGenStyle" class="form-select img-gen-style">
+                    <option value="modern">Modern</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="creative">Creative</option>
+                    <option value="tech">Tech</option>
+                    <option value="infographic">Infographic</option>
+                    <option value="illustration">Minh họa</option>
+                    <option value="photo">Realistic Photo</option>
+                  </select>
+                  <Button label="Tạo ảnh" icon="pi pi-image" @click="generateInlineImage" :loading="isGenImage" :disabled="isGenImage" class="img-gen-btn" />
+                </div>
+              </div>
+              <!-- Generated Images Gallery -->
+              <div v-if="articleImages.length" class="img-gallery">
+                <div v-for="(img, i) in articleImages" :key="i" class="img-card">
+                  <img :src="img.url" :alt="img.context || 'Article image'" />
+                  <div class="img-card-overlay">
+                    <Button icon="pi pi-copy" text size="small" v-tooltip="'Copy URL'" @click="copyImgUrl(img.url)" />
+                    <Button icon="pi pi-plus" text size="small" v-tooltip="'Chèn vào bài viết'" @click="insertImgToContent(img.url, img.context)" />
+                  </div>
+                  <span class="img-card-label">{{ img.context || 'Image ' + (i + 1) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div v-if="seoArticle.faq?.length" class="faq-section">
+              <h4 class="seo-section-title"><i class="pi pi-question-circle" /> FAQ Schema ({{ seoArticle.faq.length }})</h4>
+              <div v-for="(faq, i) in seoArticle.faq" :key="i" class="faq-item">
+                <div class="faq-q"><i class="pi pi-question" /> <input v-model="faq.question" class="form-select faq-input" /></div>
+                <div class="faq-a"><i class="pi pi-comment" /> <textarea v-model="faq.answer" rows="2" class="form-textarea form-textarea--sm faq-input" /></div>
+              </div>
+            </div>
+
+            <!-- Internal Links -->
+            <div v-if="seoArticle.internal_links?.length" class="links-section">
+              <h4 class="seo-section-title"><i class="pi pi-link" /> Internal Links</h4>
+              <div v-for="(link, i) in seoArticle.internal_links" :key="i" class="link-item">
+                <span class="link-anchor">{{ link.anchor }}</span>
+                <span class="link-arrow">→</span>
+                <span class="link-topic">{{ link.suggested_topic }}</span>
+              </div>
+            </div>
+
+            <!-- AI Meta -->
+            <div class="ai-meta">
+              <span><i class="pi pi-cpu" /> {{ seoData.ai_model }}</span>
+              <span><i class="pi pi-bolt" /> {{ seoData.tokens_used }} tokens</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="step-actions">
+              <Button label="Lưu nháp" icon="pi pi-save" severity="secondary" outlined @click="saveSeoArticle" :loading="isSeoSaving" />
+              <Button label="Copy HTML" icon="pi pi-copy" severity="secondary" outlined @click="copySeoHtml" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: SERP Preview & SEO Score -->
+        <div class="seo-sidebar">
+          <!-- SEO Score -->
+          <div v-if="seoStep === 2" class="seo-score-card">
+            <div class="score-header">SEO Score</div>
+            <div class="score-gauge">
+              <div class="score-circle" :class="seoScoreClass">
+                <span class="score-num">{{ seoArticle.seo_score || 0 }}</span>
+              </div>
+              <span class="score-label" :class="seoScoreClass">{{ seoScoreLabel }}</span>
+            </div>
+            <div class="seo-checklist">
+              <div class="check-item" :class="{ pass: (seoArticle.meta_title||'').length >= 40 && (seoArticle.meta_title||'').length <= 70 }">
+                <i :class="(seoArticle.meta_title||'').length >= 40 && (seoArticle.meta_title||'').length <= 70 ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
+                Meta Title (50-60 chars)
+              </div>
+              <div class="check-item" :class="{ pass: (seoArticle.meta_description||'').length >= 120 && (seoArticle.meta_description||'').length <= 180 }">
+                <i :class="(seoArticle.meta_description||'').length >= 120 && (seoArticle.meta_description||'').length <= 180 ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
+                Meta Description (150-160)
+              </div>
+              <div class="check-item" :class="{ pass: !!seoArticle.slug }">
+                <i :class="seoArticle.slug ? 'pi pi-check-circle' : 'pi pi-times-circle'" /> URL Slug
+              </div>
+              <div class="check-item" :class="{ pass: !!seoArticle.focus_keyword }">
+                <i :class="seoArticle.focus_keyword ? 'pi pi-check-circle' : 'pi pi-times-circle'" /> Focus Keyword
+              </div>
+              <div class="check-item" :class="{ pass: (seoArticle.word_count || 0) >= 800 }">
+                <i :class="(seoArticle.word_count || 0) >= 800 ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
+                Content ≥ 800 words
+              </div>
+              <div class="check-item" :class="{ pass: (seoArticle.faq||[]).length > 0 }">
+                <i :class="(seoArticle.faq||[]).length > 0 ? 'pi pi-check-circle' : 'pi pi-times-circle'" /> FAQ Schema
+              </div>
+              <div class="check-item" :class="{ pass: (seoArticle.internal_links||[]).length > 0 }">
+                <i :class="(seoArticle.internal_links||[]).length > 0 ? 'pi pi-check-circle' : 'pi pi-times-circle'" /> Internal Links
+              </div>
+            </div>
+          </div>
+
+          <!-- SERP Preview -->
+          <div v-if="seoStep === 2" class="serp-card">
+            <div class="serp-header"><i class="pi pi-google" /> Google Preview</div>
+            <div class="serp-preview">
+              <div class="serp-breadcrumb">
+                <span class="serp-site">yoursite.com</span>
+                <span class="serp-sep"> › </span>
+                <span class="serp-slug">{{ seoArticle.slug || 'blog-post' }}</span>
+              </div>
+              <h3 class="serp-title">{{ seoArticle.meta_title || 'Tiêu đề bài viết...' }}</h3>
+              <p class="serp-desc">{{ seoArticle.meta_description || 'Mô tả bài viết sẽ hiển thị ở đây...' }}</p>
+            </div>
+          </div>
+
+          <!-- Article Stats -->
+          <div v-if="seoStep === 2 && seoArticle.image_alt_suggestions?.length" class="alt-text-card">
+            <div class="alt-header"><i class="pi pi-image" /> Alt Text Suggestions</div>
+            <div v-for="(alt, i) in seoArticle.image_alt_suggestions" :key="i" class="alt-item">
+              <i class="pi pi-image" /> {{ alt }}
+            </div>
+          </div>
+
+          <!-- Tips -->
+          <div v-if="seoStep === 1" class="tips-card seo-tips">
+            <div class="tips-header"><i class="pi pi-lightbulb" /> SEO Tips</div>
+            <div class="tips-list">
+              <div class="tip-item"><i class="pi pi-check" /><span>Focus keyword nên xuất hiện trong 100 từ đầu</span></div>
+              <div class="tip-item"><i class="pi pi-check" /><span>Keyword density lý tưởng: 1-2%</span></div>
+              <div class="tip-item"><i class="pi pi-check" /><span>Bài viết ≥ 1500 từ rank tốt hơn</span></div>
+              <div class="tip-item"><i class="pi pi-check" /><span>FAQ Schema giúp hiện rich snippets</span></div>
+              <div class="tip-item"><i class="pi pi-check" /><span>Internal links cải thiện crawlability</span></div>
+              <div class="tip-item"><i class="pi pi-check" /><span>Meta title 50-60 chars, description 150-160</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- end seo mode -->
+
   </div>
 </template>
 
@@ -488,9 +781,11 @@
 import { Head, Link } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
 import Button from 'primevue/button'
+import Editor from 'primevue/editor'
+import axios from 'axios'
 
 export default {
-  components: { Head, Link, Button },
+  components: { Head, Link, Button, Editor },
   layout: Layout,
   props: {
     recentContent: Array,
@@ -503,6 +798,7 @@ export default {
   },
   data() {
     return {
+      studioMode: 'social',
       currentStep: 1,
       isGenerating: false,
       isSaving: false,
@@ -531,6 +827,34 @@ export default {
         ai_model: '',
         tokens_used: 0,
       },
+      // SEO Blog state
+      seoStep: 1,
+      isSeoGenerating: false,
+      isSeoSaving: false,
+      seoForm: {
+        topic: '',
+        tone: 'professional',
+        language: 'vi',
+        article_length: 'medium',
+        focus_keyword: '',
+        instructions: '',
+        generate_thumbnail: true,
+        thumbnail_style: 'modern',
+      },
+      seoData: {
+        article: {},
+        thumbnail_url: null,
+        ai_model: '',
+        tokens_used: 0,
+      },
+      seoArticle: {},
+      showHtmlSource: false,
+      // Image generation
+      isRegeneratingThumb: false,
+      isGenImage: false,
+      imgGenContext: '',
+      imgGenStyle: 'modern',
+      articleImages: [],
     }
   },
   computed: {
@@ -559,6 +883,20 @@ export default {
     previewHashtags() {
       return this.generatedData.contents[this.previewPlatform]?.hashtags || []
     },
+    seoScoreClass() {
+      const s = this.seoArticle.seo_score || 0
+      if (s >= 80) return 'score-great'
+      if (s >= 60) return 'score-good'
+      if (s >= 40) return 'score-fair'
+      return 'score-poor'
+    },
+    seoScoreLabel() {
+      const s = this.seoArticle.seo_score || 0
+      if (s >= 80) return 'Excellent'
+      if (s >= 60) return 'Good'
+      if (s >= 40) return 'Needs Work'
+      return 'Poor'
+    },
   },
   methods: {
     togglePlatform(platform) {
@@ -573,16 +911,7 @@ export default {
     async generateContent() {
       this.isGenerating = true
       try {
-        const res = await fetch('/content-studio/generate', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(this.form),
-        })
-        const data = await res.json()
+        const { data } = await axios.post('/content-studio/generate', this.form, { timeout: 120000 })
         if (data.success) {
           this.generatedData = data.data
           this.activePreviewPlatform = this.form.platforms[0]
@@ -592,7 +921,7 @@ export default {
           alert(data.message || 'Lỗi tạo nội dung')
         }
       } catch (e) {
-        alert('Lỗi kết nối: ' + e.message)
+        alert('Lỗi: ' + (e.response?.data?.message || e.message))
       } finally {
         this.isGenerating = false
       }
@@ -601,25 +930,16 @@ export default {
     async saveAsDraft() {
       this.isSaving = true
       try {
-        const res = await fetch('/content-studio/save', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...this.generatedData,
-            topic: this.form.topic,
-            tone: this.form.tone,
-          }),
-        })
-        const data = await res.json()
+        const { data } = await axios.post('/content-studio/save', {
+          ...this.generatedData,
+          topic: this.form.topic,
+          tone: this.form.tone,
+        }, { timeout: 30000 })
         if (data.success) {
           alert('Đã lưu nháp thành công!')
         }
       } catch (e) {
-        console.error(e)
+        alert('Lỗi: ' + (e.response?.data?.message || e.message))
       } finally {
         this.isSaving = false
       }
@@ -629,20 +949,11 @@ export default {
       this.isPublishing = true
       try {
         // First save content
-        const saveRes = await fetch('/content-studio/save', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...this.generatedData,
-            topic: this.form.topic,
-            tone: this.form.tone,
-          }),
-        })
-        const saveData = await saveRes.json()
+        const { data: saveData } = await axios.post('/content-studio/save', {
+          ...this.generatedData,
+          topic: this.form.topic,
+          tone: this.form.tone,
+        }, { timeout: 30000 })
 
         if (!saveData.success) {
           alert('Lỗi lưu nội dung')
@@ -651,27 +962,18 @@ export default {
 
         // Then publish
         const itemIds = Object.values(saveData.items).map(i => i.id)
-        const res = await fetch('/content-studio/publish', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content_item_ids: itemIds,
-            social_account_ids: this.selectedAccounts,
-            scheduled_at: this.scheduleMode ? this.scheduledAt : null,
-          }),
-        })
-        const data = await res.json()
+        const { data } = await axios.post('/content-studio/publish', {
+          content_item_ids: itemIds,
+          social_account_ids: this.selectedAccounts,
+          scheduled_at: this.scheduleMode ? this.scheduledAt : null,
+        }, { timeout: 60000 })
         if (data.success) {
           this.publishResult = data
         } else {
           alert(data.message || 'Lỗi đăng bài')
         }
       } catch (e) {
-        alert('Lỗi: ' + e.message)
+        alert('Lỗi: ' + (e.response?.data?.message || e.message))
       } finally {
         this.isPublishing = false
       }
@@ -680,16 +982,10 @@ export default {
     async regenerateThumbnail() {
       this.isRegeneratingThumb = true
       try {
-        const res = await fetch('/content-studio/thumbnail', {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': this.csrfToken,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ topic: this.form.topic, style: this.form.thumbnail_style }),
-        })
-        const data = await res.json()
+        const { data } = await axios.post('/content-studio/thumbnail', {
+          topic: this.form.topic,
+          style: this.form.thumbnail_style,
+        }, { timeout: 90000 })
         if (data.success) {
           this.generatedData.thumbnail_url = data.thumbnail_url
         }
@@ -720,15 +1016,116 @@ export default {
       this.publishResult = null
       this.form.topic = ''
     },
+
+    // ═══ SEO Methods ═══
+    async generateSeoArticle() {
+      this.isSeoGenerating = true
+      try {
+        const { data } = await axios.post('/content-studio/generate-seo', this.seoForm, { timeout: 180000 })
+        if (data.success) {
+          this.seoData = data.data
+          this.seoArticle = { ...data.data.article }
+          this.seoStep = 2
+        } else {
+          alert(data.message || 'Lỗi tạo bài SEO')
+        }
+      } catch (e) {
+        const msg = e.response?.data?.message || e.message
+        if (e.code === 'ECONNABORTED') {
+          alert('AI đang xử lý lâu, vui lòng thử lại với bài ngắn hơn hoặc đợi thêm.')
+        } else {
+          alert('Lỗi: ' + msg)
+        }
+      } finally {
+        this.isSeoGenerating = false
+      }
+    },
+
+    async saveSeoArticle() {
+      this.isSeoSaving = true
+      try {
+        const { data } = await axios.post('/content-studio/save-seo', {
+          article: this.seoArticle,
+          topic: this.seoForm.topic,
+          tone: this.seoForm.tone,
+          thumbnail_url: this.seoData.thumbnail_url,
+          ai_model: this.seoData.ai_model,
+          tokens_used: this.seoData.tokens_used,
+        }, { timeout: 30000 })
+        if (data.success) { alert('Đã lưu bài SEO thành công!') }
+        else { alert(data.message || 'Lỗi lưu') }
+      } catch (e) { alert('Lỗi: ' + (e.response?.data?.message || e.message)) }
+      finally { this.isSeoSaving = false }
+    },
+
+    async regenerateSeoThumb() {
+      this.isRegeneratingThumb = true
+      try {
+        const { data } = await axios.post('/content-studio/thumbnail', {
+          topic: this.seoForm.topic,
+          style: this.seoForm.thumbnail_style,
+        }, { timeout: 90000 })
+        if (data.success) { this.seoData.thumbnail_url = data.thumbnail_url }
+      } catch (e) { console.error(e) }
+      finally { this.isRegeneratingThumb = false }
+    },
+
+    copySeoHtml() {
+      navigator.clipboard.writeText(this.seoArticle.content || '')
+      alert('Đã copy HTML!')
+    },
+
+    async generateInlineImage() {
+      this.isGenImage = true
+      try {
+        const { data } = await axios.post('/content-studio/article-image', {
+          topic: this.seoForm.topic,
+          context: this.imgGenContext,
+          style: this.imgGenStyle,
+        }, { timeout: 90000 })
+        if (data.success && data.image_url) {
+          this.articleImages.push({ url: data.image_url, context: this.imgGenContext || this.seoForm.topic })
+          this.imgGenContext = ''
+        } else {
+          alert(data.message || 'Không thể tạo ảnh')
+        }
+      } catch (e) {
+        alert('Lỗi: ' + (e.response?.data?.message || e.message))
+      } finally {
+        this.isGenImage = false
+      }
+    },
+
+    copyImgUrl(url) {
+      navigator.clipboard.writeText(url)
+      alert('Copied URL!')
+    },
+
+    insertImgToContent(url, alt) {
+      const imgTag = `\n<figure>\n  <img src="${url}" alt="${alt || 'Article image'}" width="100%" />\n  <figcaption>${alt || ''}</figcaption>\n</figure>\n`
+      this.seoArticle.content = (this.seoArticle.content || '') + imgTag
+    },
   },
 }
 </script>
 
 <style scoped>
 /* ===== Page Header ===== */
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
 .page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; }
 .page-subtitle { font-size: 0.82rem; color: #94a3b8; margin: 0.15rem 0 0; }
+
+/* ===== Mode Switcher ===== */
+.mode-switcher { display: flex; gap: 0; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.mode-btn {
+  display: flex; align-items: center; gap: 0.35rem;
+  padding: 0.5rem 1rem; border: none; background: white;
+  font-size: 0.78rem; font-weight: 500; color: #64748b;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.mode-btn:hover { background: #f8fafc; }
+.mode-btn.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: 600; }
+.mode-btn i { font-size: 0.72rem; }
 
 /* ===== Stats Row ===== */
 .stats-row { display: flex; gap: 0.65rem; margin-bottom: 1rem; }
@@ -1086,13 +1483,182 @@ export default {
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) {
-  .studio-layout { grid-template-columns: 1fr; }
-  .sidebar-panel { order: -1; }
+  .studio-layout, .seo-layout { grid-template-columns: 1fr; }
+  .sidebar-panel, .seo-sidebar { order: -1; }
 }
 @media (max-width: 768px) {
   .platform-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
   .step-indicator { flex-wrap: wrap; }
   .tw-text, .tw-hashtags, .tw-image, .tw-actions { padding-left: 0; margin-left: 0; }
+  .mode-switcher { width: 100%; }
+  .mode-btn { flex: 1; justify-content: center; }
+}
+
+/* ═══════════════════════════════════════════════ */
+/*                SEO BLOG MODE                    */
+/* ═══════════════════════════════════════════════ */
+.seo-layout { display: grid; grid-template-columns: 1fr 340px; gap: 1.25rem; }
+.seo-generator { min-width: 0; }
+.seo-sidebar { display: flex; flex-direction: column; gap: 0.75rem; }
+.seo-gen-btn { background: linear-gradient(135deg, #10b981, #059669) !important; }
+
+.seo-meta-section { background: #f8fafc; border-radius: 12px; padding: 1rem; border: 1px solid #f1f5f9; margin-bottom: 0.85rem; }
+.seo-section-title { font-size: 0.78rem; font-weight: 700; color: #475569; margin: 0.75rem 0 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+.seo-section-title i { color: #6366f1; font-size: 0.72rem; }
+.seo-meta-section .seo-section-title { margin-top: 0; }
+
+.char-hint { font-size: 0.6rem; color: #94a3b8; font-weight: 500; margin-left: 0.3rem; }
+.char-warn { color: #ef4444; font-weight: 600; }
+
+.slug-input { display: flex; align-items: center; border: 1.5px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+.slug-prefix { font-size: 0.72rem; color: #94a3b8; padding: 0.5rem 0 0.5rem 0.65rem; white-space: nowrap; background: #f8fafc; }
+.slug-field { border: none !important; border-radius: 0 !important; padding-left: 0.25rem !important; }
+
+.keywords-bar { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.75rem; padding: 0.5rem; background: #f8fafc; border-radius: 8px; }
+.kw-label { font-size: 0.68rem; font-weight: 600; color: #475569; }
+.kw-chip { font-size: 0.62rem; font-weight: 600; padding: 0.15rem 0.45rem; background: #eef2ff; color: #6366f1; border-radius: 5px; }
+
+.article-editor { margin-bottom: 0.75rem; }
+.editor-toolbar { display: flex; gap: 0.75rem; padding: 0.45rem 0.65rem; background: #f1f5f9; border-radius: 8px 8px 0 0; border: 1px solid #e2e8f0; border-bottom: none; }
+.editor-stat { font-size: 0.65rem; color: #64748b; display: flex; align-items: center; gap: 0.25rem; }
+.editor-stat i { font-size: 0.6rem; color: #6366f1; }
+.article-textarea { border-radius: 0 0 10px 10px !important; min-height: 350px; font-family: 'Courier New', monospace; font-size: 0.78rem; line-height: 1.7; }
+
+.editor-toggle {
+  display: flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.55rem; border-radius: 6px;
+  border: 1px solid #cbd5e1; background: white;
+  font-size: 0.62rem; font-weight: 600; color: #64748b;
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.editor-toggle:hover { background: #f1f5f9; }
+.editor-toggle.active { background: #6366f1; color: white; border-color: #6366f1; }
+.editor-toggle i { font-size: 0.6rem; }
+
+.editor-wrapper { border: 1px solid #e2e8f0; border-radius: 0 0 10px 10px; overflow: hidden; }
+.editor-wrapper :deep(.p-editor) { border: none; }
+.editor-wrapper :deep(.p-editor .p-editor-toolbar) {
+  background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+  padding: 0.35rem 0.5rem;
+}
+.editor-wrapper :deep(.p-editor .p-editor-toolbar .ql-formats) { margin-right: 0.5rem; }
+.editor-wrapper :deep(.p-editor .p-editor-toolbar button) {
+  width: 28px; height: 28px; border-radius: 5px;
+}
+.editor-wrapper :deep(.p-editor .p-editor-toolbar button:hover) { background: #e2e8f0; }
+.editor-wrapper :deep(.p-editor .p-editor-toolbar button.ql-active) { background: #6366f1; color: white; }
+.editor-wrapper :deep(.p-editor .p-editor-content) { border: none; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor) {
+  font-size: 0.85rem; line-height: 1.8; color: #1e293b;
+  padding: 1rem 1.25rem; min-height: 400px;
+}
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor h1) { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; color: #0f172a; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor h2) { font-size: 1.25rem; font-weight: 700; margin: 0.85rem 0 0.4rem; color: #1e293b; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor h3) { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.35rem; color: #334155; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor p) { margin: 0 0 0.65rem; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor ul),
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor ol) { margin: 0.25rem 0 0.65rem 1rem; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor blockquote) {
+  border-left: 3px solid #6366f1; padding-left: 0.75rem;
+  color: #475569; font-style: italic; margin: 0.5rem 0;
+}
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor a) { color: #6366f1; text-decoration: underline; }
+.editor-wrapper :deep(.p-editor .p-editor-content .ql-editor img) { max-width: 100%; border-radius: 8px; margin: 0.5rem 0; }
+
+.faq-section { margin-bottom: 0.75rem; }
+.faq-item { background: #f8fafc; border-radius: 10px; padding: 0.65rem; margin-bottom: 0.35rem; border: 1px solid #f1f5f9; }
+.faq-q, .faq-a { display: flex; align-items: flex-start; gap: 0.35rem; margin-bottom: 0.3rem; }
+.faq-q i { color: #f59e0b; font-size: 0.72rem; margin-top: 0.35rem; }
+.faq-a i { color: #10b981; font-size: 0.72rem; margin-top: 0.35rem; }
+.faq-input { flex: 1 !important; }
+
+.links-section { margin-bottom: 0.75rem; }
+.link-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.65rem; background: #f8fafc; border-radius: 8px; margin-bottom: 0.25rem; font-size: 0.72rem; border: 1px solid #f1f5f9; }
+.link-anchor { font-weight: 600; color: #0a66c2; }
+.link-arrow { color: #94a3b8; }
+.link-topic { color: #475569; }
+
+/* SEO Score */
+.seo-score-card { background: white; border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+.score-header { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; font-weight: 700; color: #1e293b; }
+.score-gauge { display: flex; flex-direction: column; align-items: center; padding: 1.25rem; gap: 0.4rem; }
+.score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 5px solid; transition: all 0.3s; }
+.score-circle.score-great { border-color: #10b981; color: #10b981; background: #ecfdf5; }
+.score-circle.score-good { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+.score-circle.score-fair { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
+.score-circle.score-poor { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+.score-num { font-size: 1.5rem; font-weight: 800; }
+.score-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.score-label.score-great { color: #10b981; }
+.score-label.score-good { color: #3b82f6; }
+.score-label.score-fair { color: #f59e0b; }
+.score-label.score-poor { color: #ef4444; }
+
+.seo-checklist { padding: 0 0.85rem 0.85rem; }
+.check-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.68rem; color: #94a3b8; padding: 0.25rem 0; }
+.check-item i { font-size: 0.65rem; color: #ef4444; }
+.check-item.pass { color: #334155; }
+.check-item.pass i { color: #10b981; }
+
+/* SERP */
+.serp-card { background: white; border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+.serp-header { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.78rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.35rem; }
+.serp-header i { color: #4285f4; font-size: 0.82rem; }
+.serp-preview { padding: 1rem; font-family: Arial, sans-serif; }
+.serp-breadcrumb { font-size: 0.72rem; margin-bottom: 0.15rem; }
+.serp-site { color: #202124; }
+.serp-sep, .serp-slug { color: #5f6368; }
+.serp-title { font-size: 1rem; font-weight: 400; color: #1a0dab; margin: 0 0 0.2rem; line-height: 1.3; cursor: pointer; }
+.serp-title:hover { text-decoration: underline; }
+.serp-desc { font-size: 0.78rem; color: #4d5156; line-height: 1.5; margin: 0; }
+
+/* Alt Text */
+.alt-text-card { background: white; border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+.alt-header { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.78rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.35rem; }
+.alt-header i { color: #6366f1; font-size: 0.75rem; }
+.alt-item { display: flex; align-items: center; gap: 0.35rem; padding: 0.4rem 1rem; font-size: 0.72rem; color: #475569; border-bottom: 1px solid #f8fafc; }
+.alt-item i { color: #94a3b8; font-size: 0.62rem; }
+
+/* Tips */
+.tips-card { background: white; border-radius: 14px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+.tips-header { padding: 0.65rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.35rem; }
+.tips-header i { color: #f59e0b; font-size: 0.82rem; }
+.tips-list { padding: 0.5rem 0.85rem; }
+.tip-item { display: flex; align-items: flex-start; gap: 0.35rem; font-size: 0.72rem; color: #475569; padding: 0.3rem 0; line-height: 1.4; }
+.tip-item i { color: #10b981; font-size: 0.62rem; margin-top: 0.15rem; flex-shrink: 0; }
+
+/* Article Image Generator */
+.img-gen-section { margin-bottom: 0.85rem; padding: 0.85rem; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9; }
+.img-gen-section .seo-section-title { margin-top: 0; }
+.img-gen-form { margin-bottom: 0.5rem; }
+.img-gen-row { display: flex; gap: 0.4rem; align-items: center; }
+.img-gen-input { flex: 1; }
+.img-gen-style { width: 140px; flex-shrink: 0; }
+.img-gen-btn { flex-shrink: 0; background: linear-gradient(135deg, #8b5cf6, #6366f1) !important; white-space: nowrap; }
+
+.img-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
+.img-card {
+  position: relative; border-radius: 10px; overflow: hidden;
+  border: 1px solid #e2e8f0; background: white; transition: all 0.2s;
+}
+.img-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.img-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
+.img-card-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center;
+  gap: 0.25rem; opacity: 0; transition: opacity 0.2s;
+}
+.img-card:hover .img-card-overlay { opacity: 1; }
+.img-card-overlay :deep(.p-button) { color: white !important; }
+.img-card-label {
+  display: block; padding: 0.25rem 0.45rem; font-size: 0.58rem; color: #64748b;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .img-gen-row { flex-direction: column; }
+  .img-gen-style { width: 100%; }
+  .img-gallery { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\DealsController;
-use App\Http\Controllers\SalesPlaybooksController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -18,8 +17,4 @@ Route::middleware('auth')->group(function () {
     Route::patch('deals/{deal}/stage', [DealsController::class, 'updateStage'])->name('deals.update-stage');
     Route::post('deals/{deal}/won', [DealsController::class, 'markWon'])->name('deals.mark-won');
     Route::post('deals/{deal}/lost', [DealsController::class, 'markLost'])->name('deals.mark-lost');
-
-    // Playbook suggestions
-    Route::get('deals/{deal}/playbook-suggestions', [SalesPlaybooksController::class, 'suggestionsForDeal'])
-        ->name('deals.playbook-suggestions');
 });

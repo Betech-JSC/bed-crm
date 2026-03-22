@@ -3,9 +3,14 @@
     <Head :title="isVi ? 'Cài đặt hệ thống' : 'System Settings'" />
 
     <div class="page-header">
-      <div>
-        <h1 class="page-title">{{ isVi ? 'Cài đặt hệ thống' : 'System Settings' }}</h1>
-        <p class="page-subtitle">{{ isVi ? 'Cấu hình công ty, ngôn ngữ, múi giờ và tiền tệ' : 'Configure company info, language, timezone, and currency' }}</p>
+      <div class="header-content">
+        <div class="header-icon-wrapper">
+          <i class="pi pi-cog" />
+        </div>
+        <div>
+          <h1 class="page-title">{{ isVi ? 'Cài đặt hệ thống' : 'System Settings' }}</h1>
+          <p class="page-subtitle">{{ isVi ? 'Cấu hình công ty, nhận diện thương hiệu, ngôn ngữ và tiền tệ' : 'Configure company, branding, language, and currency' }}</p>
+        </div>
       </div>
       <div class="header-actions">
         <Button :label="isVi ? 'Khởi tạo mặc định' : 'Seed Defaults'" icon="pi pi-refresh" severity="secondary" outlined @click="seedDefaults" />
@@ -17,10 +22,10 @@
       <TabPanel :header="isVi ? '🏢 Hồ sơ công ty' : '🏢 Company Profile'">
         <form @submit.prevent="saveProfile" class="settings-form">
           <div class="form-section">
-            <h3 class="form-section-title">{{ isVi ? 'Thông tin công ty' : 'Company Info' }}</h3>
+            <h3 class="form-section-title">{{ isVi ? 'Thông tin doanh nghiệp' : 'Business Info' }}</h3>
             <div class="form-row">
               <div class="form-group flex-2">
-                <label>{{ isVi ? 'Tên công ty' : 'Company Name' }} *</label>
+                <label>{{ isVi ? 'Tên doanh nghiệp' : 'Company Name' }} *</label>
                 <InputText v-model="form.name" class="w-full" />
               </div>
               <div class="form-group flex-1">
@@ -28,14 +33,32 @@
                 <InputText v-model="form.tax_id" class="w-full" placeholder="VD: 0123456789" />
               </div>
             </div>
+            <div class="form-group">
+              <label>{{ isVi ? 'Slogan / Khẩu hiệu' : 'Slogan / Tagline' }}</label>
+              <InputText v-model="form.slogan" class="w-full" :placeholder="isVi ? 'VD: Giải pháp CRM thông minh cho doanh nghiệp' : 'Your company tagline'" />
+            </div>
+            <div class="form-group">
+              <label>{{ isVi ? 'Mô tả doanh nghiệp' : 'Company Description' }}</label>
+              <Textarea v-model="form.description" rows="3" class="w-full" :placeholder="isVi ? 'Giới thiệu ngắn về doanh nghiệp của bạn...' : 'Brief description about your business...'" />
+            </div>
             <div class="form-row">
               <div class="form-group flex-1">
                 <label>{{ isVi ? 'Ngành nghề' : 'Industry' }}</label>
                 <Dropdown v-model="form.industry" :options="industryOptions" optionLabel="label" optionValue="value" :placeholder="isVi ? 'Chọn...' : 'Select...'" class="w-full" showClear />
               </div>
               <div class="form-group flex-1">
-                <label>{{ isVi ? 'Quy mô' : 'Company Size' }}</label>
+                <label>{{ isVi ? 'Quy mô nhân sự' : 'Company Size' }}</label>
                 <InputText v-model.number="form.company_size" type="number" class="w-full" :placeholder="isVi ? 'Số nhân viên' : 'Number of employees'" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label>{{ isVi ? 'Năm thành lập' : 'Founded Year' }}</label>
+                <InputText v-model="form.founded_year" class="w-full" placeholder="VD: 2020" maxlength="4" />
+              </div>
+              <div class="form-group flex-1">
+                <label>{{ isVi ? 'Số ĐKKD / GPKD' : 'Registration No.' }}</label>
+                <InputText v-model="form.registration_number" class="w-full" :placeholder="isVi ? 'Giấy phép kinh doanh' : 'Business Registration'" />
               </div>
             </div>
           </div>
@@ -62,23 +85,92 @@
             </div>
           </div>
 
+          <!-- Social Links -->
           <div class="form-section">
-            <h3 class="form-section-title">Logo</h3>
-            <div class="logo-section">
-              <div class="logo-preview" v-if="account.logo">
-                <img :src="account.logo" alt="Logo" />
-                <Button icon="pi pi-trash" text rounded severity="danger" size="small" @click="removeLogo" />
+            <h3 class="form-section-title"><i class="pi pi-share-alt" /> {{ isVi ? 'Mạng xã hội' : 'Social Links' }}</h3>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label><i class="pi pi-facebook social-icon si-fb" /> Facebook</label>
+                <InputText v-model="form.social_links.facebook" class="w-full" placeholder="https://facebook.com/..." />
               </div>
-              <div class="logo-upload">
-                <input type="file" ref="logoInput" accept="image/*" @change="onLogoChange" class="hidden" />
-                <Button :label="isVi ? 'Tải logo' : 'Upload Logo'" icon="pi pi-upload" severity="secondary" outlined @click="$refs.logoInput.click()" />
-                <span class="logo-hint">{{ isVi ? 'PNG, JPG, tối đa 2MB' : 'PNG, JPG, max 2MB' }}</span>
+              <div class="form-group flex-1">
+                <label><i class="pi pi-linkedin social-icon si-li" /> LinkedIn</label>
+                <InputText v-model="form.social_links.linkedin" class="w-full" placeholder="https://linkedin.com/company/..." />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label><i class="pi pi-twitter social-icon si-tw" /> Twitter / X</label>
+                <InputText v-model="form.social_links.twitter" class="w-full" placeholder="https://x.com/..." />
+              </div>
+              <div class="form-group flex-1">
+                <label><i class="pi pi-youtube social-icon si-yt" /> YouTube</label>
+                <InputText v-model="form.social_links.youtube" class="w-full" placeholder="https://youtube.com/@..." />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label><i class="pi pi-instagram social-icon si-ig" /> Instagram</label>
+                <InputText v-model="form.social_links.instagram" class="w-full" placeholder="https://instagram.com/..." />
+              </div>
+              <div class="form-group flex-1">
+                <label><i class="pi pi-stopwatch social-icon si-tk" /> TikTok</label>
+                <InputText v-model="form.social_links.tiktok" class="w-full" placeholder="https://tiktok.com/@..." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Logo & Favicon -->
+          <div class="form-section">
+            <h3 class="form-section-title"><i class="pi pi-palette" /> {{ isVi ? 'Nhận diện thương hiệu' : 'Branding' }}</h3>
+
+            <div class="branding-grid">
+              <!-- Logo -->
+              <div class="branding-card">
+                <div class="branding-label">Logo</div>
+                <div class="branding-desc">{{ isVi ? 'Logo chính hiển thị trên sidebar và tài liệu' : 'Main logo displayed on sidebar & documents' }}</div>
+                <div class="branding-preview-area">
+                  <div class="branding-preview logo-prev" v-if="account.logo || logoPreview">
+                    <img :src="logoPreview || account.logo" alt="Logo" />
+                  </div>
+                  <div class="branding-placeholder" v-else>
+                    <i class="pi pi-image" />
+                    <span>{{ isVi ? 'Chưa có logo' : 'No logo' }}</span>
+                  </div>
+                </div>
+                <div class="branding-actions">
+                  <input type="file" ref="logoInput" accept="image/*" @change="onLogoChange" class="hidden" />
+                  <Button :label="isVi ? 'Tải lên' : 'Upload'" icon="pi pi-upload" size="small" severity="secondary" outlined @click="$refs.logoInput.click()" />
+                  <Button v-if="account.logo" icon="pi pi-trash" size="small" text severity="danger" @click="removeLogo" />
+                </div>
+                <span class="branding-hint">PNG, JPG, SVG · {{ isVi ? 'Tối đa 2MB' : 'Max 2MB' }}</span>
+              </div>
+
+              <!-- Favicon -->
+              <div class="branding-card">
+                <div class="branding-label">Favicon</div>
+                <div class="branding-desc">{{ isVi ? 'Icon nhỏ hiển thị trên tab trình duyệt' : 'Small icon shown on browser tab' }}</div>
+                <div class="branding-preview-area">
+                  <div class="branding-preview favicon-prev" v-if="account.favicon || faviconPreview">
+                    <img :src="faviconPreview || account.favicon" alt="Favicon" />
+                  </div>
+                  <div class="branding-placeholder" v-else>
+                    <i class="pi pi-globe" />
+                    <span>{{ isVi ? 'Chưa có favicon' : 'No favicon' }}</span>
+                  </div>
+                </div>
+                <div class="branding-actions">
+                  <input type="file" ref="faviconInput" accept="image/png,image/x-icon,image/svg+xml,image/jpeg" @change="onFaviconChange" class="hidden" />
+                  <Button :label="isVi ? 'Tải lên' : 'Upload'" icon="pi pi-upload" size="small" severity="secondary" outlined @click="$refs.faviconInput.click()" />
+                  <Button v-if="account.favicon" icon="pi pi-trash" size="small" text severity="danger" @click="removeFavicon" />
+                </div>
+                <span class="branding-hint">PNG, ICO, SVG · {{ isVi ? 'Tối đa 1MB · Tốt nhất 32×32px' : 'Max 1MB · Best 32×32px' }}</span>
               </div>
             </div>
           </div>
 
           <div class="form-actions">
-            <Button type="submit" :label="isVi ? 'Lưu hồ sơ' : 'Save Profile'" icon="pi pi-check" :loading="saving" />
+            <Button type="submit" :label="isVi ? 'Lưu hồ sơ doanh nghiệp' : 'Save Business Profile'" icon="pi pi-check" :loading="saving" />
           </div>
         </form>
       </TabPanel>
@@ -205,6 +297,8 @@ export default {
       saving: false,
       form: {
         name: this.account.name,
+        slogan: this.account.slogan || '',
+        description: this.account.description || '',
         timezone: this.account.timezone || 'Asia/Ho_Chi_Minh',
         currency: this.account.currency || 'VND',
         locale: this.account.locale || 'vi',
@@ -216,10 +310,23 @@ export default {
         website: this.account.website,
         address: this.account.address,
         tax_id: this.account.tax_id,
+        registration_number: this.account.registration_number || '',
         industry: this.account.industry,
         company_size: this.account.company_size,
+        founded_year: this.account.founded_year || '',
+        social_links: {
+          facebook: this.account.social_links?.facebook || '',
+          linkedin: this.account.social_links?.linkedin || '',
+          twitter: this.account.social_links?.twitter || '',
+          youtube: this.account.social_links?.youtube || '',
+          instagram: this.account.social_links?.instagram || '',
+          tiktok: this.account.social_links?.tiktok || '',
+        },
       },
       logoFile: null,
+      logoPreview: null,
+      faviconFile: null,
+      faviconPreview: null,
       crmConfigs: {
         lead_auto_assign: this.config_groups?.crm?.lead_auto_assign ?? false,
         default_deal_currency: this.config_groups?.crm?.default_deal_currency ?? 'VND',
@@ -264,13 +371,34 @@ export default {
   methods: {
     onLogoChange(e) {
       this.logoFile = e.target.files[0]
+      if (this.logoFile) {
+        this.logoPreview = URL.createObjectURL(this.logoFile)
+      }
+    },
+    onFaviconChange(e) {
+      this.faviconFile = e.target.files[0]
+      if (this.faviconFile) {
+        this.faviconPreview = URL.createObjectURL(this.faviconFile)
+      }
     },
     saveProfile() {
       this.saving = true
       const formData = new FormData()
-      Object.entries(this.form).forEach(([k, v]) => { if (v !== null && v !== undefined) formData.append(k, v) })
+
+      // Flatten form data
+      Object.entries(this.form).forEach(([k, v]) => {
+        if (k === 'social_links') {
+          Object.entries(v).forEach(([sk, sv]) => {
+            if (sv) formData.append(`social_links[${sk}]`, sv)
+          })
+        } else if (v !== null && v !== undefined && v !== '') {
+          formData.append(k, v)
+        }
+      })
+
       formData.append('_method', 'PUT')
       if (this.logoFile) formData.append('logo', this.logoFile)
+      if (this.faviconFile) formData.append('favicon', this.faviconFile)
 
       router.post('/account-settings', formData, {
         onFinish: () => { this.saving = false },
@@ -279,6 +407,10 @@ export default {
     },
     async removeLogo() {
       await axios.delete('/account-settings/logo')
+      router.reload()
+    },
+    async removeFavicon() {
+      await axios.delete('/account-settings/favicon')
       router.reload()
     },
     async seedDefaults() {
@@ -297,39 +429,121 @@ export default {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
-.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
-.page-subtitle { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+/* ===== Page Header ===== */
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+}
+.header-content { display: flex; align-items: center; gap: 0.85rem; }
+.header-icon-wrapper {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.25rem;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+}
+.page-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+.page-subtitle { font-size: 0.82rem; color: #64748b; margin: 0.15rem 0 0; }
 .header-actions { display: flex; gap: 0.5rem; }
 
-.settings-form { max-width: 680px; }
-.form-section { background: white; border: 1px solid #f1f5f9; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-.form-section-title { font-size: 0.85rem; font-weight: 700; color: #1e293b; margin: 0 0 0.85rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f8fafc; }
+/* ===== Form ===== */
+.settings-form { max-width: 780px; }
+.form-section {
+  background: white; border: 1.5px solid #f1f5f9; border-radius: 14px;
+  padding: 1.25rem; margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+.form-section:hover { border-color: #e2e8f0; }
+.form-section-title {
+  font-size: 0.88rem; font-weight: 700; color: #1e293b;
+  margin: 0 0 0.85rem; padding-bottom: 0.55rem;
+  border-bottom: 1.5px solid #f1f5f9;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.form-section-title i { font-size: 0.85rem; color: #6366f1; }
 .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .form-group { margin-bottom: 0.75rem; min-width: 0; }
-.form-group label { display: block; font-size: 0.72rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem; }
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
+.form-group label {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; font-weight: 600;
+  color: #475569; margin-bottom: 0.3rem;
+}
+.flex-1 { flex: 1; min-width: 180px; }
+.flex-2 { flex: 2; min-width: 220px; }
 .w-full { width: 100%; }
-.form-actions { margin-top: 0.5rem; }
+.form-actions { margin-top: 0.75rem; }
 
-/* Logo */
-.logo-section { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.logo-preview { position: relative; display: inline-block; }
-.logo-preview img { width: 80px; height: 80px; object-fit: contain; border: 1px solid #f1f5f9; border-radius: 8px; background: #fafbfc; }
-.logo-upload { display: flex; align-items: center; gap: 0.5rem; }
-.logo-hint { font-size: 0.62rem; color: #94a3b8; }
+/* Social icons */
+.social-icon { font-size: 0.8rem; }
+.si-fb { color: #1877f2; }
+.si-li { color: #0a66c2; }
+.si-tw { color: #1d9bf0; }
+.si-yt { color: #ff0000; }
+.si-ig { color: #e4405f; }
+.si-tk { color: #010101; }
+
+/* ===== Branding Grid ===== */
+.branding-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.branding-card {
+  background: #fafbfc; border: 1.5px dashed #e2e8f0; border-radius: 12px;
+  padding: 1rem; display: flex; flex-direction: column; align-items: center;
+  gap: 0.45rem; text-align: center; transition: all 0.2s;
+}
+.branding-card:hover { border-color: #6366f1; background: #faf5ff; }
+.branding-label { font-size: 0.82rem; font-weight: 700; color: #1e293b; }
+.branding-desc { font-size: 0.62rem; color: #94a3b8; line-height: 1.3; }
+.branding-preview-area {
+  margin: 0.5rem 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.branding-preview {
+  position: relative; display: inline-block;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  background: white; overflow: hidden;
+}
+.logo-prev { padding: 0.5rem; }
+.logo-prev img { width: 120px; height: 60px; object-fit: contain; }
+.favicon-prev { padding: 0.6rem; }
+.favicon-prev img { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.branding-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+  padding: 1.25rem; color: #cbd5e1;
+}
+.branding-placeholder i { font-size: 1.5rem; }
+.branding-placeholder span { font-size: 0.62rem; }
+.branding-actions { display: flex; gap: 0.4rem; align-items: center; }
+.branding-hint { font-size: 0.55rem; color: #94a3b8; }
 .hidden { display: none; }
 
 /* Config items */
-.config-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f8fafc; }
+.config-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.85rem 0; border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
+}
 .config-item:last-child { border-bottom: 0; }
+.config-item:hover { background: #fafbfc; margin: 0 -0.5rem; padding-left: 0.5rem; padding-right: 0.5rem; border-radius: 8px; }
 .config-info { display: flex; flex-direction: column; flex: 1; }
 .config-label { font-size: 0.82rem; font-weight: 600; color: #1e293b; }
-.config-desc { font-size: 0.65rem; color: #94a3b8; margin-top: 0.1rem; }
+.config-desc { font-size: 0.65rem; color: #94a3b8; margin-top: 0.15rem; }
 
 /* Color picker */
 .color-picker { display: flex; align-items: center; gap: 0.5rem; }
-.color-picker input[type="color"] { width: 36px; height: 36px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 2px; cursor: pointer; }
+.color-picker input[type="color"] {
+  width: 38px; height: 38px; border: 1.5px solid #e2e8f0;
+  border-radius: 10px; padding: 3px; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.color-picker input[type="color"]:hover { border-color: #6366f1; }
 .color-hex { font-size: 0.72rem; font-family: monospace; color: #64748b; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .form-row { flex-direction: column; }
+  .flex-1, .flex-2 { min-width: 100%; }
+  .branding-grid { grid-template-columns: 1fr; }
+}
 </style>

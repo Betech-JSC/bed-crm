@@ -3,9 +3,14 @@
     <Head :title="isVi ? 'Phân quyền' : 'Roles & Permissions'" />
 
     <div class="page-header">
-      <div>
-        <h1 class="page-title">{{ isVi ? 'Quản lý phân quyền' : 'Roles & Permissions' }}</h1>
-        <p class="page-subtitle">{{ isVi ? 'Cấu hình vai trò và quyền truy cập cho người dùng' : 'Configure roles and access permissions for users' }}</p>
+      <div class="header-content">
+        <div class="header-icon-wrapper">
+          <i class="pi pi-shield" />
+        </div>
+        <div>
+          <h1 class="page-title">{{ isVi ? 'Quản lý phân quyền' : 'Roles & Permissions' }}</h1>
+          <p class="page-subtitle">{{ isVi ? 'Cấu hình vai trò và quyền truy cập cho người dùng' : 'Configure roles and access permissions for users' }}</p>
+        </div>
       </div>
       <div class="header-actions">
         <Button :label="isVi ? 'Khởi tạo mặc định' : 'Seed Defaults'" icon="pi pi-refresh" severity="secondary" outlined @click="seedDefaults" />
@@ -234,60 +239,117 @@ export default {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
-.page-title { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin: 0; }
-.page-subtitle { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+/* ===== Page Header ===== */
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;
+}
+.header-content { display: flex; align-items: center; gap: 0.85rem; }
+.header-icon-wrapper {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.25rem;
+  box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+}
+.page-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+.page-subtitle { font-size: 0.82rem; color: #64748b; margin: 0.15rem 0 0; }
 .header-actions { display: flex; gap: 0.5rem; }
 
-/* Roles Grid */
-.roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 0.75rem; }
-.role-card { background: white; border: 1px solid #f1f5f9; border-radius: 12px; padding: 1rem; transition: all 0.2s; }
-.role-card:hover { border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+/* ===== Roles Grid ===== */
+.roles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 0.85rem; }
+.role-card {
+  background: white; border: 1.5px solid #f1f5f9; border-radius: 14px;
+  padding: 1.15rem; transition: all 0.25s;
+}
+.role-card:hover { border-color: #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.04); transform: translateY(-1px); }
 .role-card.system-role { border-left: 3px solid #6366f1; }
-.role-card.inactive-role { opacity: 0.6; }
+.role-card.inactive-role { opacity: 0.55; }
 .role-header { display: flex; justify-content: space-between; align-items: flex-start; }
-.role-name-row { display: flex; align-items: center; gap: 0.4rem; }
-.role-name { font-size: 0.92rem; font-weight: 600; color: #1e293b; margin: 0; }
-.system-badge { font-size: 0.55rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; background: #eef2ff; color: #6366f1; text-transform: uppercase; }
-.inactive-badge { font-size: 0.55rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; background: #fef2f2; color: #ef4444; text-transform: uppercase; }
-.role-desc { font-size: 0.72rem; color: #64748b; margin: 0.2rem 0 0.4rem; }
-.role-stats { display: flex; gap: 0.75rem; }
-.role-stat { font-size: 0.65rem; color: #94a3b8; display: flex; align-items: center; gap: 0.25rem; }
+.role-name-row { display: flex; align-items: center; gap: 0.45rem; }
+.role-name { font-size: 0.92rem; font-weight: 700; color: #1e293b; margin: 0; }
+.system-badge {
+  font-size: 0.55rem; font-weight: 700; padding: 0.12rem 0.4rem;
+  border-radius: 5px; background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #4f46e5; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.inactive-badge {
+  font-size: 0.55rem; font-weight: 700; padding: 0.12rem 0.4rem;
+  border-radius: 5px; background: #fef2f2; color: #ef4444;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.role-desc { font-size: 0.72rem; color: #64748b; margin: 0.25rem 0 0.5rem; }
+.role-stats { display: flex; gap: 0.85rem; }
+.role-stat {
+  font-size: 0.65rem; color: #94a3b8; display: flex; align-items: center; gap: 0.25rem;
+}
+.role-stat i { font-size: 0.6rem; }
 .role-actions { display: flex; gap: 0.125rem; }
 
-/* Permission pills */
-.perm-pills { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.5rem; }
-.perm-pill { font-size: 0.55rem; padding: 0.1rem 0.4rem; border-radius: 4px; background: #f8fafc; color: #64748b; border: 1px solid #f1f5f9; font-family: monospace; }
+/* ===== Permission pills ===== */
+.perm-pills { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px solid #f8fafc; }
+.perm-pill {
+  font-size: 0.55rem; padding: 0.12rem 0.45rem; border-radius: 5px;
+  background: #f8fafc; color: #64748b; border: 1px solid #f1f5f9;
+  font-family: monospace; transition: all 0.15s;
+}
+.perm-pill:hover { background: #eef2ff; color: #6366f1; border-color: #c7d2fe; }
 .perm-more { background: #eef2ff; color: #6366f1; border-color: #c7d2fe; font-weight: 600; }
 
-/* Users table */
+/* ===== Users table ===== */
 .user-cell { display: flex; flex-direction: column; }
 .user-name { font-weight: 600; font-size: 0.82rem; color: #1e293b; }
 .user-email { font-size: 0.7rem; color: #94a3b8; }
-.owner-badge { font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 4px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; display: inline-block; }
-.user-roles { display: flex; flex-wrap: wrap; gap: 0.25rem; }
-.user-role-pill { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 4px; background: #eef2ff; color: #6366f1; font-weight: 500; }
+.owner-badge {
+  font-size: 0.62rem; font-weight: 700; padding: 0.12rem 0.5rem;
+  border-radius: 5px; background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white; display: inline-block;
+}
+.user-roles { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.user-role-pill {
+  font-size: 0.65rem; padding: 0.12rem 0.45rem; border-radius: 5px;
+  background: #eef2ff; color: #6366f1; font-weight: 500;
+}
 .no-role { font-size: 0.7rem; color: #cbd5e1; font-style: italic; }
 
-/* Forms */
+/* ===== Forms ===== */
 .form-group { margin-bottom: 0.75rem; }
-.form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem; }
+.form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: #334155; margin-bottom: 0.3rem; }
 .w-full { width: 100%; }
 
-/* Permission editor */
-.perm-group { margin-bottom: 0.75rem; border: 1px solid #f1f5f9; border-radius: 8px; overflow: hidden; }
-.perm-group-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: #fafbfc; border-bottom: 1px solid #f1f5f9; }
+/* ===== Permission editor ===== */
+.perm-group { margin-bottom: 0.75rem; border: 1.5px solid #f1f5f9; border-radius: 10px; overflow: hidden; }
+.perm-group-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.85rem; background: #fafbfc;
+  border-bottom: 1px solid #f1f5f9;
+}
 .perm-group-label { font-size: 0.82rem; font-weight: 600; color: #1e293b; flex: 1; }
-.perm-group-count { font-size: 0.6rem; color: #94a3b8; background: #f1f5f9; padding: 0.05rem 0.35rem; border-radius: 8px; }
-.perm-group-items { padding: 0.35rem 0.75rem; }
-.perm-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0; }
+.perm-group-count {
+  font-size: 0.58rem; color: #94a3b8; background: #f1f5f9;
+  padding: 0.08rem 0.4rem; border-radius: 8px; font-weight: 600;
+}
+.perm-group-items { padding: 0.4rem 0.85rem; }
+.perm-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; transition: background 0.1s; }
+.perm-item:hover { background: #fafbfc; margin: 0 -0.35rem; padding-left: 0.35rem; padding-right: 0.35rem; border-radius: 4px; }
 .perm-item-label { font-size: 0.78rem; color: #334155; flex: 1; }
 .perm-item-slug { font-size: 0.6rem; color: #94a3b8; font-family: monospace; }
 
-/* Assign dialog */
-.assign-roles { display: flex; flex-direction: column; gap: 0.35rem; }
-.assign-role-row { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid #f8fafc; }
+/* ===== Assign dialog ===== */
+.assign-roles { display: flex; flex-direction: column; gap: 0.4rem; }
+.assign-role-row {
+  display: flex; align-items: flex-start; gap: 0.55rem;
+  padding: 0.5rem 0; border-bottom: 1px solid #f8fafc;
+  transition: background 0.1s;
+}
+.assign-role-row:hover { background: #fafbfc; }
 .assign-role-info { display: flex; flex-direction: column; }
 .assign-role-name { font-size: 0.82rem; font-weight: 600; color: #1e293b; }
 .assign-role-desc { font-size: 0.68rem; color: #94a3b8; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .roles-grid { grid-template-columns: 1fr; }
+}
 </style>

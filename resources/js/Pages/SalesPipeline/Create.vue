@@ -254,7 +254,9 @@ export default {
     auditTemplate: Object,
   },
   setup(props) {
+    const urlParams = new URLSearchParams(window.location.search)
     const form = useForm({
+      channel_id: parseInt(urlParams.get('channel_id')) || null,
       lead_id: null,
       company_name: '',
       contact_name: '',

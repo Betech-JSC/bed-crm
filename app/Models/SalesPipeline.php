@@ -40,6 +40,7 @@ class SalesPipeline extends Model
 
     protected $fillable = [
         'account_id',
+        'channel_id',
         'lead_id',
         'deal_id',
         'company_name',
@@ -48,6 +49,8 @@ class SalesPipeline extends Model
         'email',
         'website_url',
         'stage',
+        'stage_changed_at',
+        'stage_history',
         'assigned_to',
         'social_channel',
         'social_account',
@@ -63,14 +66,18 @@ class SalesPipeline extends Model
         'close_notes',
         'lost_reason',
         'priority',
+        'win_probability',
         'notes',
     ];
 
     protected $casts = [
         'audit_data' => 'array',
+        'stage_history' => 'array',
         'quote_amount' => 'decimal:2',
+        'win_probability' => 'decimal:2',
         'quote_valid_until' => 'date',
         'close_date' => 'date',
+        'stage_changed_at' => 'datetime',
     ];
 
     /**
@@ -250,6 +257,11 @@ class SalesPipeline extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function channel(): BelongsTo
+    {
+        return $this->belongsTo(SalesChannel::class, 'channel_id');
+    }
+
     public function activities(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(Activity::class, 'subject')->orderBy('date', 'desc');
@@ -285,6 +297,7 @@ class SalesPipeline extends Model
         ->when($filters['stage'] ?? null, fn ($q, $s) => $q->where('stage', $s))
         ->when($filters['priority'] ?? null, fn ($q, $p) => $q->where('priority', $p))
         ->when($filters['assigned_to'] ?? null, fn ($q, $a) => $q->where('assigned_to', $a))
+        ->when($filters['channel_id'] ?? null, fn ($q, $c) => $q->where('channel_id', $c))
         ->when($filters['trashed'] ?? null, function ($q, $trashed) {
             if ($trashed === 'with') $q->withTrashed();
             elseif ($trashed === 'only') $q->onlyTrashed();

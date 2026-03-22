@@ -109,6 +109,8 @@ class ContentStudioController extends Controller
      */
     public function generate(Request $request): JsonResponse
     {
+        set_time_limit(180);
+
         $validated = $request->validate([
             'topic' => 'required|string|max:500',
             'tone' => 'required|string|in:professional,casual,humorous,inspirational,educational,storytelling',
@@ -229,6 +231,8 @@ class ContentStudioController extends Controller
      */
     public function regenerateThumbnail(Request $request): JsonResponse
     {
+        set_time_limit(120);
+
         $validated = $request->validate([
             'topic' => 'required|string|max:500',
             'style' => 'nullable|string',
@@ -245,6 +249,114 @@ class ContentStudioController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Không thể tạo hình ảnh: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate SEO article via AI.
+     */
+    public function generateSeo(Request $request): JsonResponse
+    {
+        set_time_limit(300);
+
+        $validated = $request->validate([
+            'topic' => 'required|string|max:500',
+            'tone' => 'required|string|in:professional,casual,educational,storytelling',
+            'language' => 'required|string|in:vi,en',
+            'article_length' => 'required|string|in:short,medium,long,pillar',
+            'focus_keyword' => 'nullable|string|max:100',
+            'instructions' => 'nullable|string|max:1000',
+            'generate_thumbnail' => 'boolean',
+            'thumbnail_style' => 'nullable|string',
+        ]);
+
+        try {
+            $result = $this->studio->generateSeoArticle($validated);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI không thể tạo bài SEO: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Save generated SEO article.
+     */
+    public function saveSeo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'article' => 'required|array',
+            'article.meta_title' => 'nullable|string',
+            'article.meta_description' => 'nullable|string',
+            'article.slug' => 'nullable|string',
+            'article.content' => 'required|string',
+            'topic' => 'required|string',
+            'tone' => 'nullable|string',
+            'thumbnail_url' => 'nullable|string',
+            'ai_model' => 'nullable|string',
+            'tokens_used' => 'nullable|integer',
+        ]);
+
+        try {
+            $contentItem = $this->studio->saveSeoArticle($validated['article'], [
+                'topic' => $validated['topic'],
+                'tone' => $validated['tone'] ?? 'professional',
+                'thumbnail_url' => $validated['thumbnail_url'] ?? null,
+                'ai_model' => $validated['ai_model'] ?? 'unknown',
+                'tokens_used' => $validated['tokens_used'] ?? 0,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'item' => [
+                    'id' => $contentItem->id,
+                    'title' => $contentItem->title,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi lưu bài SEO: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate an inline article image.
+     */
+    public function generateArticleImage(Request $request): JsonResponse
+    {
+        set_time_limit(120);
+
+        $validated = $request->validate([
+            'topic' => 'required|string|max:500',
+            'context' => 'nullable|string|max:500',
+            'style' => 'nullable|string',
+        ]);
+
+        try {
+            $url = $this->studio->generateArticleImage(
+                $validated['topic'],
+                $validated['context'] ?? '',
+                $validated['style'] ?? 'modern'
+            );
+
+            return response()->json([
+                'success' => (bool) $url,
+                'image_url' => $url,
+                'message' => $url ? null : 'Không thể tạo ảnh. Kiểm tra API key.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi tạo ảnh: ' . $e->getMessage(),
             ], 500);
         }
     }

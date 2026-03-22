@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SalesPipeline\StoreSalesPipelineRequest;
 use App\Http\Requests\SalesPipeline\UpdateSalesPipelineRequest;
 use App\Models\Lead;
+use App\Models\SalesChannel;
 use App\Models\SalesPipeline;
 use App\Models\User;
 use App\Services\AiAuditService;
@@ -21,68 +22,88 @@ class SalesPipelineController extends Controller
     /**
      * Display the kanban pipeline board.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $pipelines = Auth::user()->account->salesPipelines()
-            ->with(['lead:id,name,company', 'deal:id,title,value', 'assignedUser:id,first_name,last_name'])
+        $account = Auth::user()->account;
+        $channels = $account->salesChannels()->active()->ordered()->get();
+
+        // Seed default channels if none exist
+        if ($channels->isEmpty()) {
+            $this->seedDefaultChannels($account->id);
+            $channels = $account->salesChannels()->active()->ordered()->get();
+        }
+
+        // Active channel (from request or first channel)
+        $activeChannelId = $request->get('channel_id', $channels->first()?->id);
+        $activeChannel = $channels->firstWhere('id', $activeChannelId) ?? $channels->first();
+
+        // Get pipeline items for this channel
+        $pipelines = $account->salesPipelines()
+            ->where('channel_id', $activeChannel?->id)
+            ->with(['lead:id,name,company', 'deal:id,title,value', 'assignedUser:id,first_name,last_name', 'channel:id,name,color,icon'])
             ->open()
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Also get closed ones for stats
-        $closedWon = Auth::user()->account->salesPipelines()->closedWon()->count();
-        $closedLost = Auth::user()->account->salesPipelines()->closedLost()->count();
-
-        // Group by stage
+        // Group by stage based on channel stages
         $pipelinesByStage = [];
-        foreach (SalesPipeline::getOpenStages() as $stageKey => $stageLabel) {
-            $pipelinesByStage[$stageKey] = $pipelines
-                ->where('stage', $stageKey)
-                ->map(fn ($p) => [
-                    'id' => $p->id,
-                    'company_name' => $p->company_name,
-                    'contact_name' => $p->contact_name,
-                    'phone' => $p->phone,
-                    'email' => $p->email,
-                    'website_url' => $p->website_url,
-                    'stage' => $p->stage,
-                    'priority' => $p->priority,
-                    'priority_severity' => $p->priority_severity,
-                    'social_channel' => $p->social_channel,
-                    'social_account' => $p->social_account,
-                    'quote_amount' => $p->quote_amount ? (float) $p->quote_amount : null,
-                    'audit_score' => $p->audit_score,
-                    'lead' => $p->lead ? [
-                        'id' => $p->lead->id,
-                        'name' => $p->lead->name,
-                        'company' => $p->lead->company,
-                    ] : null,
-                    'deal' => $p->deal ? [
-                        'id' => $p->deal->id,
-                        'title' => $p->deal->title,
-                        'value' => $p->deal->value,
-                    ] : null,
-                    'assigned_user' => $p->assignedUser ? [
-                        'id' => $p->assignedUser->id,
-                        'name' => $p->assignedUser->name,
-                    ] : null,
-                    'created_at' => $p->created_at->toISOString(),
-                ])
+        $openStages = $activeChannel ? $activeChannel->open_stages : [];
+        foreach ($openStages as $stage) {
+            $pipelinesByStage[$stage['key']] = $pipelines
+                ->where('stage', $stage['key'])
+                ->map(fn ($p) => $this->formatPipelineCard($p))
                 ->values()
                 ->toArray();
         }
 
+        // Stats per channel
+        $stats = [
+            'total_open' => $pipelines->count(),
+            'closed_won' => $account->salesPipelines()
+                ->where('channel_id', $activeChannel?->id)
+                ->where(function ($q) {
+                    $q->where('stage', 'closed_won')
+                      ->orWhere('stage', 'completed');
+                })->count(),
+            'closed_lost' => $account->salesPipelines()
+                ->where('channel_id', $activeChannel?->id)
+                ->where(function ($q) {
+                    $q->where('stage', 'closed_lost')
+                      ->orWhere('stage', 'cancelled');
+                })->count(),
+            'total_value' => $pipelines->sum('quote_amount'),
+        ];
+
+        // Channel stats (count per channel)
+        $channelStats = $channels->map(fn ($ch) => [
+            'id' => $ch->id,
+            'name' => $ch->name,
+            'icon' => $ch->icon,
+            'color' => $ch->color,
+            'open_count' => $account->salesPipelines()->where('channel_id', $ch->id)->open()->count(),
+        ]);
+
         return Inertia::render('SalesPipeline/Index', [
+            'channels' => $channels->map(fn ($ch) => [
+                'id' => $ch->id,
+                'name' => $ch->name,
+                'slug' => $ch->slug,
+                'icon' => $ch->icon,
+                'color' => $ch->color,
+                'description' => $ch->description,
+                'stages' => $ch->stages,
+                'open_stages' => $ch->open_stages,
+                'closed_stages' => $ch->closed_stages,
+                'is_default' => $ch->is_default,
+            ]),
+            'activeChannelId' => $activeChannel?->id,
             'pipelinesByStage' => $pipelinesByStage,
-            'stages' => SalesPipeline::getOpenStages(),
-            'allStages' => SalesPipeline::getStages(),
+            'stages' => $openStages,
+            'allStages' => $activeChannel?->stages ?? [],
             'priorities' => SalesPipeline::getPriorities(),
             'salesUsers' => $this->getSalesUsers(),
-            'stats' => [
-                'total_open' => $pipelines->count(),
-                'closed_won' => $closedWon,
-                'closed_lost' => $closedLost,
-            ],
+            'stats' => $stats,
+            'channelStats' => $channelStats,
         ]);
     }
 
@@ -114,12 +135,24 @@ class SalesPipelineController extends Controller
      */
     public function store(StoreSalesPipelineRequest $request): RedirectResponse
     {
+        $channelId = $request->input('channel_id');
+        $channel = SalesChannel::find($channelId);
+
+        // Use first open stage of the channel
+        $firstStage = $channel ? ($channel->open_stages[0]['key'] ?? 'new') : SalesPipeline::STAGE_AUDIT;
+
         Auth::user()->account->salesPipelines()->create(array_merge(
             $request->validated(),
-            ['stage' => SalesPipeline::STAGE_AUDIT]
+            [
+                'stage' => $request->input('stage', $firstStage),
+                'channel_id' => $channelId,
+                'stage_changed_at' => now(),
+                'stage_history' => [['stage' => $firstStage, 'at' => now()->toISOString(), 'by' => Auth::id()]],
+            ]
         ));
 
-        return Redirect::route('sales-pipeline')->with('success', 'Đã tạo quy trình bán hàng mới.');
+        return Redirect::route('sales-pipeline', ['channel_id' => $channelId])
+            ->with('success', 'Đã tạo quy trình bán hàng mới.');
     }
 
     /**
@@ -127,9 +160,12 @@ class SalesPipelineController extends Controller
      */
     public function edit(SalesPipeline $pipeline): Response
     {
+        $pipeline->load('channel');
+
         return Inertia::render('SalesPipeline/Edit', [
             'pipeline' => [
                 'id' => $pipeline->id,
+                'channel_id' => $pipeline->channel_id,
                 'company_name' => $pipeline->company_name,
                 'contact_name' => $pipeline->contact_name,
                 'phone' => $pipeline->phone,
@@ -138,6 +174,7 @@ class SalesPipelineController extends Controller
                 'stage' => $pipeline->stage,
                 'priority' => $pipeline->priority,
                 'priority_severity' => $pipeline->priority_severity,
+                'win_probability' => $pipeline->win_probability,
                 'social_channel' => $pipeline->social_channel,
                 'social_account' => $pipeline->social_account,
                 'audit_data' => $pipeline->audit_data ?? SalesPipeline::getAuditTemplate(),
@@ -156,7 +193,15 @@ class SalesPipelineController extends Controller
                 'lead_id' => $pipeline->lead_id,
                 'deal_id' => $pipeline->deal_id,
                 'is_open' => $pipeline->is_open,
+                'stage_history' => $pipeline->stage_history ?? [],
                 'deleted_at' => $pipeline->deleted_at,
+                'channel' => $pipeline->channel ? [
+                    'id' => $pipeline->channel->id,
+                    'name' => $pipeline->channel->name,
+                    'icon' => $pipeline->channel->icon,
+                    'color' => $pipeline->channel->color,
+                    'stages' => $pipeline->channel->stages,
+                ] : null,
                 'lead' => $pipeline->lead ? [
                     'id' => $pipeline->lead->id,
                     'name' => $pipeline->lead->name,
@@ -183,8 +228,8 @@ class SalesPipelineController extends Controller
                         'name' => $activity->user->name,
                     ] : null,
                 ]),
-            'stages' => SalesPipeline::getStages(),
-            'allStages' => SalesPipeline::getStages(),
+            'stages' => $pipeline->channel?->stages ?? SalesPipeline::getStages(),
+            'allStages' => $pipeline->channel?->stages ?? SalesPipeline::getStages(),
             'priorities' => SalesPipeline::getPriorities(),
             'socialChannels' => SalesPipeline::getSocialChannels(),
             'salesUsers' => $this->getSalesUsers(),
@@ -204,7 +249,22 @@ class SalesPipelineController extends Controller
      */
     public function update(UpdateSalesPipelineRequest $request, SalesPipeline $pipeline): RedirectResponse
     {
-        $pipeline->update($request->validated());
+        $data = $request->validated();
+
+        // Track stage changes
+        if (isset($data['stage']) && $data['stage'] !== $pipeline->stage) {
+            $history = $pipeline->stage_history ?? [];
+            $history[] = [
+                'from' => $pipeline->stage,
+                'to' => $data['stage'],
+                'at' => now()->toISOString(),
+                'by' => Auth::id(),
+            ];
+            $data['stage_history'] = $history;
+            $data['stage_changed_at'] = now();
+        }
+
+        $pipeline->update($data);
 
         return Redirect::back()->with('success', 'Đã cập nhật quy trình.');
     }
@@ -215,10 +275,22 @@ class SalesPipelineController extends Controller
     public function updateStage(Request $request, SalesPipeline $pipeline): RedirectResponse
     {
         $request->validate([
-            'stage' => ['required', 'in:' . implode(',', array_keys(SalesPipeline::getStages()))],
+            'stage' => ['required', 'string'],
         ]);
 
-        $pipeline->update(['stage' => $request->stage]);
+        $history = $pipeline->stage_history ?? [];
+        $history[] = [
+            'from' => $pipeline->stage,
+            'to' => $request->stage,
+            'at' => now()->toISOString(),
+            'by' => Auth::id(),
+        ];
+
+        $pipeline->update([
+            'stage' => $request->stage,
+            'stage_changed_at' => now(),
+            'stage_history' => $history,
+        ]);
 
         return Redirect::back()->with('success', 'Đã chuyển giai đoạn.');
     }
@@ -228,12 +300,8 @@ class SalesPipelineController extends Controller
      */
     public function storeAudit(Request $request, SalesPipeline $pipeline): RedirectResponse
     {
-        $request->validate([
-            'audit_data' => ['required', 'array'],
-        ]);
-
+        $request->validate(['audit_data' => ['required', 'array']]);
         $pipeline->update(['audit_data' => $request->audit_data]);
-
         return Redirect::back()->with('success', 'Đã lưu kết quả audit.');
     }
 
@@ -247,9 +315,7 @@ class SalesPipelineController extends Controller
             'quote_valid_until' => ['nullable', 'date'],
             'quote_notes' => ['nullable', 'string'],
         ]);
-
         $pipeline->update($request->only(['quote_amount', 'quote_valid_until', 'quote_notes']));
-
         return Redirect::back()->with('success', 'Đã lưu báo giá.');
     }
 
@@ -263,14 +329,20 @@ class SalesPipelineController extends Controller
             'deal_id' => ['nullable', 'exists:deals,id'],
         ]);
 
+        $history = $pipeline->stage_history ?? [];
+        $history[] = ['from' => $pipeline->stage, 'to' => 'closed_won', 'at' => now()->toISOString(), 'by' => Auth::id()];
+
         $pipeline->update([
-            'stage' => SalesPipeline::STAGE_CLOSED_WON,
+            'stage' => 'closed_won',
             'close_date' => now(),
             'close_notes' => $request->close_notes,
             'deal_id' => $request->deal_id,
+            'stage_changed_at' => now(),
+            'stage_history' => $history,
         ]);
 
-        return Redirect::route('sales-pipeline')->with('success', 'Chốt deal thành công! 🎉');
+        return Redirect::route('sales-pipeline', ['channel_id' => $pipeline->channel_id])
+            ->with('success', 'Chốt deal thành công! 🎉');
     }
 
     /**
@@ -283,14 +355,20 @@ class SalesPipelineController extends Controller
             'close_notes' => ['nullable', 'string'],
         ]);
 
+        $history = $pipeline->stage_history ?? [];
+        $history[] = ['from' => $pipeline->stage, 'to' => 'closed_lost', 'at' => now()->toISOString(), 'by' => Auth::id()];
+
         $pipeline->update([
-            'stage' => SalesPipeline::STAGE_CLOSED_LOST,
+            'stage' => 'closed_lost',
             'close_date' => now(),
             'lost_reason' => $request->lost_reason,
             'close_notes' => $request->close_notes,
+            'stage_changed_at' => now(),
+            'stage_history' => $history,
         ]);
 
-        return Redirect::route('sales-pipeline')->with('success', 'Đã đóng deal.');
+        return Redirect::route('sales-pipeline', ['channel_id' => $pipeline->channel_id])
+            ->with('success', 'Đã đóng deal.');
     }
 
     /**
@@ -317,20 +395,12 @@ class SalesPipelineController extends Controller
     public function aiAnalyze(Request $request, SalesPipeline $pipeline): JsonResponse
     {
         $service = app(AiAuditService::class);
-
         $auditData = $pipeline->audit_data ?? SalesPipeline::getAuditTemplate();
-        $context = [
-            'company_name' => $pipeline->company_name,
-            'website_url' => $pipeline->website_url,
-        ];
-
+        $context = ['company_name' => $pipeline->company_name, 'website_url' => $pipeline->website_url];
         $result = $service->analyzeAudit($auditData, $context);
-
-        // Store analysis result in pipeline
         $currentAudit = $pipeline->audit_data ?? [];
         $currentAudit['ai_analysis'] = $result;
         $pipeline->update(['audit_data' => $currentAudit]);
-
         return response()->json($result);
     }
 
@@ -340,20 +410,91 @@ class SalesPipelineController extends Controller
     public function aiProposal(Request $request, SalesPipeline $pipeline): JsonResponse
     {
         $service = app(AiAuditService::class);
-
         $auditData = $pipeline->audit_data ?? SalesPipeline::getAuditTemplate();
-        $context = [
-            'company_name' => $pipeline->company_name,
-            'website_url' => $pipeline->website_url,
-        ];
-
+        $context = ['company_name' => $pipeline->company_name, 'website_url' => $pipeline->website_url];
         $result = $service->generateProposal($auditData, $context);
-
         return response()->json($result);
     }
 
+    // ════════════════════════════════════════
+    //  CHANNEL MANAGEMENT
+    // ════════════════════════════════════════
+
     /**
-     * Get sales users for the current account.
+     * Store a new sales channel.
+     */
+    public function storeChannel(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+            'description' => 'nullable|string|max:500',
+            'stages' => 'required|array|min:2',
+            'stages.*.key' => 'required|string',
+            'stages.*.label' => 'required|string',
+            'stages.*.color' => 'nullable|string',
+        ]);
+
+        $channel = Auth::user()->account->salesChannels()->create($request->only([
+            'name', 'icon', 'color', 'description', 'stages',
+        ]));
+
+        return response()->json(['success' => true, 'channel' => $channel]);
+    }
+
+    /**
+     * Update a sales channel.
+     */
+    public function updateChannel(Request $request, SalesChannel $channel): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+            'description' => 'nullable|string|max:500',
+            'stages' => 'required|array|min:2',
+            'stages.*.key' => 'required|string',
+            'stages.*.label' => 'required|string',
+            'stages.*.color' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $channel->update($request->only([
+            'name', 'icon', 'color', 'description', 'stages', 'is_active',
+        ]));
+
+        return response()->json(['success' => true, 'channel' => $channel->fresh()]);
+    }
+
+    /**
+     * Delete a sales channel.
+     */
+    public function destroyChannel(SalesChannel $channel): JsonResponse
+    {
+        // Move orphaned pipelines to null
+        $channel->pipelines()->update(['channel_id' => null]);
+        $channel->delete();
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Seed default channels.
+     */
+    private function seedDefaultChannels(int $accountId): void
+    {
+        $presets = SalesChannel::getPresets();
+        foreach ($presets as $i => $preset) {
+            SalesChannel::create(array_merge($preset, [
+                'account_id' => $accountId,
+                'sort_order' => $i,
+                'is_default' => $i === 0,
+            ]));
+        }
+    }
+
+    /**
+     * Get sales users.
      */
     private function getSalesUsers(): \Illuminate\Support\Collection
     {
@@ -365,5 +506,51 @@ class SalesPipelineController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
             ]);
+    }
+
+    /**
+     * Format pipeline card data.
+     */
+    private function formatPipelineCard(SalesPipeline $p): array
+    {
+        return [
+            'id' => $p->id,
+            'channel_id' => $p->channel_id,
+            'company_name' => $p->company_name,
+            'contact_name' => $p->contact_name,
+            'phone' => $p->phone,
+            'email' => $p->email,
+            'website_url' => $p->website_url,
+            'stage' => $p->stage,
+            'priority' => $p->priority,
+            'priority_severity' => $p->priority_severity,
+            'win_probability' => $p->win_probability,
+            'social_channel' => $p->social_channel,
+            'social_account' => $p->social_account,
+            'quote_amount' => $p->quote_amount ? (float) $p->quote_amount : null,
+            'audit_score' => $p->audit_score,
+            'stage_changed_at' => $p->stage_changed_at?->diffForHumans(),
+            'channel' => $p->channel ? [
+                'id' => $p->channel->id,
+                'name' => $p->channel->name,
+                'color' => $p->channel->color,
+                'icon' => $p->channel->icon,
+            ] : null,
+            'lead' => $p->lead ? [
+                'id' => $p->lead->id,
+                'name' => $p->lead->name,
+                'company' => $p->lead->company,
+            ] : null,
+            'deal' => $p->deal ? [
+                'id' => $p->deal->id,
+                'title' => $p->deal->title,
+                'value' => $p->deal->value,
+            ] : null,
+            'assigned_user' => $p->assignedUser ? [
+                'id' => $p->assignedUser->id,
+                'name' => $p->assignedUser->name,
+            ] : null,
+            'created_at' => $p->created_at->toISOString(),
+        ];
     }
 }

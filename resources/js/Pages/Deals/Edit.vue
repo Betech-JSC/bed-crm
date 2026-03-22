@@ -175,13 +175,7 @@
           </template>
         </Card>
 
-        <!-- Sales Playbook Suggestions -->
-        <PlaybookSuggestions
-          v-if="playbookSuggestions && playbookSuggestions.length > 0"
-          :playbooks="playbookSuggestions"
-          subject-type="deal"
-          :subject-id="deal.id"
-        />
+
 
         <Card>
           <template #content>
@@ -226,7 +220,7 @@ import Message from 'primevue/message'
 import Breadcrumb from 'primevue/breadcrumb'
 import Dialog from 'primevue/dialog'
 import ActivityTimeline from '@/Shared/ActivityTimeline.vue'
-import PlaybookSuggestions from '@/Shared/PlaybookSuggestions.vue'
+
 import { useTranslation } from '@/composables/useTranslation'
 
 export default {
@@ -244,7 +238,7 @@ export default {
     Breadcrumb,
     Dialog,
     ActivityTimeline,
-    PlaybookSuggestions,
+
   },
   layout: Layout,
   props: {
@@ -254,7 +248,6 @@ export default {
     statuses: Object,
     salesUsers: Array,
     proposals: Array,
-    playbookSuggestions: Array,
   },
   remember: 'form',
   setup() {

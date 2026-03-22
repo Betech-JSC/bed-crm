@@ -23,7 +23,7 @@ class LeadsController extends Controller
         return Inertia::render('Leads/Index', [
             'filters' => Request::all('search', 'status', 'source', 'assigned_to', 'trashed'),
             'leads' => Auth::user()->account->leads()
-                ->with(['assignedUser:id,first_name,last_name', 'icp:id,name'])
+                ->with(['assignedUser:id,first_name,last_name'])
                 ->orderByStatus()
                 ->orderBy('created_at', 'desc')
                 ->filter(Request::only('search', 'status', 'source', 'assigned_to', 'trashed'))
@@ -39,10 +39,7 @@ class LeadsController extends Controller
                     'status' => $lead->status,
                     'assigned_to' => $lead->assigned_to,
                     'score' => $lead->score,
-                    'icp' => $lead->icp ? [
-                        'id' => $lead->icp->id,
-                        'name' => $lead->icp->name,
-                    ] : null,
+
                     'assigned_user' => $lead->assignedUser ? [
                         'id' => $lead->assignedUser->id,
                         'name' => $lead->assignedUser->name,
@@ -93,7 +90,7 @@ class LeadsController extends Controller
 
     public function edit(Lead $lead): Response
     {
-        $lead->load('icp:id,name');
+
 
         return Inertia::render('Leads/Edit', [
             'lead' => [
@@ -114,10 +111,7 @@ class LeadsController extends Controller
                 'priority_severity' => $lead->priority_severity ?? 'info',
                 'scoring_details' => $lead->scoring_details,
                 'enrichment_data' => $lead->enrichment_data,
-                'icp' => $lead->icp ? [
-                    'id' => $lead->icp->id,
-                    'name' => $lead->icp->name,
-                ] : null,
+
                 'email_opens' => $lead->email_opens ?? 0,
                 'email_clicks' => $lead->email_clicks ?? 0,
                 'website_visits' => $lead->website_visits ?? 0,

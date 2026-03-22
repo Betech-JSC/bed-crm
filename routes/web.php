@@ -34,3 +34,8 @@ require __DIR__ . '/modules/ai-chat.php';
 require __DIR__ . '/modules/ai-trends.php';
 require __DIR__ . '/modules/content-studio.php';
 require __DIR__ . '/modules/system-logs.php';
+require __DIR__ . '/modules/system-history.php';
+require __DIR__ . '/modules/business.php';
+require __DIR__ . '/modules/documents.php';
+require __DIR__ . '/modules/dropship.php';
+require __DIR__ . '/modules/dev-portal.php';

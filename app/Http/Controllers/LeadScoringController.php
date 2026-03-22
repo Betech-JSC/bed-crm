@@ -66,7 +66,7 @@ class LeadScoringController extends Controller
     public function enrich(Lead $lead): JsonResponse
     {
         $enrichmentService = app(DataEnrichmentService::class);
-        
+
         $enrichmentData = $enrichmentService->enrich(
             $lead->email ?? '',
             $lead->company
@@ -76,17 +76,19 @@ class LeadScoringController extends Controller
             'enrichment_data' => $enrichmentData,
         ]);
 
-        // Auto-score after enrichment
-        $result = $lead->scoreAgainstICPs($enrichmentData);
+        // Auto-score after enrichment using comprehensive scoring
+        $scoringService = app(\App\Services\LeadScoringService::class);
+        $result = $scoringService->calculateScore($lead);
+        $lead->update([
+            'score' => $result['total_score'],
+            'scoring_details' => $result,
+            'last_scored_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
             'enrichment_data' => $enrichmentData,
             'score' => $lead->fresh()->score,
-            'icp_match' => $result ? [
-                'icp_name' => $result['icp_name'],
-                'is_match' => $result['is_match'],
-            ] : null,
         ]);
     }
 }

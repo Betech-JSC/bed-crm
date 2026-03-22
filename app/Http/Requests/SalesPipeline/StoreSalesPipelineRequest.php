@@ -15,6 +15,7 @@ class StoreSalesPipelineRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'channel_id' => ['nullable', 'exists:sales_channels,id'],
             'lead_id' => ['nullable', 'exists:leads,id'],
             'company_name' => ['required', 'string', 'max:255'],
             'contact_name' => ['required', 'string', 'max:255'],
