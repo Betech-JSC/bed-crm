@@ -113,6 +113,16 @@ class Lead extends Model
         return $this->morphMany(Activity::class, 'subject')->orderBy('date', 'desc');
     }
 
+    public function outboundCampaigns(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OutboundCampaign::class);
+    }
+
+    public function activeOutboundCampaign(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(OutboundCampaign::class)->where('status', OutboundCampaign::STATUS_ACTIVE);
+    }
+
 
 
     /**

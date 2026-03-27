@@ -14,18 +14,42 @@ class EmailTemplatesController extends Controller
 {
     public function index(): Response
     {
+        $accountId = Auth::user()->account_id;
+        $query = EmailTemplate::where('account_id', $accountId);
+
+        // Stats (before filtering)
+        $stats = [
+            'total' => (clone $query)->count(),
+            'campaign' => (clone $query)->where('type', 'campaign')->count(),
+            'automation' => (clone $query)->where('type', 'automation')->count(),
+            'transactional' => (clone $query)->where('type', 'transactional')->count(),
+        ];
+
+        // Apply filters
+        $templates = $query
+            ->when(Request::input('search'), function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('subject', 'like', "%{$search}%");
+                });
+            })
+            ->when(Request::input('type'), fn ($q, $type) => $q->where('type', $type))
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (EmailTemplate $tpl) => [
+                'id' => $tpl->id,
+                'name' => $tpl->name,
+                'subject' => $tpl->subject,
+                'type' => $tpl->type,
+                'is_active' => $tpl->is_active,
+                'created_at' => $tpl->created_at->format('d/m/Y H:i'),
+            ]);
+
         return Inertia::render('EmailTemplates/Index', [
-            'templates' => Auth::user()->account->emailTemplates()
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($template) => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'subject' => $template->subject,
-                    'type' => $template->type,
-                    'is_active' => $template->is_active,
-                    'created_at' => $template->created_at->format('Y-m-d H:i'),
-                ]),
+            'templates' => $templates,
+            'stats' => $stats,
+            'filters' => Request::only('search', 'type'),
         ]);
     }
 
@@ -33,7 +57,7 @@ class EmailTemplatesController extends Controller
     {
         return Inertia::render('EmailTemplates/Create', [
             'types' => ['campaign', 'automation', 'transactional'],
-            'variables' => ['name', 'email', 'first_name', 'unsubscribe_url'],
+            'variables' => ['name', 'email', 'first_name', 'unsubscribe_url', 'company'],
         ]);
     }
 
@@ -54,12 +78,11 @@ class EmailTemplatesController extends Controller
 
         EmailTemplate::create($validated);
 
-        return Redirect::route('email-templates.index')->with('success', 'Email template created.');
+        return Redirect::route('email-templates.index')->with('success', 'Template email đã tạo thành công.');
     }
 
     public function edit(EmailTemplate $emailTemplate): Response
     {
-        // Ensure template belongs to user's account
         if ($emailTemplate->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -76,13 +99,12 @@ class EmailTemplatesController extends Controller
                 'is_active' => $emailTemplate->is_active,
             ],
             'types' => ['campaign', 'automation', 'transactional'],
-            'variables' => ['name', 'email', 'first_name', 'unsubscribe_url'],
+            'variables' => ['name', 'email', 'first_name', 'unsubscribe_url', 'company'],
         ]);
     }
 
     public function update(EmailTemplate $emailTemplate): RedirectResponse
     {
-        // Ensure template belongs to user's account
         if ($emailTemplate->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -99,18 +121,17 @@ class EmailTemplatesController extends Controller
 
         $emailTemplate->update($validated);
 
-        return Redirect::route('email-templates.index')->with('success', 'Email template updated.');
+        return Redirect::route('email-templates.index')->with('success', 'Template email đã cập nhật.');
     }
 
     public function destroy(EmailTemplate $emailTemplate): RedirectResponse
     {
-        // Ensure template belongs to user's account
         if ($emailTemplate->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
         $emailTemplate->delete();
 
-        return Redirect::route('email-templates.index')->with('success', 'Email template deleted.');
+        return Redirect::route('email-templates.index')->with('success', 'Template email đã xóa.');
     }
 }

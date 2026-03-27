@@ -76,6 +76,11 @@ class Account extends Model
         return $this->hasMany(VideoProject::class);
     }
 
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
     public function workflows(): HasMany
     {
         return $this->hasMany(Workflow::class);

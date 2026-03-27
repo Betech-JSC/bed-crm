@@ -65,7 +65,7 @@ class QuotationController extends Controller
         return Inertia::render('Quotations/Create', [
             'customers' => Customer::where('account_id', $accountId)->select('id', 'name')->get(),
             'leads' => Lead::where('account_id', $accountId)->select('id', 'company')->get(),
-            'deals' => Deal::where('account_id', $accountId)->select('id', 'name')->get(),
+            'deals' => Deal::where('account_id', $accountId)->select('id', 'title')->get(),
             'products' => Product::where('account_id', $accountId)->active()->select('id', 'name', 'sku', 'unit', 'unit_price', 'tax_rate', 'description')->get(),
             'nextNumber' => Quotation::generateNumber($accountId),
         ]);
@@ -138,7 +138,7 @@ class QuotationController extends Controller
             'quotation' => $quotation,
             'customers' => Customer::where('account_id', $accountId)->select('id', 'name')->get(),
             'leads' => Lead::where('account_id', $accountId)->select('id', 'company')->get(),
-            'deals' => Deal::where('account_id', $accountId)->select('id', 'name')->get(),
+            'deals' => Deal::where('account_id', $accountId)->select('id', 'title')->get(),
             'products' => Product::where('account_id', $accountId)->active()->select('id', 'name', 'sku', 'unit', 'unit_price', 'tax_rate', 'description')->get(),
         ]);
     }

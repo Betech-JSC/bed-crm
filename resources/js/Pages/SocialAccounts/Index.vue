@@ -11,7 +11,7 @@
         </h1>
         <p class="page-subtitle">Kết nối & quản lý tài khoản để đăng bài tự động</p>
       </div>
-      <Button label="Kết nối tài khoản" icon="pi pi-plus" @click="showConnectModal = true" />
+      <button class="btn-primary" @click="showConnectModal = true"><i class="pi pi-plus" /> Kết nối tài khoản</button>
     </div>
 
     <!-- Stats -->
@@ -145,90 +145,52 @@
     </div>
 
     <!-- Connect Platform Modal -->
-    <Dialog v-model:visible="showConnectModal" modal header="Kết nối mạng xã hội" :style="{ width: '560px' }" :draggable="false">
-      <div class="connect-modal">
-        <p class="connect-subtitle">Chọn nền tảng bạn muốn kết nối. Bạn sẽ được chuyển đến trang đăng nhập của từng nền tảng.</p>
-
-        <div class="connect-grid">
-          <button
-            v-for="(meta, key) in platformsMeta"
-            :key="key"
-            class="connect-option"
-            :class="{ 'connect-option--connected': isAlreadyConnected(key) }"
-            @click="connectPlatform(key)"
-          >
-            <div class="connect-option-icon" :style="{ background: meta.gradient }">
-              <i :class="meta.icon" />
-            </div>
-            <div class="connect-option-info">
-              <span class="connect-option-name">{{ meta.label }}</span>
-              <span v-if="isAlreadyConnected(key)" class="connect-option-status">
-                <i class="pi pi-check" /> Đã kết nối {{ getConnectedCount(key) }} tài khoản
-              </span>
-              <span v-else class="connect-option-status connect-option-status--none">
-                Chưa kết nối
-              </span>
-            </div>
-            <i class="pi pi-chevron-right connect-arrow" />
-          </button>
-        </div>
-
-        <!-- How it works -->
-        <div class="connect-howto">
-          <h4><i class="pi pi-info-circle" /> Cách thức hoạt động</h4>
-          <div class="howto-steps">
-            <div class="howto-step">
-              <div class="howto-num">1</div>
-              <span>Chọn nền tảng</span>
-            </div>
-            <div class="howto-arrow"><i class="pi pi-arrow-right" /></div>
-            <div class="howto-step">
-              <div class="howto-num">2</div>
-              <span>Đăng nhập & cấp quyền</span>
-            </div>
-            <div class="howto-arrow"><i class="pi pi-arrow-right" /></div>
-            <div class="howto-step">
-              <div class="howto-num">3</div>
-              <span>Sẵn sàng đăng bài!</span>
+    <div v-if="showConnectModal" class="modal-overlay" @click.self="showConnectModal = false">
+      <div class="modal-box">
+        <div class="modal-header"><h3>Kết nối mạng xã hội</h3><button class="modal-close" @click="showConnectModal = false"><i class="pi pi-times" /></button></div>
+        <div class="connect-modal">
+          <p class="connect-subtitle">Chọn nền tảng bạn muốn kết nối.</p>
+          <div class="connect-grid">
+            <button v-for="(meta, key) in platformsMeta" :key="key" class="connect-option" :class="{ 'connect-option--connected': isAlreadyConnected(key) }" @click="connectPlatform(key)">
+              <div class="connect-option-icon" :style="{ background: meta.gradient }"><i :class="meta.icon" /></div>
+              <div class="connect-option-info">
+                <span class="connect-option-name">{{ meta.label }}</span>
+                <span v-if="isAlreadyConnected(key)" class="connect-option-status"><i class="pi pi-check" /> Đã kết nối {{ getConnectedCount(key) }}</span>
+                <span v-else class="connect-option-status connect-option-status--none">Chưa kết nối</span>
+              </div>
+              <i class="pi pi-chevron-right connect-arrow" />
+            </button>
+          </div>
+          <div class="connect-howto">
+            <h4><i class="pi pi-info-circle" /> Cách hoạt động</h4>
+            <div class="howto-steps">
+              <div class="howto-step"><div class="howto-num">1</div><span>Chọn nền tảng</span></div>
+              <div class="howto-arrow"><i class="pi pi-arrow-right" /></div>
+              <div class="howto-step"><div class="howto-num">2</div><span>Đăng nhập & cấp quyền</span></div>
+              <div class="howto-arrow"><i class="pi pi-arrow-right" /></div>
+              <div class="howto-step"><div class="howto-num">3</div><span>Sẵn sàng!</span></div>
             </div>
           </div>
         </div>
       </div>
-    </Dialog>
-
-    <!-- Confirm Disconnect Dialog -->
-    <Dialog v-model:visible="showDisconnectDialog" modal header="Ngắt kết nối" :style="{ width: '420px' }" :draggable="false">
-      <div class="disconnect-content">
-        <div class="disconnect-icon"><i class="pi pi-exclamation-triangle" /></div>
-        <p>Bạn có chắc muốn ngắt kết nối tài khoản này? Các bài đăng đã lên lịch sẽ không thể thực hiện.</p>
-      </div>
-      <template #footer>
-        <Button label="Hủy" severity="secondary" text @click="showDisconnectDialog = false" />
-        <Button label="Ngắt kết nối" severity="danger" icon="pi pi-trash" @click="confirmDisconnect" />
-      </template>
-    </Dialog>
+    </div>
   </div>
 </template>
 
 <script>
 import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import { useTranslation } from '@/composables/useTranslation'
+
 
 export default {
-  components: { Head, Link, Button, Dialog },
+  components: { Head, Link },
   layout: Layout,
   props: {
     socialAccounts: Array,
     stats: Object,
     platformsMeta: Object,
   },
-  setup() {
-    const { t } = useTranslation()
-    return { t }
-  },
+
   data() {
     return {
       showConnectModal: false,
@@ -483,6 +445,16 @@ export default {
 .disconnect-icon { font-size: 2.5rem; color: #f59e0b; margin-bottom: 0.75rem; }
 .disconnect-icon i { font-size: 2.5rem; }
 .disconnect-content p { font-size: 0.82rem; color: #64748b; }
+
+/* ===== Primary Button ===== */
+.btn-primary{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:all .2s}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}
+
+/* ===== Modal ===== */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+.modal-box{background:#fff;border-radius:18px;width:92%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.15)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9}
+.modal-header h3{font-size:1rem;font-weight:700;color:#1e293b;margin:0}
+.modal-close{width:30px;height:30px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#64748b;font-size:.75rem;transition:all .15s}.modal-close:hover{border-color:#ef4444;color:#ef4444;background:#fef2f2}
 
 /* ===== Responsive ===== */
 @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }

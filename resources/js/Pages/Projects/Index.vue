@@ -1,12 +1,12 @@
 <template>
   <div>
-    <Head :title="t('common.projects')" />
+    <Head title="Quản lý Dự án" />
 
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title"><i class="pi pi-folder" style="color: #6366f1; margin-right: 0.5rem;" />{{ t('common.projects') }}</h1>
-        <p class="page-subtitle">{{ analytics.total_projects }} dự án · Quản lý tiến độ & lợi nhuận</p>
+        <h1 class="page-title"><i class="pi pi-folder" style="color: #6366f1; margin-right: 0.5rem;" />Quản lý Dự án</h1>
+        <p class="page-subtitle">{{ analytics.total_projects }} dự án · Tiến độ, nguồn lực & lợi nhuận</p>
       </div>
       <Link href="/projects/create"><Button :label="t('common.create_project')" icon="pi pi-plus" /></Link>
     </div>

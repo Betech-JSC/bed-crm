@@ -12,4 +12,5 @@ Route::middleware('auth')->group(function () {
     Route::post('content-studio/generate-seo', [ContentStudioController::class, 'generateSeo'])->name('content-studio.generate-seo');
     Route::post('content-studio/save-seo', [ContentStudioController::class, 'saveSeo'])->name('content-studio.save-seo');
     Route::post('content-studio/article-image', [ContentStudioController::class, 'generateArticleImage'])->name('content-studio.article-image');
+    Route::post('content-studio/analyze-seo', [ContentStudioController::class, 'analyzeSeo'])->name('content-studio.analyze-seo');
 });

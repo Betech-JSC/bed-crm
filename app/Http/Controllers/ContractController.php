@@ -63,7 +63,7 @@ class ContractController extends Controller
             'filters' => $request->only(['search', 'status', 'type']),
             'stats' => $stats,
             'customers' => Customer::where('account_id', $accountId)->select('id', 'name')->get(),
-            'deals' => Deal::where('account_id', $accountId)->select('id', 'name')->get(),
+            'deals' => Deal::where('account_id', $accountId)->select('id', 'title')->get(),
             'quotations' => Quotation::where('account_id', $accountId)->whereIn('status', ['accepted', 'approved'])->select('id', 'quote_number', 'title', 'total')->get(),
         ]);
     }

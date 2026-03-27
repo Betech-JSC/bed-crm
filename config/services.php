@@ -62,4 +62,10 @@ return [
         'redirect_uri' => env('INSTAGRAM_REDIRECT_URI'),
     ],
 
+    'zalo' => [
+        'access_token' => env('ZALO_OA_ACCESS_TOKEN'),
+        'oa_id' => env('ZALO_OA_ID'),
+        'api_url' => env('ZALO_API_URL', 'https://openapi.zalo.me/v3.0/oa'),
+    ],
+
 ];

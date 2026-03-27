@@ -159,31 +159,10 @@
         <div class="sidebar-card">
           <div class="sidebar-header"><h3><i class="pi pi-cog" /> Hành động</h3></div>
           <div class="action-list">
-            <Button
-              v-if="post.status === 'failed'"
-              label="Thử lại"
-              icon="pi pi-refresh"
-              class="action-btn"
-              @click="retry"
-            />
-            <Button
-              label="Đồng bộ thống kê"
-              icon="pi pi-chart-bar"
-              severity="secondary"
-              outlined
-              class="action-btn"
-              @click="syncAnalytics"
-            />
+            <button v-if="post.status === 'failed'" class="sidebar-action-btn primary" @click="retry"><i class="pi pi-refresh" /> Thử lại</button>
+            <button class="sidebar-action-btn secondary" @click="syncAnalytics"><i class="pi pi-chart-bar" /> Đồng bộ thống kê</button>
             <div class="action-divider" />
-            <Button
-              label="Xóa bài đăng"
-              icon="pi pi-trash"
-              severity="danger"
-              text
-              size="small"
-              class="action-btn"
-              @click="deletePost"
-            />
+            <button class="sidebar-action-btn danger" @click="deletePost"><i class="pi pi-trash" /> Xóa bài đăng</button>
           </div>
         </div>
 
@@ -223,10 +202,9 @@
 <script>
 import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
-import Button from 'primevue/button'
 
 export default {
-  components: { Head, Link, Button },
+  components: { Head, Link },
   layout: Layout,
   props: { post: Object },
   methods: {
@@ -277,7 +255,7 @@ export default {
 .meta-chip { display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; color: #64748b; }
 .meta-chip i { font-size: 0.6rem; color: #94a3b8; }
 .meta-chip--link a { color: #6366f1; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; }
-.hero-right {}
+.hero-right { display: flex; align-items: center; }
 .status-tag { font-size: 0.7rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 8px; }
 .status-tag--sm { font-size: 0.6rem; padding: 0.15rem 0.4rem; }
 .status--draft { background: #f1f5f9; color: #64748b; }
@@ -354,7 +332,7 @@ export default {
 }
 .timeline-item--active .timeline-dot { background: #10b981; }
 .timeline-item--error .timeline-dot { background: #ef4444; }
-.timeline-body {}
+.timeline-body { min-width: 0; }
 .timeline-title { font-size: 0.78rem; font-weight: 600; color: #1e293b; display: block; }
 .timeline-date { font-size: 0.68rem; color: #94a3b8; }
 
@@ -365,7 +343,7 @@ export default {
 .sidebar-header i { color: #6366f1; font-size: 0.78rem; }
 
 .action-list { display: flex; flex-direction: column; gap: 0.35rem; padding: 0.65rem; }
-.action-btn { width: 100%; justify-content: flex-start !important; }
+.sidebar-action-btn{display:flex;align-items:center;gap:.4rem;width:100%;padding:.5rem .75rem;border-radius:10px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}.sidebar-action-btn.primary{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none}.sidebar-action-btn.primary:hover{box-shadow:0 4px 12px rgba(99,102,241,.3)}.sidebar-action-btn.secondary{background:#fff;color:#475569;border:1.5px solid #e2e8f0}.sidebar-action-btn.secondary:hover{border-color:#6366f1;color:#6366f1}.sidebar-action-btn.danger{background:transparent;color:#dc2626;border:none;font-size:.72rem}.sidebar-action-btn.danger:hover{background:#fef2f2}
 .action-divider { height: 1px; background: #f1f5f9; margin: 0.25rem 0; }
 
 .info-list { padding: 0.65rem 1rem; }

@@ -21,28 +21,32 @@ class SocialPostsController extends Controller
 
     public function index(): Response
     {
+        $query = Auth::user()->account->socialPosts()
+            ->with(['contentItem', 'socialAccount', 'creator'])
+            ->orderBy('created_at', 'desc');
+
+        if ($status = Request::input('status')) {
+            $query->where('status', $status);
+        }
+
         return Inertia::render('SocialPosts/Index', [
-            'posts' => Auth::user()->account->socialPosts()
-                ->with(['contentItem', 'socialAccount', 'creator'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(20)
-                ->through(fn ($post) => [
-                    'id' => $post->id,
-                    'platform' => $post->platform,
-                    'content' => substr($post->content, 0, 100) . '...',
-                    'status' => $post->status,
-                    'scheduled_at' => $post->scheduled_at?->format('Y-m-d H:i'),
-                    'posted_at' => $post->posted_at?->format('Y-m-d H:i'),
-                    'social_account' => $post->socialAccount ? [
-                        'id' => $post->socialAccount->id,
-                        'name' => $post->socialAccount->name,
-                    ] : null,
-                    'content_item' => $post->contentItem ? [
-                        'id' => $post->contentItem->id,
-                        'title' => $post->contentItem->title,
-                    ] : null,
-                    'analytics' => $post->analytics,
-                ]),
+            'posts' => $query->paginate(15)->through(fn ($post) => [
+                'id' => $post->id,
+                'platform' => $post->platform,
+                'content' => $post->content ? mb_substr($post->content, 0, 100) . '...' : '',
+                'status' => $post->status,
+                'scheduled_at' => $post->scheduled_at?->format('d/m/Y H:i'),
+                'posted_at' => $post->posted_at?->format('d/m/Y H:i'),
+                'social_account' => $post->socialAccount ? [
+                    'id' => $post->socialAccount->id,
+                    'name' => $post->socialAccount->name,
+                ] : null,
+                'content_item' => $post->contentItem ? [
+                    'id' => $post->contentItem->id,
+                    'title' => $post->contentItem->title,
+                ] : null,
+                'analytics' => $post->analytics,
+            ]),
         ]);
     }
 

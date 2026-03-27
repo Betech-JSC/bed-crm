@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContentTemplate;
-use App\Services\ContentManagementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -15,19 +14,43 @@ class ContentTemplatesController extends Controller
 {
     public function index(): Response
     {
+        $account = Auth::user()->account;
+        $accountId = $account->id;
+
+        $query = $account->contentTemplates()->orderBy('created_at', 'desc');
+
+        if ($search = Request::input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category = Request::input('category')) {
+            $query->where('category', $category);
+        }
+
+        // Stats
+        $stats = [
+            'total' => ContentTemplate::where('account_id', $accountId)->count(),
+            'blog' => ContentTemplate::where('account_id', $accountId)->where('category', 'blog')->count(),
+            'social' => ContentTemplate::where('account_id', $accountId)->where('category', 'social')->count(),
+            'email' => ContentTemplate::where('account_id', $accountId)->where('category', 'email')->count(),
+            'ad' => ContentTemplate::where('account_id', $accountId)->where('category', 'ad')->count(),
+        ];
+
         return Inertia::render('ContentTemplates/Index', [
-            'templates' => Auth::user()->account->contentTemplates()
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($template) => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'description' => $template->description,
-                    'category' => $template->category,
-                    'is_active' => $template->is_active,
-                    'usage_count' => $template->usage_count,
-                    'created_at' => $template->created_at->format('Y-m-d H:i'),
-                ]),
+            'templates' => $query->paginate(15)->through(fn ($template) => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'description' => $template->description,
+                'category' => $template->category,
+                'is_active' => $template->is_active,
+                'usage_count' => $template->usage_count,
+                'created_at' => $template->created_at->format('d/m/Y H:i'),
+            ]),
+            'stats' => $stats,
+            'filters' => Request::only('search', 'category'),
         ]);
     }
 
@@ -52,7 +75,7 @@ class ContentTemplatesController extends Controller
 
         Auth::user()->account->contentTemplates()->create($validated);
 
-        return Redirect::route('content-templates')->with('success', 'Content template created.');
+        return Redirect::route('content-templates')->with('success', 'Tạo template thành công!');
     }
 
     public function edit(ContentTemplate $contentTemplate): Response
@@ -86,13 +109,13 @@ class ContentTemplatesController extends Controller
 
         $contentTemplate->update($validated);
 
-        return Redirect::back()->with('success', 'Content template updated.');
+        return Redirect::back()->with('success', 'Cập nhật template thành công!');
     }
 
     public function destroy(ContentTemplate $contentTemplate): RedirectResponse
     {
         $contentTemplate->delete();
 
-        return Redirect::back()->with('success', 'Content template deleted.');
+        return Redirect::back()->with('success', 'Đã xóa template.');
     }
 }

@@ -12,12 +12,8 @@
         <p class="page-subtitle">Quản lý bài đăng trên các nền tảng mạng xã hội</p>
       </div>
       <div class="header-actions">
-        <Link href="/content-studio">
-          <Button label="Content Studio" icon="pi pi-palette" severity="secondary" outlined />
-        </Link>
-        <Link href="/social-posts/create">
-          <Button label="Tạo bài đăng" icon="pi pi-plus" />
-        </Link>
+        <Link href="/content-studio"><button class="btn-secondary"><i class="pi pi-palette" /> Content Studio</button></Link>
+        <Link href="/social-posts/create"><button class="btn-primary"><i class="pi pi-plus" /> Tạo bài đăng</button></Link>
       </div>
     </div>
 
@@ -124,19 +120,13 @@
       <div class="empty-illustration"><i class="pi pi-send" /></div>
       <h3>Chưa có bài đăng nào</h3>
       <p>Sử dụng Content Studio để tạo & đăng bài tự động</p>
-      <Link href="/content-studio">
-        <Button label="Content Studio" icon="pi pi-palette" />
-      </Link>
+      <Link href="/content-studio"><button class="btn-primary"><i class="pi pi-palette" /> Content Studio</button></Link>
     </div>
 
     <!-- Pagination -->
     <div v-if="posts.total > posts.per_page" class="pagination-wrapper">
-      <Paginator
-        :first="(posts.current_page - 1) * posts.per_page"
-        :rows="posts.per_page"
-        :totalRecords="posts.total"
-        @page="onPageChange"
-      />
+      <span class="page-info">{{ posts.from }}–{{ posts.to }} / {{ posts.total }}</span>
+      <div class="page-btns"><button v-for="pg in pageNumbers" :key="pg" class="page-btn" :class="{ active: pg === posts.current_page, dots: pg === '...' }" :disabled="pg === '...'" @click="pg !== '...' && goToPage(pg)">{{ pg }}</button></div>
     </div>
   </div>
 </template>
@@ -144,23 +134,19 @@
 <script>
 import { Head, Link, router } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
-import Button from 'primevue/button'
-import Paginator from 'primevue/paginator'
-import { useTranslation } from '@/composables/useTranslation'
+
 
 export default {
-  components: { Head, Link, Button, Paginator },
+  components: { Head, Link },
   layout: Layout,
   props: { posts: Object },
-  setup() {
-    const { t } = useTranslation()
-    return { t }
-  },
+
   data() {
     return { activeFilter: 'all' }
   },
   computed: {
     totalItems() { return this.posts.total || this.posts.data?.length || 0 },
+    pageNumbers() { const t = this.posts.last_page, c = this.posts.current_page, p = []; if (!t) return p; if (t <= 7) { for (let i = 1; i <= t; i++) p.push(i) } else { p.push(1); if (c > 3) p.push('...'); for (let i = Math.max(2, c - 1); i <= Math.min(t - 1, c + 1); i++) p.push(i); if (c < t - 2) p.push('...'); p.push(t) } return p },
   },
   methods: {
     goToPost(post) { router.visit(`/social-posts/${post.id}`) },
@@ -170,8 +156,8 @@ export default {
       router.get('/social-posts', params, { preserveState: true })
     },
     retry(id) { router.post(`/social-posts/${id}/retry`, {}, { preserveScroll: true }) },
-    onPageChange(e) { router.get('/social-posts', { page: e.page + 1 }, { preserveState: true }) },
-    getStatusColor(s) {
+    goToPage(pg) { const u = new URL(window.location.href); u.searchParams.set('page', pg); router.visit(u.pathname + u.search, { preserveState: true, preserveScroll: true }) },
+      getStatusColor(s) {
       return { draft: '#94a3b8', scheduled: '#f59e0b', posting: '#3b82f6', published: '#10b981', failed: '#ef4444' }[s] || '#94a3b8'
     },
     getStatusLabel(s) {
@@ -320,9 +306,12 @@ export default {
 .empty-state p { font-size: 0.82rem; color: #94a3b8; margin: 0; }
 
 .pagination-wrapper {
-  display: flex; justify-content: center; padding: 0.85rem;
+  display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 1rem;
   margin-top: 1rem; background: white; border-radius: 12px; border: 1px solid #f1f5f9;
 }
+.page-info{font-size:.72rem;color:#94a3b8}.page-btns{display:flex;gap:.2rem}.page-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;font-size:.72rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}.page-btn:hover:not(.active):not(.dots){border-color:#6366f1;color:#6366f1}.page-btn.active{background:#6366f1;color:#fff;border-color:#6366f1}.page-btn.dots{border:none;cursor:default}
+.btn-primary{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;text-decoration:none}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}
+.btn-secondary{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}.btn-secondary:hover{border-color:#6366f1;color:#6366f1}
 
 @media (max-width: 768px) {
   .page-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }

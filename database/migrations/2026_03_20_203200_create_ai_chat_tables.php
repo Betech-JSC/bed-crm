@@ -36,6 +36,8 @@ return new class extends Migration
             $table->string('provider', 50)->nullable();
             $table->string('model', 100)->nullable();
             $table->json('metadata')->nullable();
+            $table->text('tool_calls')->nullable();
+            $table->text('tool_results')->nullable();
             $table->timestamps();
 
             $table->index(['conversation_id', 'created_at']);

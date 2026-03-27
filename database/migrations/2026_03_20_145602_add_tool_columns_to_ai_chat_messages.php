@@ -8,9 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!Schema::hasTable('ai_chat_messages')) {
+            return; // Table created in a later migration; columns will be added there
+        }
+
         Schema::table('ai_chat_messages', function (Blueprint $table) {
-            $table->text('tool_calls')->nullable()->after('metadata');
-            $table->text('tool_results')->nullable()->after('tool_calls');
+            if (!Schema::hasColumn('ai_chat_messages', 'tool_calls')) {
+                $table->text('tool_calls')->nullable()->after('metadata');
+            }
+            if (!Schema::hasColumn('ai_chat_messages', 'tool_results')) {
+                $table->text('tool_results')->nullable()->after('tool_calls');
+            }
         });
     }
 

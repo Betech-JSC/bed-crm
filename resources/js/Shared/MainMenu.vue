@@ -15,6 +15,7 @@
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.sales') }}</div>
       <MenuItem href="/leads" icon="pi pi-bullseye" :active="isUrl('leads')">{{ t('common.leads') }}</MenuItem>
+      <MenuItem href="/outbound-sales" icon="pi pi-send" :active="isUrl('outbound-sales')">Outbound Sales</MenuItem>
       <MenuItem href="/deals" icon="pi pi-briefcase" :active="isUrl('deals')">{{ t('common.deals') }}</MenuItem>
       <MenuItem href="/sales-pipeline" icon="pi pi-arrow-right-arrow-left" :active="isUrl('sales-pipeline')">Quy trình bán hàng</MenuItem>
       <MenuItem href="/contacts" icon="pi pi-id-card" :active="isUrl('contacts')">{{ t('common.contacts') }}</MenuItem>
@@ -32,16 +33,32 @@
       <MenuItem href="/dropship" icon="pi pi-truck" :active="isUrl('dropship')">Dropship</MenuItem>
     </div>
 
-    <!-- ═══ Customer & Projects ═══ -->
+    <!-- ═══ Loyalty (CSKH) ═══ -->
     <div class="menu-section">
-      <div class="menu-section-title">{{ t('common.customer_success') }}</div>
+      <div class="menu-section-title">Loyalty & CSKH</div>
       <MenuItem href="/customers" icon="pi pi-heart" :active="isUrl('customers')">{{ t('common.customers') }}</MenuItem>
+      <MenuItem href="/support-tickets" icon="pi pi-ticket" :active="isUrl('support-tickets')">Tickets Hỗ trợ</MenuItem>
+    </div>
+
+    <!-- ═══ Quản lý Dự án ═══ -->
+    <div class="menu-section">
+      <div class="menu-section-title">Quản lý Dự án</div>
       <MenuItem href="/projects" icon="pi pi-folder" :active="isUrl('projects')">{{ t('common.projects') }}</MenuItem>
+      <MenuItem href="/meetings" icon="pi pi-video" :active="isUrl('meetings')">Meetings</MenuItem>
     </div>
 
     <!-- ═══ Marketing ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.marketing') }}</div>
+      <MenuItem href="/web-forms" icon="pi pi-file-edit" :active="isUrl('web-forms')">Web Forms</MenuItem>
+      <MenuItem href="/utm-tracking" icon="pi pi-chart-line" :active="isUrl('utm-tracking')">UTM Tracking</MenuItem>
+      <MenuItem href="/landing-pages" icon="pi pi-desktop" :active="isUrl('landing-pages')">Landing Pages</MenuItem>
+      <MenuItem href="/seo-dashboard" icon="pi pi-search" :active="isUrl('seo-dashboard')">SEO Dashboard</MenuItem>
+      <MenuItem href="/content-calendar" icon="pi pi-calendar" :active="isUrl('content-calendar')">Content Calendar</MenuItem>
+      <MenuItem href="/customer-reviews" icon="pi pi-star" :active="isUrl('customer-reviews')">Customer Reviews</MenuItem>
+      <MenuItem href="/referral-program" icon="pi pi-users" :active="isUrl('referral-program')">Referral Program</MenuItem>
+      <MenuItem href="/link-bio" icon="pi pi-link" :active="isUrl('link-bio')">Link-in-Bio</MenuItem>
+      <MenuItem href="/qr-codes" icon="pi pi-qrcode" :active="isUrl('qr-codes')">QR Codes</MenuItem>
       <MenuItem href="/case-studies" icon="pi pi-trophy" :active="isUrl('case-studies')">{{ t('common.case_studies') }}</MenuItem>
       <MenuGroup
         :title="t('common.email_marketing')"
@@ -65,6 +82,12 @@
         <MenuItem href="/social-accounts" icon="pi pi-at" :active="isUrl('social-accounts')">{{ t('common.social_accounts') }}</MenuItem>
         <MenuItem href="/social-posts" icon="pi pi-send" :active="isUrl('social-posts')">{{ t('common.social_posts') }}</MenuItem>
       </MenuGroup>
+      <MenuItem href="/gmb-dashboard" icon="pi pi-map-marker" :active="isUrl('gmb-dashboard')">Google My Business</MenuItem>
+      <MenuItem href="/ai-content" icon="pi pi-sparkles" :active="isUrl('ai-content')">AI Content</MenuItem>
+      <MenuItem href="/chatbot-flows" icon="pi pi-comments" :active="isUrl('chatbot-flows')">Chatbot Flows</MenuItem>
+      <MenuItem href="/video-ads" icon="pi pi-video" :active="isUrl('video-ads')">Video Ads AI</MenuItem>
+      <MenuItem href="/ai-data-hub" icon="pi pi-database" :active="isUrl('ai-data-hub')">AI Data Hub</MenuItem>
+      <MenuItem href="/ai-agents" icon="pi pi-sparkles" :active="isUrl('ai-agents')">AI Agents</MenuItem>
     </div>
 
     <!-- ═══ Organization ═══ -->
@@ -75,6 +98,7 @@
       <MenuItem href="/hr/kpi-definitions" icon="pi pi-flag" :active="isUrl('hr/kpi-definitions')">{{ t('common.kpi_definitions') }}</MenuItem>
       <MenuItem href="/org-objectives" icon="pi pi-target" :active="isUrl('org-objectives')">{{ t('common.org_objectives') }}</MenuItem>
       <MenuItem href="/approvals" icon="pi pi-check-circle" :active="isUrl('approvals')">{{ t('common.approvals') }}</MenuItem>
+      <MenuItem href="/culture" icon="pi pi-heart-fill" :active="isUrl('culture')">Văn hóa DN</MenuItem>
     </div>
 
     <!-- ═══ Strategy & Finance ═══ -->
@@ -85,13 +109,16 @@
       <MenuItem href="/finance/transactions" icon="pi pi-wallet" :active="isUrl('finance/transactions')">{{ t('common.transactions') }}</MenuItem>
       <MenuItem href="/intelligence" icon="pi pi-sparkles" :active="isUrl('intelligence')">{{ t('common.intelligence') }}</MenuItem>
       <MenuItem href="/reports" icon="pi pi-chart-bar" :active="isUrl('reports')">{{ t('common.reports') }}</MenuItem>
+      <MenuItem href="/ceo-roadmap" icon="pi pi-flag-fill" :active="isUrl('ceo-roadmap')">Lộ trình CEO</MenuItem>
     </div>
 
     <!-- ═══ Tools ═══ -->
     <div class="menu-section">
       <div class="menu-section-title">{{ t('common.tools') }}</div>
+      <MenuItem href="/my-tasks" icon="pi pi-check-square" :active="isUrl('my-tasks')">Công việc cá nhân</MenuItem>
       <MenuItem href="/ai-chat" icon="pi pi-sparkles" :active="isUrl('ai-chat')">AI Chat</MenuItem>
       <MenuItem href="/ai-trends" icon="pi pi-bolt" :active="isUrl('ai-trends')">AI Trends</MenuItem>
+      <MenuItem href="/prompt-learning" icon="pi pi-graduation-cap" :active="isUrl('prompt-learning')">Học Prompts AI</MenuItem>
       <MenuItem href="/content-studio" icon="pi pi-palette" :active="isUrl('content-studio')">Content Studio</MenuItem>
       <MenuItem href="/wiki" icon="pi pi-book" :active="isUrl('wiki')">Wiki nội bộ</MenuItem>
       <MenuItem href="/files" icon="pi pi-folder-open" :active="isUrl('files')">{{ t('common.files') }}</MenuItem>

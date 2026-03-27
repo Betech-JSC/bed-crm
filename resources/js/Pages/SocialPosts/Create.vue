@@ -28,22 +28,10 @@
             <!-- Content Item -->
             <div class="form-group">
               <label>Nội dung <span class="required">*</span></label>
-              <Select
-                v-model="form.content_item_id"
-                :options="contentItems"
-                optionLabel="title"
-                optionValue="id"
-                placeholder="Chọn nội dung đã tạo..."
-                :class="{ 'p-invalid': form.errors.content_item_id }"
-                class="w-full"
-              >
-                <template #option="{ option }">
-                  <div class="option-item">
-                    <span class="option-title">{{ option.title || 'Không tiêu đề' }}</span>
-                    <span class="option-preview">{{ option.content }}</span>
-                  </div>
-                </template>
-              </Select>
+              <select v-model="form.content_item_id" class="form-select" :class="{ err: form.errors.content_item_id }">
+                <option :value="null">— Chọn nội dung —</option>
+                <option v-for="item in contentItems" :key="item.id" :value="item.id">{{ item.title || 'Không tiêu đề' }}</option>
+              </select>
               <small v-if="form.errors.content_item_id" class="form-error">{{ form.errors.content_item_id }}</small>
             </div>
 
@@ -103,29 +91,13 @@
                   <i class="pi pi-clock" /> Hẹn giờ
                 </button>
               </div>
-              <Calendar
-                v-if="scheduleMode"
-                v-model="scheduledDate"
-                showTime
-                hourFormat="24"
-                :minDate="new Date()"
-                placeholder="Chọn ngày & giờ"
-                class="w-full"
-              />
+              <input v-if="scheduleMode" type="datetime-local" v-model="scheduledDateStr" class="form-input" :min="minDateStr" />
             </div>
 
             <!-- Actions -->
             <div class="form-actions">
-              <Link href="/social-posts">
-                <Button label="Hủy" severity="secondary" text />
-              </Link>
-              <Button
-                :label="scheduleMode ? '📅 Lên lịch' : '🚀 Đăng ngay'"
-                :icon="scheduleMode ? 'pi pi-clock' : 'pi pi-send'"
-                :loading="form.processing"
-                type="submit"
-                class="submit-btn"
-              />
+              <Link href="/social-posts"><button type="button" class="btn-cancel">Hủy</button></Link>
+              <button type="submit" class="btn-submit" :disabled="form.processing"><i v-if="form.processing" class="pi pi-spin pi-spinner" /><i v-else :class="scheduleMode ? 'pi pi-clock' : 'pi pi-send'" /> {{ scheduleMode ? 'Lên lịch' : 'Đăng ngay' }}</button>
             </div>
           </form>
         </div>
@@ -159,9 +131,7 @@
         <div class="quick-card">
           <h4>AI Content Studio</h4>
           <p>Tạo content + thumbnail bằng AI, tối ưu theo từng nền tảng</p>
-          <Link href="/content-studio">
-            <Button label="Mở Studio" icon="pi pi-palette" size="small" severity="secondary" outlined class="w-full" />
-          </Link>
+          <Link href="/content-studio"><button class="btn-studio"><i class="pi pi-palette" /> Mở Studio</button></Link>
         </div>
       </div>
     </div>
@@ -171,12 +141,8 @@
 <script>
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import Layout from '@/Shared/Layout.vue'
-import Select from 'primevue/select'
-import Calendar from 'primevue/calendar'
-import Button from 'primevue/button'
-
 export default {
-  components: { Head, Link, Select, Calendar, Button },
+  components: { Head, Link },
   layout: Layout,
   props: {
     contentItems: Array,
@@ -190,12 +156,15 @@ export default {
         content: '',
         scheduled_at: null,
       }),
-      scheduledDate: null,
+      scheduledDateStr: '',
       scheduleMode: false,
     }
   },
+  computed: {
+    minDateStr() { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16) },
+  },
   watch: {
-    scheduledDate(val) { this.form.scheduled_at = val ? val.toISOString() : null },
+    scheduledDateStr(val) { this.form.scheduled_at = val ? new Date(val).toISOString() : null },
   },
   methods: {
     store() { this.form.post('/social-posts') },
@@ -294,19 +263,17 @@ export default {
 .schedule-opt.active { border-color: #6366f1; background: #eef2ff; color: #6366f1; font-weight: 600; }
 .schedule-opt i { font-size: 0.72rem; }
 
-/* Options */
-.option-item {}
-.option-title { font-weight: 600; display: block; }
-.option-preview { font-size: 0.72rem; color: #94a3b8; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 350px; }
+/* Form select & input */
+.form-select,.form-input{padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.82rem;color:#334155;transition:all .2s;background:#fafbfc;outline:none;font-family:inherit;width:100%;box-sizing:border-box}.form-select:focus,.form-input:focus{border-color:#6366f1;background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.1)}.err{border-color:#ef4444!important}
 
 /* Actions */
 .form-actions {
   display: flex; justify-content: flex-end; gap: 0.5rem;
   padding-top: 1rem; margin-top: 0.5rem; border-top: 1px solid #f8fafc;
 }
-.submit-btn {
-  border-radius: 10px !important;
-}
+.btn-cancel{padding:.55rem 1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}.btn-cancel:hover{background:#f8fafc}
+.btn-submit{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:all .2s}.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}.btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-studio{display:flex;align-items:center;justify-content:center;gap:.35rem;width:100%;padding:.5rem;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;color:#6366f1;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none}.btn-studio:hover{border-color:#6366f1;background:#eef2ff}
 
 /* ===== Sidebar ===== */
 .sidebar-panel { display: flex; flex-direction: column; gap: 0.85rem; }

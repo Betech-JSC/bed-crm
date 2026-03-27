@@ -20,7 +20,7 @@
           <div class="form-row">
             <div class="form-group flex-1"><label>Khách hàng</label><Select v-model="form.customer_id" :options="customers" optionLabel="name" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
             <div class="form-group flex-1"><label>Lead</label><Select v-model="form.lead_id" :options="leads" optionLabel="company" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
-            <div class="form-group flex-1"><label>Deal</label><Select v-model="form.deal_id" :options="deals" optionLabel="name" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
+            <div class="form-group flex-1"><label>Deal</label><Select v-model="form.deal_id" :options="deals" optionLabel="title" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
           </div>
           <div class="form-row">
             <div class="form-group flex-1"><label>Ngày tạo</label><InputText v-model="form.issue_date" type="date" class="w-full" /></div>

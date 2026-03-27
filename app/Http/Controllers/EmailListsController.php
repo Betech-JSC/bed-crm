@@ -17,19 +17,38 @@ class EmailListsController extends Controller
 {
     public function index(): Response
     {
+        $accountId = Auth::user()->account_id;
+        $baseQuery = EmailList::where('account_id', $accountId);
+
+        // Stats
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'total_contacts' => (clone $baseQuery)->sum('contacts_count'),
+            'manual' => (clone $baseQuery)->where('type', 'manual')->count(),
+            'dynamic' => (clone $baseQuery)->where('type', 'dynamic')->count(),
+        ];
+
+        $lists = $baseQuery
+            ->when(Request::input('search'), fn ($q, $search) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (EmailList $list) => [
+                'id' => $list->id,
+                'name' => $list->name,
+                'description' => $list->description,
+                'type' => $list->type,
+                'contacts_count' => $list->contacts_count,
+                'is_active' => $list->is_active,
+                'created_at' => $list->created_at->format('d/m/Y H:i'),
+            ]);
+
         return Inertia::render('EmailLists/Index', [
-            'lists' => Auth::user()->account->emailLists()
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($list) => [
-                    'id' => $list->id,
-                    'name' => $list->name,
-                    'description' => $list->description,
-                    'type' => $list->type,
-                    'contacts_count' => $list->contacts_count,
-                    'is_active' => $list->is_active,
-                    'created_at' => $list->created_at->format('Y-m-d H:i'),
-                ]),
+            'lists' => $lists,
+            'stats' => $stats,
+            'filters' => Request::only('search'),
         ]);
     }
 
@@ -56,12 +75,11 @@ class EmailListsController extends Controller
 
         $list = EmailList::create($validated);
 
-        return Redirect::route('email-lists.show', $list)->with('success', 'Email list created.');
+        return Redirect::route('email-lists.show', $list)->with('success', 'Danh sách đã tạo thành công.');
     }
 
     public function show(EmailList $emailList): Response
     {
-        // Ensure list belongs to user's account
         if ($emailList->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -69,14 +87,15 @@ class EmailListsController extends Controller
         $contacts = $emailList->listContacts()
             ->whereNull('unsubscribed_at')
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn ($listContact) => [
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn ($listContact) => [
                 'id' => $listContact->id,
                 'email' => $listContact->email,
                 'name' => $listContact->name,
                 'contact_type' => $listContact->contact_type,
                 'contact_id' => $listContact->contact_id,
-                'subscribed_at' => $listContact->subscribed_at?->format('Y-m-d H:i'),
+                'subscribed_at' => $listContact->subscribed_at?->format('d/m/Y H:i'),
             ]);
 
         return Inertia::render('EmailLists/Show', [
@@ -93,27 +112,20 @@ class EmailListsController extends Controller
             'availableContacts' => Auth::user()->account->contacts()
                 ->whereNotNull('email')
                 ->orderBy('first_name')
+                ->limit(200)
                 ->get()
-                ->map(fn ($contact) => [
-                    'id' => $contact->id,
-                    'name' => $contact->name,
-                    'email' => $contact->email,
-                ]),
+                ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'email' => $c->email]),
             'availableLeads' => Auth::user()->account->leads()
                 ->whereNotNull('email')
                 ->orderBy('name')
+                ->limit(200)
                 ->get()
-                ->map(fn ($lead) => [
-                    'id' => $lead->id,
-                    'name' => $lead->name,
-                    'email' => $lead->email,
-                ]),
+                ->map(fn ($l) => ['id' => $l->id, 'name' => $l->name, 'email' => $l->email]),
         ]);
     }
 
     public function edit(EmailList $emailList): Response
     {
-        // Ensure list belongs to user's account
         if ($emailList->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -133,7 +145,6 @@ class EmailListsController extends Controller
 
     public function update(EmailList $emailList): RedirectResponse
     {
-        // Ensure list belongs to user's account
         if ($emailList->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -148,29 +159,26 @@ class EmailListsController extends Controller
 
         $emailList->update($validated);
 
-        // Update contacts count if dynamic list
         if ($emailList->type === 'dynamic') {
             $this->updateDynamicList($emailList);
         }
 
-        return Redirect::route('email-lists.show', $emailList)->with('success', 'Email list updated.');
+        return Redirect::route('email-lists.show', $emailList)->with('success', 'Danh sách đã cập nhật.');
     }
 
     public function destroy(EmailList $emailList): RedirectResponse
     {
-        // Ensure list belongs to user's account
         if ($emailList->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
         $emailList->delete();
 
-        return Redirect::route('email-lists.index')->with('success', 'Email list deleted.');
+        return Redirect::route('email-lists.index')->with('success', 'Danh sách đã xóa.');
     }
 
     public function addContact(EmailList $emailList): RedirectResponse
     {
-        // Ensure list belongs to user's account
         if ($emailList->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -180,15 +188,14 @@ class EmailListsController extends Controller
             'contact_id' => ['required', 'integer'],
         ]);
 
-        $contact = $validated['contact_type'] === 'contact' 
+        $contact = $validated['contact_type'] === 'contact'
             ? Contact::find($validated['contact_id'])
             : Lead::find($validated['contact_id']);
 
         if (!$contact || $contact->account_id !== Auth::user()->account_id || !$contact->email) {
-            return Redirect::back()->with('error', 'Contact not found or has no email.');
+            return Redirect::back()->with('error', 'Không tìm thấy liên hệ hoặc thiếu email.');
         }
 
-        // Check if already in list
         $existing = EmailListContact::where('email_list_id', $emailList->id)
             ->where('contact_type', $validated['contact_type'])
             ->where('contact_id', $validated['contact_id'])
@@ -196,11 +203,11 @@ class EmailListsController extends Controller
 
         if ($existing) {
             if ($existing->unsubscribed_at) {
-                // Resubscribe
-                $existing->unsubscribed_at = null;
-                $existing->unsubscribe_reason = null;
-                $existing->subscribed_at = now();
-                $existing->save();
+                $existing->update([
+                    'unsubscribed_at' => null,
+                    'unsubscribe_reason' => null,
+                    'subscribed_at' => now(),
+                ]);
             }
         } else {
             EmailListContact::create([
@@ -208,20 +215,19 @@ class EmailListsController extends Controller
                 'contact_type' => $validated['contact_type'],
                 'contact_id' => $validated['contact_id'],
                 'email' => $contact->email,
-                'name' => $contact->name ?? ($contact->first_name . ' ' . $contact->last_name ?? ''),
+                'name' => $contact->name ?? ($contact->first_name . ' ' . ($contact->last_name ?? '')),
                 'subscribed_at' => now(),
             ]);
         }
 
         $emailList->updateContactsCount();
 
-        return Redirect::back()->with('success', 'Contact added to list.');
+        return Redirect::back()->with('success', 'Đã thêm liên hệ vào danh sách.');
     }
 
     public function removeContact(EmailList $emailList, EmailListContact $emailListContact): RedirectResponse
     {
-        // Ensure list and contact belong to user's account
-        if ($emailList->account_id !== Auth::user()->account_id || 
+        if ($emailList->account_id !== Auth::user()->account_id ||
             $emailListContact->email_list_id !== $emailList->id) {
             abort(403);
         }
@@ -229,22 +235,15 @@ class EmailListsController extends Controller
         $emailListContact->delete();
         $emailList->updateContactsCount();
 
-        return Redirect::back()->with('success', 'Contact removed from list.');
+        return Redirect::back()->with('success', 'Đã xóa liên hệ khỏi danh sách.');
     }
 
-    /**
-     * Update dynamic list based on filters
-     */
     private function updateDynamicList(EmailList $list): void
     {
-        // Remove all existing contacts
         $list->listContacts()->delete();
-
         $filters = $list->filters ?? [];
-        
-        // Apply filters to contacts and leads
-        // This is a simplified version - in production, you'd have more complex filtering
-        if (isset($filters['include_contacts']) && $filters['include_contacts']) {
+
+        if (!empty($filters['include_contacts'])) {
             $contacts = Auth::user()->account->contacts()
                 ->whereNotNull('email')
                 ->get();
@@ -261,7 +260,7 @@ class EmailListsController extends Controller
             }
         }
 
-        if (isset($filters['include_leads']) && $filters['include_leads']) {
+        if (!empty($filters['include_leads'])) {
             $leads = Auth::user()->account->leads()
                 ->whereNotNull('email')
                 ->get();

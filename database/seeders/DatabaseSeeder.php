@@ -66,7 +66,7 @@ class DatabaseSeeder extends Seeder
                 $contact->update(['organization_id' => $organizations->random()->id]);
             });
 
-        // Seed additional data for testing CRM features
+        // ── Core CRM ──
         $this->call([
             ICPSeeder::class,
             SLASettingSeeder::class,
@@ -75,6 +75,46 @@ class DatabaseSeeder extends Seeder
             ActivitySeeder::class,
             SalesPlaybookSeeder::class,
             ProposalSeeder::class,
+        ]);
+
+        // ── Organization & HR ──
+        $this->call([
+            DepartmentTeamSeeder::class,
+        ]);
+
+        // ── Products & Commercial ──
+        $this->call([
+            ProductSeeder::class,
+            CustomerSuccessSeeder::class,
+            ContractQuotationSeeder::class,
+        ]);
+
+        // ── Projects & Support ──
+        $this->call([
+            ProjectManagementSeeder::class,
+            SupportTicketSeeder::class,
+            MeetingSeeder::class,
+        ]);
+
+        // ── Content & Social ──
+        $this->call([
+            ContentTemplateSeeder::class,
+            ContentItemSeeder::class,
+            SocialAccountSeeder::class,
+            SocialPostSeeder::class,
+        ]);
+
+        // ── Email Marketing ──
+        $this->call([
+            EmailTemplateSeeder::class,
+            EmailListSeeder::class,
+            EmailCampaignSeeder::class,
+        ]);
+
+        // ── Knowledge Base ──
+        $this->call([
+            WikiBusinessLawSeeder::class,
+            WikiLaw2026Seeder::class,
         ]);
     }
 }

@@ -21,23 +21,51 @@ class ContentItemsController extends Controller
 
     public function index(): Response
     {
+        $account = Auth::user()->account;
+        $accountId = $account->id;
+
+        $query = $account->contentItems()
+            ->with(['creator', 'template'])
+            ->orderBy('created_at', 'desc');
+
+        if ($search = Request::input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status = Request::input('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($type = Request::input('type')) {
+            $query->where('type', $type);
+        }
+
+        // Stats
+        $stats = [
+            'total' => ContentItem::where('account_id', $accountId)->count(),
+            'draft' => ContentItem::where('account_id', $accountId)->where('status', 'draft')->count(),
+            'approved' => ContentItem::where('account_id', $accountId)->where('status', 'approved')->count(),
+            'published' => ContentItem::where('account_id', $accountId)->where('status', 'published')->count(),
+        ];
+
         return Inertia::render('ContentItems/Index', [
-            'contentItems' => Auth::user()->account->contentItems()
-                ->with(['creator', 'template'])
-                ->orderBy('created_at', 'desc')
-                ->paginate(20)
-                ->through(fn ($item) => [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'type' => $item->type,
-                    'content' => substr($item->content, 0, 150) . '...',
-                    'status' => $item->status,
-                    'ai_model' => $item->ai_model,
-                    'usage_count' => $item->usage_count,
-                    'creator' => $item->creator ? $item->creator->first_name . ' ' . $item->creator->last_name : null,
-                    'template' => $item->template ? $item->template->name : null,
-                    'created_at' => $item->created_at->format('Y-m-d H:i'),
-                ]),
+            'contentItems' => $query->paginate(15)->through(fn ($item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'type' => $item->type,
+                'content' => $item->content ? mb_substr($item->content, 0, 120) . '...' : '',
+                'status' => $item->status,
+                'ai_model' => $item->ai_model,
+                'usage_count' => $item->usage_count,
+                'creator' => $item->creator ? $item->creator->first_name . ' ' . $item->creator->last_name : null,
+                'template' => $item->template ? $item->template->name : null,
+                'created_at' => $item->created_at->format('d/m/Y H:i'),
+            ]),
+            'stats' => $stats,
+            'filters' => Request::only('search', 'status', 'type'),
         ]);
     }
 
@@ -76,7 +104,7 @@ class ContentItemsController extends Controller
 
         $contentItem = $this->contentService->generateFromTemplate($template, $variables, $options);
 
-        return Redirect::route('content-items.show', $contentItem->id)->with('success', 'Content generated successfully.');
+        return Redirect::route('content-items.show', $contentItem->id)->with('success', 'Nội dung đã được tạo!');
     }
 
     public function show(ContentItem $contentItem): Response
@@ -101,7 +129,7 @@ class ContentItemsController extends Controller
                     'id' => $contentItem->template->id,
                     'name' => $contentItem->template->name,
                 ] : null,
-                'created_at' => $contentItem->created_at->format('Y-m-d H:i'),
+                'created_at' => $contentItem->created_at->format('d/m/Y H:i'),
             ],
             'socialAccounts' => Auth::user()->account->socialAccounts()
                 ->active()
@@ -143,14 +171,14 @@ class ContentItemsController extends Controller
 
         $contentItem->update($validated);
 
-        return Redirect::back()->with('success', 'Content updated.');
+        return Redirect::back()->with('success', 'Cập nhật nội dung thành công!');
     }
 
     public function destroy(ContentItem $contentItem): RedirectResponse
     {
         $contentItem->delete();
 
-        return Redirect::route('content-items')->with('success', 'Content deleted.');
+        return Redirect::route('content-items')->with('success', 'Đã xóa nội dung.');
     }
 
     public function generateVariations(ContentItem $contentItem): RedirectResponse
@@ -160,7 +188,7 @@ class ContentItemsController extends Controller
         ]);
 
         if (!$contentItem->template) {
-            return Redirect::back()->with('error', 'Content item must have a template to generate variations.');
+            return Redirect::back()->with('error', 'Nội dung cần có template để tạo biến thể.');
         }
 
         $variations = $this->contentService->generateVariations(
@@ -170,7 +198,7 @@ class ContentItemsController extends Controller
             ['type' => $contentItem->type]
         );
 
-        return Redirect::route('content-items')->with('success', count($variations) . ' variations generated.');
+        return Redirect::route('content-items')->with('success', count($variations) . ' biến thể đã được tạo.');
     }
 
     public function optimizeForPlatform(ContentItem $contentItem): RedirectResponse
@@ -181,6 +209,6 @@ class ContentItemsController extends Controller
 
         $optimized = $this->contentService->optimizeForPlatform($contentItem, $validated['platform']);
 
-        return Redirect::route('content-items.show', $optimized->id)->with('success', 'Content optimized for ' . $validated['platform']);
+        return Redirect::route('content-items.show', $optimized->id)->with('success', 'Đã tối ưu cho ' . $validated['platform']);
     }
 }

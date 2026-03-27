@@ -1,12 +1,12 @@
 <template>
   <div>
-    <Head :title="t('common.customer_success')" />
+    <Head title="Loyalty & CSKH" />
 
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title"><i class="pi pi-heart" style="color: #ef4444; margin-right: 0.5rem;" />{{ t('common.customer_success') }}</h1>
-        <p class="page-subtitle">{{ analytics.total_customers }} khách hàng · Theo dõi sức khỏe & tăng trưởng</p>
+        <h1 class="page-title"><i class="pi pi-heart" style="color: #f59e0b; margin-right: 0.5rem;" />Loyalty & CSKH</h1>
+        <p class="page-subtitle">{{ analytics.total_customers }} khách hàng · Chăm sóc, giữ chân & phát triển</p>
       </div>
       <Link href="/customers/create"><Button :label="t('common.create_customer')" icon="pi pi-plus" /></Link>
     </div>

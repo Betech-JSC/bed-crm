@@ -20,26 +20,53 @@ class EmailCampaignsController extends Controller
 
     public function index(): Response
     {
+        $accountId = Auth::user()->account_id;
+        $baseQuery = EmailCampaign::where('account_id', $accountId);
+
+        // Stats (before filtering)
+        $allCampaigns = (clone $baseQuery)->get();
+        $stats = [
+            'total' => $allCampaigns->count(),
+            'total_sent' => $allCampaigns->sum('sent_count'),
+            'delivered' => $allCampaigns->sum('delivered_count'),
+            'avg_open_rate' => $allCampaigns->where('sent_count', '>', 0)->avg('open_rate') ? round($allCampaigns->where('sent_count', '>', 0)->avg('open_rate'), 1) : 0,
+            'avg_click_rate' => $allCampaigns->where('sent_count', '>', 0)->avg('click_rate') ? round($allCampaigns->where('sent_count', '>', 0)->avg('click_rate'), 1) : 0,
+            'by_status' => $allCampaigns->groupBy('status')->map->count(),
+        ];
+
+        $campaigns = $baseQuery
+            ->with(['emailTemplate:id,name', 'emailList:id,name'])
+            ->when(Request::input('search'), function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('subject', 'like', "%{$search}%");
+                });
+            })
+            ->when(Request::input('status'), fn ($q, $status) => $q->where('status', $status))
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (EmailCampaign $c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'subject' => $c->subject,
+                'status' => $c->status,
+                'email_list' => $c->emailList?->name,
+                'total_recipients' => $c->total_recipients,
+                'sent_count' => $c->sent_count,
+                'opened_count' => $c->opened_count,
+                'clicked_count' => $c->clicked_count,
+                'open_rate' => $c->open_rate,
+                'click_rate' => $c->click_rate,
+                'scheduled_at' => $c->scheduled_at?->format('d/m/Y H:i'),
+                'sent_at' => $c->sent_at?->format('d/m/Y H:i'),
+                'created_at' => $c->created_at->format('d/m/Y H:i'),
+            ]);
+
         return Inertia::render('EmailCampaigns/Index', [
-            'campaigns' => Auth::user()->account->emailCampaigns()
-                ->with(['emailTemplate', 'emailList'])
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($campaign) => [
-                    'id' => $campaign->id,
-                    'name' => $campaign->name,
-                    'status' => $campaign->status,
-                    'email_list' => $campaign->emailList?->name,
-                    'total_recipients' => $campaign->total_recipients,
-                    'sent_count' => $campaign->sent_count,
-                    'opened_count' => $campaign->opened_count,
-                    'clicked_count' => $campaign->clicked_count,
-                    'open_rate' => $campaign->open_rate,
-                    'click_rate' => $campaign->click_rate,
-                    'scheduled_at' => $campaign->scheduled_at?->format('Y-m-d H:i'),
-                    'sent_at' => $campaign->sent_at?->format('Y-m-d H:i'),
-                    'created_at' => $campaign->created_at->format('Y-m-d H:i'),
-                ]),
+            'campaigns' => $campaigns,
+            'stats' => $stats,
+            'filters' => Request::only('search', 'status'),
         ]);
     }
 
@@ -49,19 +76,11 @@ class EmailCampaignsController extends Controller
             'templates' => Auth::user()->account->emailTemplates()
                 ->where('is_active', true)
                 ->get()
-                ->map(fn ($template) => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'subject' => $template->subject,
-                ]),
+                ->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'subject' => $t->subject]),
             'lists' => Auth::user()->account->emailLists()
                 ->where('is_active', true)
                 ->get()
-                ->map(fn ($list) => [
-                    'id' => $list->id,
-                    'name' => $list->name,
-                    'contacts_count' => $list->contacts_count,
-                ]),
+                ->map(fn ($l) => ['id' => $l->id, 'name' => $l->name, 'contacts_count' => $l->contacts_count]),
         ]);
     }
 
@@ -80,18 +99,17 @@ class EmailCampaignsController extends Controller
 
         $validated['account_id'] = Auth::user()->account_id;
         $validated['created_by'] = Auth::id();
-        $validated['status'] = $validated['scheduled_at'] 
-            ? EmailCampaign::STATUS_SCHEDULED 
+        $validated['status'] = $validated['scheduled_at']
+            ? EmailCampaign::STATUS_SCHEDULED
             : EmailCampaign::STATUS_DRAFT;
 
         $campaign = EmailCampaign::create($validated);
 
-        return Redirect::route('email-campaigns.show', $campaign)->with('success', 'Email campaign created.');
+        return Redirect::route('email-campaigns.show', $campaign)->with('success', 'Campaign đã tạo thành công.');
     }
 
     public function show(EmailCampaign $emailCampaign): Response
     {
-        // Ensure campaign belongs to user's account
         if ($emailCampaign->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -109,8 +127,8 @@ class EmailCampaignsController extends Controller
                 'status' => $emailCampaign->status,
                 'email_list_id' => $emailCampaign->email_list_id,
                 'email_list_name' => $emailCampaign->emailList?->name,
-                'scheduled_at' => $emailCampaign->scheduled_at?->format('Y-m-d H:i'),
-                'sent_at' => $emailCampaign->sent_at?->format('Y-m-d H:i'),
+                'scheduled_at' => $emailCampaign->scheduled_at?->format('d/m/Y H:i'),
+                'sent_at' => $emailCampaign->sent_at?->format('d/m/Y H:i'),
                 'total_recipients' => $emailCampaign->total_recipients,
                 'sent_count' => $emailCampaign->sent_count,
                 'delivered_count' => $emailCampaign->delivered_count,
@@ -126,7 +144,6 @@ class EmailCampaignsController extends Controller
 
     public function edit(EmailCampaign $emailCampaign): Response
     {
-        // Ensure campaign belongs to user's account
         if ($emailCampaign->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -147,32 +164,22 @@ class EmailCampaignsController extends Controller
             'templates' => Auth::user()->account->emailTemplates()
                 ->where('is_active', true)
                 ->get()
-                ->map(fn ($template) => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'subject' => $template->subject,
-                ]),
+                ->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'subject' => $t->subject]),
             'lists' => Auth::user()->account->emailLists()
                 ->where('is_active', true)
                 ->get()
-                ->map(fn ($list) => [
-                    'id' => $list->id,
-                    'name' => $list->name,
-                    'contacts_count' => $list->contacts_count,
-                ]),
+                ->map(fn ($l) => ['id' => $l->id, 'name' => $l->name, 'contacts_count' => $l->contacts_count]),
         ]);
     }
 
     public function update(EmailCampaign $emailCampaign): RedirectResponse
     {
-        // Ensure campaign belongs to user's account
         if ($emailCampaign->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
-        // Can't edit if already sent
         if ($emailCampaign->status === EmailCampaign::STATUS_SENT) {
-            return Redirect::back()->with('error', 'Cannot edit a sent campaign.');
+            return Redirect::back()->with('error', 'Không thể chỉnh sửa campaign đã gửi.');
         }
 
         $validated = Request::validate([
@@ -192,40 +199,37 @@ class EmailCampaignsController extends Controller
 
         $emailCampaign->update($validated);
 
-        return Redirect::route('email-campaigns.show', $emailCampaign)->with('success', 'Email campaign updated.');
+        return Redirect::route('email-campaigns.show', $emailCampaign)->with('success', 'Campaign đã cập nhật.');
     }
 
     public function send(EmailCampaign $emailCampaign): RedirectResponse
     {
-        // Ensure campaign belongs to user's account
         if ($emailCampaign->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
-        if ($emailCampaign->status !== EmailCampaign::STATUS_DRAFT && 
+        if ($emailCampaign->status !== EmailCampaign::STATUS_DRAFT &&
             $emailCampaign->status !== EmailCampaign::STATUS_SCHEDULED) {
-            return Redirect::back()->with('error', 'Campaign cannot be sent in current status.');
+            return Redirect::back()->with('error', 'Campaign không thể gửi ở trạng thái hiện tại.');
         }
 
-        // Send campaign (in production, this should be queued)
         $this->emailService->sendCampaign($emailCampaign);
 
-        return Redirect::back()->with('success', 'Campaign sent successfully.');
+        return Redirect::back()->with('success', 'Campaign đã gửi thành công!');
     }
 
     public function destroy(EmailCampaign $emailCampaign): RedirectResponse
     {
-        // Ensure campaign belongs to user's account
         if ($emailCampaign->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
         if ($emailCampaign->status === EmailCampaign::STATUS_SENDING) {
-            return Redirect::back()->with('error', 'Cannot delete a campaign that is currently sending.');
+            return Redirect::back()->with('error', 'Không thể xóa campaign đang gửi.');
         }
 
         $emailCampaign->delete();
 
-        return Redirect::route('email-campaigns.index')->with('success', 'Email campaign deleted.');
+        return Redirect::route('email-campaigns.index')->with('success', 'Campaign đã xóa.');
     }
 }

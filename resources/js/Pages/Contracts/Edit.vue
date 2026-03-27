@@ -17,7 +17,7 @@
           <div class="form-group"><label>Tiêu đề</label><InputText v-model="form.title" class="w-full" /></div>
           <div class="form-row">
             <div class="form-group flex-1"><label>Khách hàng</label><Select v-model="form.customer_id" :options="customers" optionLabel="name" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
-            <div class="form-group flex-1"><label>Deal</label><Select v-model="form.deal_id" :options="deals" optionLabel="name" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
+            <div class="form-group flex-1"><label>Deal</label><Select v-model="form.deal_id" :options="deals" optionLabel="title" optionValue="id" placeholder="Chọn" showClear filter class="w-full" /></div>
             <div class="form-group flex-1"><label>Từ báo giá</label><Select v-model="form.quotation_id" :options="quotations" optionLabel="quote_number" optionValue="id" placeholder="Chọn" showClear class="w-full" /></div>
           </div>
           <div class="form-group"><label>Loại HĐ</label>

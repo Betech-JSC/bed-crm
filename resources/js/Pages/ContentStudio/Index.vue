@@ -238,6 +238,133 @@
               </div>
             </div>
 
+            <!-- ═══ MULTI-IMAGE GENERATOR ═══ -->
+            <div class="social-images-section">
+              <div class="section-header-row">
+                <h4 class="section-label"><i class="pi pi-images" /> Ảnh đính kèm ({{ socialImages.length }}/10)</h4>
+                <span class="img-hint">Tạo nhiều ảnh bằng AI hoặc nhập prompt riêng cho mỗi ảnh</span>
+              </div>
+
+              <!-- Quick Generate -->
+              <div class="img-gen-toolbar">
+                <input
+                  v-model="socialImgPrompt"
+                  type="text"
+                  class="form-select img-prompt-input"
+                  :placeholder="form.language === 'vi' ? 'Mô tả ảnh cần tạo (VD: sản phẩm trên nền trắng)...' : 'Describe the image...'"
+                  @keyup.enter="generateSocialImage"
+                />
+                <select v-model="socialImgStyle" class="form-select img-style-select">
+                  <option value="modern">Modern</option>
+                  <option value="vibrant">Vibrant</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="corporate">Corporate</option>
+                  <option value="creative">Creative</option>
+                  <option value="photo">Realistic</option>
+                  <option value="flat">Flat Design</option>
+                  <option value="gradient">Gradient</option>
+                </select>
+                <select v-model="socialImgRatio" class="form-select img-ratio-select">
+                  <option value="1:1">1:1 Vuông</option>
+                  <option value="4:5">4:5 IG Feed</option>
+                  <option value="16:9">16:9 Ngang</option>
+                  <option value="9:16">9:16 Story</option>
+                </select>
+                <Button
+                  label="Tạo ảnh"
+                  icon="pi pi-sparkles"
+                  size="small"
+                  @click="generateSocialImage"
+                  :loading="isGenSocialImg"
+                  :disabled="isGenSocialImg || socialImages.length >= 10"
+                  class="img-gen-btn-sm"
+                />
+              </div>
+
+              <!-- Batch quick-generate -->
+              <div class="batch-row">
+                <button
+                  type="button"
+                  class="batch-btn"
+                  @click="batchGenerateImages(3)"
+                  :disabled="isGenSocialImg || socialImages.length >= 8"
+                >
+                  <i class="pi pi-images" /> Tạo nhanh 3 ảnh
+                </button>
+                <button
+                  type="button"
+                  class="batch-btn"
+                  @click="batchGenerateImages(5)"
+                  :disabled="isGenSocialImg || socialImages.length >= 6"
+                >
+                  <i class="pi pi-th-large" /> Tạo nhanh 5 ảnh
+                </button>
+                <button
+                  v-if="socialImages.length"
+                  type="button"
+                  class="batch-btn batch-btn--danger"
+                  @click="socialImages = []"
+                >
+                  <i class="pi pi-trash" /> Xóa tất cả
+                </button>
+              </div>
+
+              <!-- Image Gallery Grid -->
+              <div v-if="socialImages.length" class="social-img-gallery">
+                <div
+                  v-for="(img, idx) in socialImages" :key="idx"
+                  class="social-img-card"
+                  :class="{ generating: img.loading }"
+                >
+                  <!-- Loading state -->
+                  <div v-if="img.loading" class="img-loading-state">
+                    <i class="pi pi-spin pi-spinner" />
+                    <span>Đang tạo...</span>
+                  </div>
+                  <!-- Image -->
+                  <template v-else>
+                    <img :src="img.url" :alt="img.prompt || 'Social image'" class="social-img" />
+                    <div class="img-overlay">
+                      <div class="img-overlay-actions">
+                        <button type="button" class="img-act-btn" title="Tạo lại" @click="regenerateSingleImage(idx)">
+                          <i class="pi pi-refresh" />
+                        </button>
+                        <button type="button" class="img-act-btn" title="Copy URL" @click="copySocialImgUrl(img.url)">
+                          <i class="pi pi-copy" />
+                        </button>
+                        <button type="button" class="img-act-btn img-act-btn--danger" title="Xóa" @click="removeSocialImage(idx)">
+                          <i class="pi pi-trash" />
+                        </button>
+                      </div>
+                    </div>
+                    <div class="img-card-info">
+                      <span class="img-idx">{{ idx + 1 }}</span>
+                      <span class="img-card-style">{{ img.style || 'modern' }}</span>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- Add More Card -->
+                <button
+                  v-if="socialImages.length < 10"
+                  type="button"
+                  class="social-img-card add-card"
+                  @click="generateSocialImage"
+                  :disabled="isGenSocialImg"
+                >
+                  <i class="pi pi-plus" />
+                  <span>Thêm ảnh</span>
+                </button>
+              </div>
+
+              <!-- Empty state -->
+              <div v-else class="social-img-empty">
+                <i class="pi pi-image" />
+                <p>Nhập mô tả và nhấn "Tạo ảnh" để tạo ảnh đính kèm bài social</p>
+                <p class="img-empty-hint">Bạn có thể tạo tối đa 10 ảnh cho mỗi bài đăng</p>
+              </div>
+            </div>
+
             <!-- AI Meta -->
             <div class="ai-meta">
               <span><i class="pi pi-cpu" /> {{ generatedData.ai_model }}</span>
@@ -362,7 +489,19 @@
             <div v-if="previewHashtags.length" class="fb-hashtags">
               <span v-for="(t, i) in previewHashtags" :key="i" class="fb-hash">#{{ t }}</span>
             </div>
-            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="fb-image" />
+            <!-- Multi-image carousel or single thumbnail -->
+            <div v-if="previewImages.length > 1" class="fb-carousel">
+              <div class="carousel-track" :style="{ transform: `translateX(-${fbCarouselIdx * 100}%)` }">
+                <img v-for="(img, i) in previewImages" :key="i" :src="img" class="fb-image" />
+              </div>
+              <div class="carousel-dots">
+                <span v-for="(_, i) in previewImages" :key="i" class="carousel-dot" :class="{ active: fbCarouselIdx === i }" @click="fbCarouselIdx = i" />
+              </div>
+              <button v-if="fbCarouselIdx > 0" class="carousel-nav carousel-nav--prev" @click="fbCarouselIdx--"><i class="pi pi-chevron-left" /></button>
+              <button v-if="fbCarouselIdx < previewImages.length - 1" class="carousel-nav carousel-nav--next" @click="fbCarouselIdx++"><i class="pi pi-chevron-right" /></button>
+            </div>
+            <img v-else-if="previewImages.length === 1" :src="previewImages[0]" class="fb-image" />
+            <img v-else-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="fb-image" />
             <div class="fb-stats">
               <span><span class="fb-emoji">👍❤️</span> 42</span>
               <span>5 bình luận · 2 chia sẻ</span>
@@ -381,7 +520,19 @@
               <span class="ig-username">{{ previewUsername }}</span>
               <i class="pi pi-ellipsis-h ig-more" />
             </div>
-            <img v-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="ig-image" />
+            <!-- Multi-image carousel or single -->
+            <div v-if="previewImages.length > 1" class="ig-carousel">
+              <div class="carousel-track" :style="{ transform: `translateX(-${igCarouselIdx * 100}%)` }">
+                <img v-for="(img, i) in previewImages" :key="i" :src="img" class="ig-image" />
+              </div>
+              <div class="carousel-dots">
+                <span v-for="(_, i) in previewImages" :key="i" class="carousel-dot" :class="{ active: igCarouselIdx === i }" @click="igCarouselIdx = i" />
+              </div>
+              <button v-if="igCarouselIdx > 0" class="carousel-nav carousel-nav--prev" @click="igCarouselIdx--"><i class="pi pi-chevron-left" /></button>
+              <button v-if="igCarouselIdx < previewImages.length - 1" class="carousel-nav carousel-nav--next" @click="igCarouselIdx++"><i class="pi pi-chevron-right" /></button>
+            </div>
+            <img v-else-if="previewImages.length === 1" :src="previewImages[0]" class="ig-image" />
+            <img v-else-if="generatedData.thumbnail_url" :src="generatedData.thumbnail_url" class="ig-image" />
             <div v-else class="ig-image-placeholder"><i class="pi pi-image" /></div>
             <div class="ig-actions">
               <div class="ig-actions-left">
@@ -849,12 +1000,20 @@ export default {
       },
       seoArticle: {},
       showHtmlSource: false,
-      // Image generation
+      // Image generation (SEO)
       isRegeneratingThumb: false,
       isGenImage: false,
       imgGenContext: '',
       imgGenStyle: 'modern',
       articleImages: [],
+      // Social Images
+      socialImages: [],
+      socialImgPrompt: '',
+      socialImgStyle: 'modern',
+      socialImgRatio: '1:1',
+      isGenSocialImg: false,
+      fbCarouselIdx: 0,
+      igCarouselIdx: 0,
     }
   },
   computed: {
@@ -882,6 +1041,9 @@ export default {
     },
     previewHashtags() {
       return this.generatedData.contents[this.previewPlatform]?.hashtags || []
+    },
+    previewImages() {
+      return this.socialImages.filter(img => !img.loading && img.url).map(img => img.url)
     },
     seoScoreClass() {
       const s = this.seoArticle.seo_score || 0
@@ -1015,6 +1177,10 @@ export default {
       this.previewPlatform = ''
       this.publishResult = null
       this.form.topic = ''
+      this.socialImages = []
+      this.socialImgPrompt = ''
+      this.fbCarouselIdx = 0
+      this.igCarouselIdx = 0
     },
 
     // ═══ SEO Methods ═══
@@ -1104,6 +1270,115 @@ export default {
     insertImgToContent(url, alt) {
       const imgTag = `\n<figure>\n  <img src="${url}" alt="${alt || 'Article image'}" width="100%" />\n  <figcaption>${alt || ''}</figcaption>\n</figure>\n`
       this.seoArticle.content = (this.seoArticle.content || '') + imgTag
+    },
+
+    // ═══ Social Multi-Image Methods ═══
+    async generateSocialImage() {
+      if (this.socialImages.length >= 10) return
+      const prompt = this.socialImgPrompt || this.form.topic
+      if (!prompt) return
+
+      const idx = this.socialImages.length
+      this.socialImages.push({ loading: true, prompt, style: this.socialImgStyle, ratio: this.socialImgRatio, url: null })
+      this.isGenSocialImg = true
+
+      try {
+        const { data } = await axios.post('/content-studio/article-image', {
+          topic: this.form.topic,
+          context: prompt,
+          style: this.socialImgStyle,
+        }, { timeout: 90000 })
+
+        if (data.success && data.image_url) {
+          this.socialImages[idx] = { loading: false, prompt, style: this.socialImgStyle, ratio: this.socialImgRatio, url: data.image_url }
+        } else {
+          this.socialImages.splice(idx, 1)
+          alert(data.message || 'Không thể tạo ảnh')
+        }
+      } catch (e) {
+        this.socialImages.splice(idx, 1)
+        alert('Lỗi: ' + (e.response?.data?.message || e.message))
+      } finally {
+        this.isGenSocialImg = false
+      }
+    },
+
+    async batchGenerateImages(count) {
+      const available = 10 - this.socialImages.length
+      const toGen = Math.min(count, available)
+      if (toGen <= 0) return
+
+      const prompt = this.socialImgPrompt || this.form.topic
+      if (!prompt) { alert('Vui lòng nhập mô tả ảnh hoặc chủ đề'); return }
+
+      this.isGenSocialImg = true
+
+      // Add placeholders
+      const startIdx = this.socialImages.length
+      for (let i = 0; i < toGen; i++) {
+        this.socialImages.push({ loading: true, prompt: `${prompt} (${i + 1}/${toGen})`, style: this.socialImgStyle, ratio: this.socialImgRatio, url: null })
+      }
+
+      // Generate sequentially to avoid overloading
+      for (let i = 0; i < toGen; i++) {
+        try {
+          const { data } = await axios.post('/content-studio/article-image', {
+            topic: this.form.topic,
+            context: `${prompt} — variation ${i + 1}`,
+            style: this.socialImgStyle,
+          }, { timeout: 90000 })
+
+          if (data.success && data.image_url) {
+            this.socialImages[startIdx + i] = {
+              loading: false,
+              prompt: `${prompt} (${i + 1})`,
+              style: this.socialImgStyle,
+              ratio: this.socialImgRatio,
+              url: data.image_url,
+            }
+          } else {
+            this.socialImages[startIdx + i] = { loading: false, prompt: '', style: '', ratio: '', url: null, failed: true }
+          }
+        } catch (e) {
+          this.socialImages[startIdx + i] = { loading: false, prompt: '', style: '', ratio: '', url: null, failed: true }
+        }
+      }
+
+      // Clean up failed items
+      this.socialImages = this.socialImages.filter(img => !img.failed)
+      this.isGenSocialImg = false
+    },
+
+    async regenerateSingleImage(idx) {
+      const old = this.socialImages[idx]
+      this.socialImages[idx] = { ...old, loading: true }
+      try {
+        const { data } = await axios.post('/content-studio/article-image', {
+          topic: this.form.topic,
+          context: old.prompt || this.form.topic,
+          style: old.style || this.socialImgStyle,
+        }, { timeout: 90000 })
+
+        if (data.success && data.image_url) {
+          this.socialImages[idx] = { ...old, loading: false, url: data.image_url }
+        } else {
+          this.socialImages[idx] = { ...old, loading: false }
+        }
+      } catch (e) {
+        this.socialImages[idx] = { ...old, loading: false }
+      }
+    },
+
+    removeSocialImage(idx) {
+      this.socialImages.splice(idx, 1)
+      // Reset carousel indices
+      if (this.fbCarouselIdx >= this.socialImages.length) this.fbCarouselIdx = Math.max(0, this.socialImages.length - 1)
+      if (this.igCarouselIdx >= this.socialImages.length) this.igCarouselIdx = Math.max(0, this.socialImages.length - 1)
+    },
+
+    copySocialImgUrl(url) {
+      navigator.clipboard.writeText(url)
+      alert('Đã copy URL ảnh!')
     },
   },
 }
@@ -1660,5 +1935,159 @@ export default {
   .img-gen-row { flex-direction: column; }
   .img-gen-style { width: 100%; }
   .img-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ═══ SOCIAL MULTI-IMAGE GALLERY ═══ */
+.social-images-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1.5px solid #f1f5f9;
+}
+.section-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.35rem;
+}
+.section-label {
+  font-size: 0.82rem; font-weight: 700; color: #1e293b; margin: 0;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.section-label i { color: #8b5cf6; font-size: 0.78rem; }
+.img-hint { font-size: 0.62rem; color: #94a3b8; }
+
+/* Toolbar */
+.img-gen-toolbar {
+  display: flex; gap: 0.35rem; align-items: center; margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.img-prompt-input { flex: 1; min-width: 180px; font-size: 0.78rem; }
+.img-style-select { width: 110px; font-size: 0.72rem; }
+.img-ratio-select { width: 100px; font-size: 0.72rem; }
+.img-gen-btn-sm { white-space: nowrap; }
+
+/* Batch row */
+.batch-row { display: flex; gap: 0.35rem; margin-bottom: 0.65rem; flex-wrap: wrap; }
+.batch-btn {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.3rem 0.65rem; border-radius: 7px;
+  border: 1.5px solid #e2e8f0; background: white;
+  font-size: 0.68rem; font-weight: 600; color: #64748b;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.batch-btn:hover { border-color: #8b5cf6; color: #8b5cf6; }
+.batch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.batch-btn i { font-size: 0.6rem; }
+.batch-btn--danger:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+
+/* Image Gallery */
+.social-img-gallery {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.5rem;
+}
+.social-img-card {
+  position: relative; border-radius: 10px; overflow: hidden;
+  aspect-ratio: 1; background: #f8fafc;
+  border: 1.5px solid #f1f5f9; transition: all 0.2s;
+}
+.social-img-card:hover { border-color: #e2e8f0; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+.social-img-card.generating { border-color: #c4b5fd; }
+
+.social-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Loading state */
+.img-loading-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 0.3rem; color: #8b5cf6;
+}
+.img-loading-state i { font-size: 1.2rem; }
+.img-loading-state span { font-size: 0.6rem; font-weight: 600; }
+
+/* Overlay */
+.img-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.social-img-card:hover .img-overlay { opacity: 1; }
+.img-overlay-actions { display: flex; gap: 0.35rem; }
+.img-act-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15);
+  color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 0.72rem;
+}
+.img-act-btn:hover { background: rgba(255,255,255,0.3); }
+.img-act-btn--danger:hover { background: rgba(239,68,68,0.7); }
+
+/* Card info */
+.img-card-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.2rem 0.35rem; background: rgba(0,0,0,0.5);
+  font-size: 0.5rem; color: rgba(255,255,255,0.8);
+}
+.img-idx {
+  width: 16px; height: 16px; border-radius: 4px;
+  background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.5rem;
+}
+.img-card-style { text-transform: capitalize; font-weight: 500; }
+
+/* Add card */
+.add-card {
+  border: 2px dashed #e2e8f0; background: transparent;
+  cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0.25rem;
+  color: #94a3b8; transition: all 0.2s; font-family: inherit;
+}
+.add-card:hover { border-color: #8b5cf6; color: #8b5cf6; }
+.add-card:disabled { opacity: 0.5; cursor: not-allowed; }
+.add-card i { font-size: 1.1rem; }
+.add-card span { font-size: 0.6rem; font-weight: 600; }
+
+/* Empty */
+.social-img-empty {
+  text-align: center; padding: 1.5rem; background: #fafbfc;
+  border-radius: 10px; border: 1.5px dashed #e2e8f0;
+}
+.social-img-empty i { font-size: 1.5rem; color: #cbd5e1; margin-bottom: 0.4rem; display: block; }
+.social-img-empty p { font-size: 0.72rem; color: #94a3b8; margin: 0 0 0.15rem; }
+.img-empty-hint { font-size: 0.62rem !important; color: #cbd5e1 !important; }
+
+/* ═══ CAROUSEL (Preview) ═══ */
+.fb-carousel, .ig-carousel {
+  position: relative; overflow: hidden; border-radius: 0;
+}
+.carousel-track {
+  display: flex; transition: transform 0.35s ease;
+}
+.carousel-track img {
+  flex-shrink: 0; width: 100%;
+}
+.carousel-dots {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px;
+}
+.carousel-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.45); cursor: pointer;
+  transition: all 0.2s;
+}
+.carousel-dot.active { background: white; transform: scale(1.2); }
+.carousel-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(0,0,0,0.4); border: none; color: white;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; transition: all 0.15s;
+}
+.carousel-nav:hover { background: rgba(0,0,0,0.65); }
+.carousel-nav--prev { left: 6px; }
+.carousel-nav--next { right: 6px; }
+
+@media (max-width: 640px) {
+  .img-gen-toolbar { flex-direction: column; }
+  .img-prompt-input { min-width: 100%; }
+  .social-img-gallery { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

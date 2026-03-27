@@ -7,3 +7,6 @@ Schedule::command('migrate:fresh --seed --force')->dailyAt('00:00');
 
 // Fetch AI trends from configured monitors
 Schedule::command('trends:fetch')->everyThirtyMinutes();
+
+// Process outbound sales follow-ups
+Schedule::command('outbound:process-followups')->hourly();

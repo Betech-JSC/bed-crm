@@ -20,21 +20,45 @@ class EmailAutomationsController extends Controller
 
     public function index(): Response
     {
+        $accountId = Auth::user()->account_id;
+        $baseQuery = EmailAutomation::where('account_id', $accountId);
+
+        // Stats
+        $allAutomations = (clone $baseQuery)->get();
+        $stats = [
+            'total' => $allAutomations->count(),
+            'active' => $allAutomations->where('status', 'active')->count(),
+            'total_processed' => $allAutomations->sum('contacts_processed'),
+            'total_emails' => $allAutomations->sum('emails_sent'),
+            'by_status' => $allAutomations->groupBy('status')->map->count(),
+        ];
+
+        $automations = $baseQuery
+            ->withCount(['steps'])
+            ->when(Request::input('search'), fn ($q, $search) =>
+                $q->where('name', 'like', "%{$search}%")
+            )
+            ->when(Request::input('status'), fn ($q, $status) =>
+                $q->where('status', $status)
+            )
+            ->orderBy('created_at', 'desc')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (EmailAutomation $a) => [
+                'id' => $a->id,
+                'name' => $a->name,
+                'trigger_type' => $a->trigger_type,
+                'status' => $a->status,
+                'steps_count' => $a->steps_count,
+                'contacts_processed' => $a->contacts_processed,
+                'emails_sent' => $a->emails_sent,
+                'created_at' => $a->created_at->format('d/m/Y H:i'),
+            ]);
+
         return Inertia::render('EmailAutomations/Index', [
-            'automations' => Auth::user()->account->emailAutomations()
-                ->withCount(['steps'])
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(fn ($automation) => [
-                    'id' => $automation->id,
-                    'name' => $automation->name,
-                    'trigger_type' => $automation->trigger_type,
-                    'status' => $automation->status,
-                    'steps_count' => $automation->steps_count,
-                    'contacts_processed' => $automation->contacts_processed,
-                    'emails_sent' => $automation->emails_sent,
-                    'created_at' => $automation->created_at->format('Y-m-d H:i'),
-                ]),
+            'automations' => $automations,
+            'stats' => $stats,
+            'filters' => Request::only('search', 'status'),
         ]);
     }
 
@@ -65,12 +89,11 @@ class EmailAutomationsController extends Controller
 
         $automation = EmailAutomation::create($validated);
 
-        return Redirect::route('email-automations.show', $automation)->with('success', 'Email automation created.');
+        return Redirect::route('email-automations.show', $automation)->with('success', 'Automation đã tạo thành công.');
     }
 
     public function show(EmailAutomation $emailAutomation): Response
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -104,16 +127,12 @@ class EmailAutomationsController extends Controller
             'templates' => Auth::user()->account->emailTemplates()
                 ->where('is_active', true)
                 ->get()
-                ->map(fn ($template) => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                ]),
+                ->map(fn ($t) => ['id' => $t->id, 'name' => $t->name]),
         ]);
     }
 
     public function edit(EmailAutomation $emailAutomation): Response
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -138,7 +157,6 @@ class EmailAutomationsController extends Controller
 
     public function update(EmailAutomation $emailAutomation): RedirectResponse
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -152,12 +170,11 @@ class EmailAutomationsController extends Controller
 
         $emailAutomation->update($validated);
 
-        return Redirect::route('email-automations.show', $emailAutomation)->with('success', 'Email automation updated.');
+        return Redirect::route('email-automations.show', $emailAutomation)->with('success', 'Automation đã cập nhật.');
     }
 
     public function activate(EmailAutomation $emailAutomation): RedirectResponse
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -165,12 +182,11 @@ class EmailAutomationsController extends Controller
         $emailAutomation->status = EmailAutomation::STATUS_ACTIVE;
         $emailAutomation->save();
 
-        return Redirect::back()->with('success', 'Automation activated.');
+        return Redirect::back()->with('success', 'Automation đã kích hoạt.');
     }
 
     public function pause(EmailAutomation $emailAutomation): RedirectResponse
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
@@ -178,18 +194,17 @@ class EmailAutomationsController extends Controller
         $emailAutomation->status = EmailAutomation::STATUS_PAUSED;
         $emailAutomation->save();
 
-        return Redirect::back()->with('success', 'Automation paused.');
+        return Redirect::back()->with('success', 'Automation đã tạm dừng.');
     }
 
     public function destroy(EmailAutomation $emailAutomation): RedirectResponse
     {
-        // Ensure automation belongs to user's account
         if ($emailAutomation->account_id !== Auth::user()->account_id) {
             abort(403);
         }
 
         $emailAutomation->delete();
 
-        return Redirect::route('email-automations.index')->with('success', 'Email automation deleted.');
+        return Redirect::route('email-automations.index')->with('success', 'Automation đã xóa.');
     }
 }

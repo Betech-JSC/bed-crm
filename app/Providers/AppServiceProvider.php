@@ -14,6 +14,7 @@ use App\Listeners\LogDealStageTransition;
 use App\Listeners\RecordLeadFirstResponse;
 use App\Listeners\StartLeadSLATracking;
 use App\Listeners\TriggerLeadWorkflow;
+use App\Listeners\TriggerOutboundCampaign;
 use App\Listeners\AI\AiAutoScoreListener;
 use App\Listeners\AI\AiDealInsightListener;
 use App\Models\Deal;
@@ -85,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
         // Lead events
         Event::listen(LeadCreated::class, StartLeadSLATracking::class);
         Event::listen(LeadCreated::class, TriggerLeadWorkflow::class);
+        Event::listen(LeadCreated::class, TriggerOutboundCampaign::class);
 
         // Activity events
         Event::listen(ActivityLogged::class, RecordLeadFirstResponse::class);
