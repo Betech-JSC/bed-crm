@@ -55,3 +55,5 @@ require __DIR__ . '/modules/social-proof.php';
 require __DIR__ . '/modules/growth-tools.php';
 require __DIR__ . '/modules/advanced-modules.php';
 require __DIR__ . '/modules/ai-data-hub.php';
+require __DIR__ . '/modules/brand-foundation.php';
+require __DIR__ . '/modules/showcase.php';

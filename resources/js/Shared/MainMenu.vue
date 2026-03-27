@@ -31,6 +31,7 @@
       <MenuItem href="/contracts" icon="pi pi-file-check" :active="isUrl('contracts')">Hợp đồng</MenuItem>
       <MenuItem href="/approvals" icon="pi pi-verified" :active="isUrl('approvals') && !isUrl('approvals/')">Phê duyệt</MenuItem>
       <MenuItem href="/dropship" icon="pi pi-truck" :active="isUrl('dropship')">Dropship</MenuItem>
+      <MenuItem href="/showcase" icon="pi pi-globe" :active="isUrl('showcase')">Showcase Finder</MenuItem>
     </div>
 
     <!-- ═══ Loyalty (CSKH) ═══ -->
@@ -88,6 +89,7 @@
       <MenuItem href="/video-ads" icon="pi pi-video" :active="isUrl('video-ads')">Video Ads AI</MenuItem>
       <MenuItem href="/ai-data-hub" icon="pi pi-database" :active="isUrl('ai-data-hub')">AI Data Hub</MenuItem>
       <MenuItem href="/ai-agents" icon="pi pi-sparkles" :active="isUrl('ai-agents')">AI Agents</MenuItem>
+      <MenuItem href="/brand-foundation" icon="pi pi-palette" :active="isUrl('brand-foundation')">Brand Foundation</MenuItem>
     </div>
 
     <!-- ═══ Organization ═══ -->
